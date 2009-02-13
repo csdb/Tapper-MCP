@@ -192,11 +192,7 @@ Put start time in DB, redirect STDIN and start runtest and wait for completion.
 method runtest_handling ($id, $system, $fh)
 {
         # the test run is controlled fully by this simple function
-        my $precond_handler = new Artemis::MCP::Precondition;
-        my $retval          = $precond_handler->handle_preconditions($id);
-        $self->log->debug("generating preconditions for runtest $id returned: $retval");
-        return $retval if $retval;
-        
+        my $retval;
         my $installer       = new Artemis::MCP::Installer;
         $retval             = $installer->install($id, $fh);
         
