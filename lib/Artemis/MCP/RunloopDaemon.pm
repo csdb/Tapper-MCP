@@ -5,7 +5,6 @@ use warnings;
 
 # TODO: IMHO then the LOG should be made "uninitialization aware", eg.:  "string".($maybe_undef || 'fallback')
 
-use DBI;
 use Carp qw(cluck);
 use File::Path;
 use Log::Log4perl;
