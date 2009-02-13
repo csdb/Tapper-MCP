@@ -10,7 +10,7 @@ use Socket;
 use YAML;
 use Artemis::MCP::Config;
 use Artemis::Model 'model';
-use Artemis::Net::Server;
+use Artemis::MCP::Net;
 
 extends 'Artemis';
 
@@ -126,7 +126,7 @@ method install($testrun_id, $fh)
         $retval          = $producer->write_config($yaml, "$hostname-install");
         return $retval if $retval;
 
-        my $remote   = new Artemis::Net::Server;
+        my $remote   = new Artemis::MCP::Net;
         $self->log->debug("Write grub file for $hostname");
         $retval      =  $remote->write_grub_file($hostname);
         return $retval if $retval;

@@ -202,7 +202,7 @@ method runtest_handling ($id, $system, $fh)
         
         my $report_id;
         my $error;
-        my $net             = new Artemis::Net::Server;
+        my $net             = new Artemis::MCP::Net;
         if ($retval) {
                 ($error, $report_id) = $net->tap_report_send($id, [{error => 1, msg => $retval}]);
                 $net->upload_files($report_id, $id);
@@ -342,7 +342,7 @@ failure.
 
 method console_open($system, $testrunid)
 {
-        my $net = Artemis::Net::Server->new();
+        my $net = Artemis::MCP::Net->new();
         my $console = $net->conserver_connect($system);
         return $console if not ref $console eq 'IO::Socket::INET';
         $self->readset->add($console);
@@ -379,7 +379,7 @@ method console_close($console)
           or return "Can't close console file:$!";
         $self->consolefiles->[$console->fileno()] = undef;
         $self->readset->remove($console);
-        my $net = Artemis::Net::Server->new();
+        my $net = Artemis::MCP::Net->new();
         $net->conserver_disconnect($console);
         return 0;
 };
