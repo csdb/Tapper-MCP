@@ -11,7 +11,6 @@ use Moose;
 use Socket;
 use YAML;
 
-#use Artemis;
 use Artemis::Model 'model';
 use Artemis::Config;
 
@@ -52,7 +51,7 @@ method parse_virt_preconditions($config, $virt)
         unshift @{$config->{preconditions}}, $virt->{host}->{root};
         push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}} if $virt->{host}->{preconditions};
         return "can't detect architecture of one guest, so I can't install PRC" 
-          if not Artemis->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
+          if not $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
         push @{$config->{preconditions}}, {precondition_type => 'package', 
                                            filename => basename($self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}}),
                                            path     => dirname($self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}}),
@@ -107,13 +106,13 @@ method parse_virt_preconditions($config, $virt)
                 } elsif ($guest->{testprogram}->{runtime}){
                         push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{runtime};
                 } else {
-                        push @{$main_prc_config->{timeouts}}, Artemis->cfg->{times}{test_runtime_default};
+                        push @{$main_prc_config->{timeouts}}, $self->cfg->{times}{test_runtime_default};
                 }
                 
                 if ($guest->{testprogram}) {
                         my $prc_config->{precondition_type} = 'prc';
 
-                        $prc_config->{artemis_package} = Artemis->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
+                        $prc_config->{artemis_package} = $self->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
                         return "can't detect architecture of one guest, so I can't install PRC" if not $prc_config->{artemis_package};
 
                         # put guest test program in guest prc config
@@ -125,9 +124,9 @@ method parse_virt_preconditions($config, $virt)
                         $prc_config->{config}->{timeout_after_testprogram}=$guest->{testprogram}->{timeout_after_testprogram} 
                           if $guest->{testprogram}->{timeout_after_testprogram};
                         $prc_config->{config}->{guest_number} = ++$guest_number;
-                        $prc_config->{config}->{runtime} = Artemis->cfg->{times}{test_runtime_default};
+                        $prc_config->{config}->{runtime} = $self->cfg->{times}{test_runtime_default};
                         $prc_config->{config}->{runtime} = $guest->{testprogram}->{runtime} ||
-                          Artemis->cfg->{times}{test_runtime_default};
+                          $self->cfg->{times}{test_runtime_default};
 
                         push @{$config->{preconditions}}, $prc_config;
 
@@ -243,16 +242,16 @@ method get_common_config($testrun)
         return "Testrun $testrun not found in the database" if not $search;
         
 
-        $config->{paths}                     = Artemis->cfg->{paths};
-        $config->{times}                     = Artemis->cfg->{times};
-        $config->{files}                     = Artemis->cfg->{files};
-        $config->{mcp_host}                  = Artemis->cfg->{mcp_host};
-        $config->{mcp_port}                  = Artemis->cfg->{mcp_port};
-        $config->{report_server}             = Artemis->cfg->{report_server};
-        $config->{report_port}               = Artemis->cfg->{report_port};
-        $config->{report_api_port}           = Artemis->cfg->{report_api_port};
-        $config->{prc_nfs_server}            = Artemis->cfg->{prc_nfs_server} 
-          if Artemis->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
+        $config->{paths}                     = $self->cfg->{paths};
+        $config->{times}                     = $self->cfg->{times};
+        $config->{files}                     = $self->cfg->{files};
+        $config->{mcp_host}                  = $self->cfg->{mcp_host};
+        $config->{mcp_port}                  = $self->cfg->{mcp_port};
+        $config->{report_server}             = $self->cfg->{report_server};
+        $config->{report_port}               = $self->cfg->{report_port};
+        $config->{report_api_port}           = $self->cfg->{report_api_port};
+        $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server} 
+          if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun;
         return ($config)
 };
@@ -301,7 +300,7 @@ Write the config created before into appropriate file.
 
 method write_config($config, $cfg_file)
 {
-        $cfg_file = Artemis->cfg->{paths}{localdata_path}.$cfg_file if not $cfg_file =~ m(/);
+        $cfg_file = $self->cfg->{paths}{localdata_path}.$cfg_file if not $cfg_file =~ m(/);
         open (FILE, ">", $cfg_file)
           or return "Can't open config file $cfg_file for writing: $!";
         print FILE $config;
