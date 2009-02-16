@@ -12,18 +12,18 @@ use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
 use Test::MockModule;
 
-use Artemis::Installer::Server;
+use Artemis::MCP::Installer;
 use Artemis::Model 'model';
 use Artemis::Schema::TestTools;
 
 # for mocking
-use Artemis::Config::Producer;
-use Artemis::Net::Server;
+use Artemis::MCP::Config;
+use Artemis::MCP::Net;
 
 
 use Test::More tests => 11;
 
-BEGIN { use_ok('Artemis::Net::Server'); }
+BEGIN { use_ok('Artemis::MCP::Net'); }
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -40,7 +40,7 @@ log4perl.appender.root.layout = SimpleLayout";
 Log::Log4perl->init(\$string);
 
 
-my $srv = new Artemis::Installer::Server;
+my $srv = new Artemis::MCP::Installer;
 
 open my $fh, "<","t/commands_for_installer_server/success.txt" or die "Can't open commands file for successful installation:$!";
 my $report = $srv->wait_for_systeminstaller(4, $fh);
@@ -59,25 +59,25 @@ is($hostname, 'bullock', 'Getting hostname');
 
 
 {
-        my $mock_producer = new Test::MockModule('Artemis::Config::Producer');
+        my $mock_producer = new Test::MockModule('Artemis::MCP::Config');
         $mock_producer->mock('create_config', sub { return (1,"create"); });
-        my $producer = new Artemis::Config::Producer;
+        my $producer = new Artemis::MCP::Config;
         my ($retval, $yaml) = $producer->create_config(4, 'install');
         is ($retval, 1, 'Mocking create_config');
         is ($yaml, 'create', 'Mocking create_config, yaml part');
-        my $mock_srv = new Artemis::Installer::Server;
+        my $mock_srv = new Artemis::MCP::Installer;
         $retval = $mock_srv->install(4, \*STDIN);
         is($retval, 'create', 'Install failing to get config');
 
         $mock_producer->mock('create_config', sub { return (0,"yaml"); });
         $mock_producer->mock('write_config', sub { return ("write"); });
-        $producer = new Artemis::Config::Producer;
+        $producer = new Artemis::MCP::Config;
         $retval = $producer->write_config('install');
         is($retval, 'write','Mocking write_config');
         $retval = $mock_srv->install(4, \*STDIN);
         is($retval, 'write', 'Install failing to write config');
 
-        my $mock_net = new Test::MockModule('Artemis::Net::Server');
+        my $mock_net = new Test::MockModule('Artemis::MCP::Net');
         $mock_producer->mock('write_config', sub { return (0); });
         $mock_net->mock('write_grub_file', sub { return "grub_file"; });
         $retval = $mock_srv->install(4, \*STDIN);

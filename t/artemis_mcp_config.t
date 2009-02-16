@@ -10,7 +10,7 @@ use Artemis::Schema::TestTools;
 
 use Test::More tests => 6; 
 
-BEGIN { use_ok('Artemis::Config::Producer'); }
+BEGIN { use_ok('Artemis::MCP::Config'); }
 
 
 # -----------------------------------------------------------------------------------------------------------------
@@ -18,8 +18,8 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 
-my $producer = new Artemis::Config::Producer;
-isa_ok($producer, "Artemis::Config::Producer", 'Producer object created');
+my $producer = new Artemis::MCP::Config;
+isa_ok($producer, "Artemis::MCP::Config", 'Producer object created');
 
 my ($error, $yaml) = $producer->create_config(2,"install");
 is($error,0, 'Yaml created');
