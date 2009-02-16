@@ -117,7 +117,7 @@ method install($testrun_id, $fh)
         my $hostname = $self->get_hostname_for_hardware_id($hardwaredb_systems_id);
         my $retval;
 
-        my $producer = new Artemis::Config::Producer;
+        my $producer = new Artemis::MCP::Config;
         $self->log->debug("Create install config for $hostname");
 
         my $yaml;

@@ -16,11 +16,11 @@ use Artemis::Config;
 
 =head1 NAME
 
-Artemis::Config::Producer - Generate config for a certain test run
+Artemis::MCP::Config - Generate config for a certain test run
 
 =head1 SYNOPSIS
 
- use Artemis::Config::Producer;
+ use Artemis::MCP::Config;
 
 =head1 FUNCTIONS
 
