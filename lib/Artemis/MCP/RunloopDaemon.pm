@@ -17,7 +17,7 @@ use IO::Socket::INET;
 use Artemis::Model 'model';
 use Artemis::Config;
 use Artemis::Scheduler;
-use Artemis::MCP::Precondition;
+use Artemis::MCP::Installer;
 use Moose;
 
 extends 'Artemis';
