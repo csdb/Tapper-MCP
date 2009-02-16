@@ -1,0 +1,58 @@
+use strict;
+use warnings;
+use Module::Build;
+
+# stolen from http://search.cpan.org/dist/App-Install/lib/App/Install.pm#Specify_files_to_install
+
+my $build_class = 'Module::Build';
+$build_class    = $build_class->subclass(code => <<'HERE'
+ sub process_libauto_files {
+        system("mkdir -p blib/lib/auto");
+        system("cp -ra lib/auto/* blib/lib/auto/");
+        system("chmod -R u+w blib/lib/auto/*"); # dirty hack around ./Build dist with wrong perms
+ }
+HERE
+);
+
+my $builder = $build_class->new
+    (
+     module_name         => 'Artemis',
+     license             => 'restrictive',
+     dist_author         => 'OSRC SysInt Team <osrc-sysint@elbe.amd.com>',
+     dist_version_from   => 'lib/Artemis/MCP.pm',
+     dist_abstract       => 'Automatic testing environment',
+     build_requires => {
+                        'Test::Fixture::DBIC::Schema' => 0,
+                        'Test::MockModule'            => 0,
+                        'Test::More'                  => 0,
+                        'Artemis::Test'               => '2.010005',
+                       },
+     requires => {
+                  'perl'               => '5.010',
+                  'Artemis::Config'    => '2.0100031',
+                  'Artemis::Model'     => '2.010003',
+                  'Artemis::Schema'    => '2.010018',
+                  'Carp'               => 0,
+                  'Data::Dumper'       => 0,
+                  'File::Basename'     => 0,
+                  'File::Path'         => 0,
+                  'File::Spec'         => 0,
+                  'IO::Handle'         => 0,
+                  'IO::Select'         => 0,
+                  'IO::Socket::INET'   => 0,
+                  'Log::Log4perl'      => 0,
+                  'Method::Signatures' => 0,
+                  'Moose'              => 0,
+                  'RPC::XML::Server'   => 0,
+                  'RPC::XML'           => 0,
+                  'Socket'             => 0,
+                  'YAML'               => 0,
+                  'parent'             => 0,
+                 },
+     add_to_cleanup      => [ 'Artemis-*' ],
+    );
+
+#$builder->add_build_element('libauto');
+$builder->create_build_script();
+
+1;
