@@ -1,0 +1,124 @@
+---
+
+# -------------------- users
+
+- schema: User
+  name: mhentsc3
+  data:
+    id: 12
+    name: Maik Hentsche
+    login: mhentsc3
+    password: verysecret
+
+# -------------------- topics
+
+- schema: Topic
+  name: software
+  data:
+    name: Software
+    description: any non-kernel software, e.g., libraries, programs
+
+# -------------------- testruns "perfmon", "lmbench"
+
+- schema: Testrun
+  name: Xen
+  data:
+    id: 1
+    owner_user_id: 12
+    shortname: Xen
+    notes: Xen test
+    topic_name: Software
+    test_program: /usr/local/share/artemis/testsuites/perfmon/t/do_test.sh
+
+
+# -------------------- preconditions
+
+
+
+# ------------------------------------------------------------
+# 
+#    Virtualisation test (i.e. Xen and KVM)
+#
+# ------------------------------------------------------------
+
+- schema: Testrun
+  name: Xen
+  data:
+    id: 2
+    owner_user_id: 12
+    shortname: KVM
+    notes: KVM test
+    topic_name: Software
+
+
+# -------------------- preconditions
+
+- schema: Precondition
+  name: KVMtest
+  data:
+    id: 8
+    shortname: KVM
+    precondition: |
+       name: automatically generated KVM test
+       precondition_type: virt
+       host:
+         preconditions:
+         - filename: linux-2.6.23.9.tar.gz
+           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           precondition_type: package
+         - filename: kvm.tar.gz
+           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           precondition_type: package
+         - line: natrium:/vol/osrc_home/ /home nfs auto,defaults 0 0
+           precondition_type: fstab
+         root:
+           image: suse/suse_sles10_64b_smp_raw.tar.gz
+           mount: /
+           partition: testing
+           arch: linux64
+           precondition_type: image
+       guests:
+       - config:
+           dest: /kvm/images
+           name: /bin/true
+           precondition_type: copyfile
+           protocol: local
+           execconf: /usr/share/artemis/packages/mhentsc3/startkvm.pl
+         root:
+           dest: /kvm/images
+           mountfile: /kvm/images/raw.img
+           mounttype: raw
+           name: osko:/export/image_files/official_testing/redhat_rhel5u2_64b_smp_up_qcow.img
+           precondition_type: copyfile
+           protocol: nfs
+           arch: linux64
+         testprogram:
+           execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+
+- schema: Precondition
+  name: installer stop
+  data:
+    id: 10
+    precondition: |
+      precondition_type: installer_stop
+
+
+
+# -------------------- "KVM" <== "KVMtest"
+
+- schema: TestrunPrecondition
+  name: 1st precondition for KVM
+  data:
+    testrun_id: 2
+    precondition_id: 8
+    succession: 1
+
+
+- schema: TestrunPrecondition
+  name: 2nd precondition for KVM
+  data:
+    testrun_id: 2
+    precondition_id: 10
+    succession: 2
+
+
