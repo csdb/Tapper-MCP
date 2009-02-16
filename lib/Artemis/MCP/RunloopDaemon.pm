@@ -70,7 +70,7 @@ has consolefiles => (is  => 'rw',
 has server       => (is      => 'rw');
 has readset      => (is      => 'rw');
 has lastrun      => (is      => 'rw',
-                     defaulf => sub{ 0;});
+                     default => sub{ 0 });
 
 
 # ----------------------------- Methods ------------------------------
