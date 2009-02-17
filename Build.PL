@@ -16,7 +16,7 @@ HERE
 
 my $builder = $build_class->new
     (
-     module_name         => 'Artemis',
+     module_name         => 'Artemis::MCP',
      license             => 'restrictive',
      dist_author         => 'OSRC SysInt Team <osrc-sysint@elbe.amd.com>',
      dist_version_from   => 'lib/Artemis/MCP.pm',
