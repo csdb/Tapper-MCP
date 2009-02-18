@@ -53,8 +53,9 @@ method wait_for_systeminstaller($testrun_id, $fh)
                 $SIG{ALRM}=sub{die("timeout of $timeout seconds reached while booting system installer");};
                 $timeout=0 if not $timeout; # to get rid of warnings in case get_timeout failed above
                 alarm($timeout);
-
-                        my $msg = <$fh>;
+                
+                my $msg = <$fh>;
+                chomp $msg;
         
                 if ($msg!~/start-install/) {
                         $self->log->error( qq(Expected start-install signal from System Installer but received "$msg"));
