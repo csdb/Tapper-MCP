@@ -258,14 +258,13 @@ method get_common_config($testrun)
 
 =head2 create_config
 
-Create a configuration for the current status of the test machine and copy it
-where the TFTP server expects it. All config information are taken from the
-database based upon the given testrun id.
+Create a configuration for the current status of the test machine. All config
+information are taken from the database based upon the given testrun id.
 
 @param int    - testrunid
 
-@returnlist success - (0, yaml string)
-@returnlist error   - (1, error string)
+@returnlist success - config (hash reference)
+@returnlist error   - error string
 
 =cut
 
@@ -275,12 +274,7 @@ method create_config($testrunid)
         return (1,$config) if not ref $config eq 'HASH';
 
         $config = $self->get_install_config($config);
-        # was not able to parse abstract precondition and thus
-        # return received error string
-        if (not ref($config) eq 'HASH' ) {
-                return (1,$config);
-        }
-        return (0, YAML::Dump($config));
+        return $config
 }
 ;
 
@@ -288,9 +282,9 @@ method create_config($testrunid)
 
 =head2 write_config
 
-Write the config created before into appropriate file.
+Write the config created before into appropriate YAML file.
 
-@param string - config in yaml format
+@param string - config (hash reference)
 @param string - output file name, in absolut form or relative to configured localdata_path 
 
 @return success - 0
@@ -300,10 +294,11 @@ Write the config created before into appropriate file.
 
 method write_config($config, $cfg_file)
 {
+        my $cfg = YAML::Dump($config)
         $cfg_file = $self->cfg->{paths}{localdata_path}.$cfg_file if not $cfg_file =~ m(/);
         open (FILE, ">", $cfg_file)
           or return "Can't open config file $cfg_file for writing: $!";
-        print FILE $config;
+        print FILE $cfg;
         close FILE;
         return 0;
 }

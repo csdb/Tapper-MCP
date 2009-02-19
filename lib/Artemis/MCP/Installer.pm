@@ -53,8 +53,9 @@ method wait_for_systeminstaller($testrun_id, $fh)
                 $SIG{ALRM}=sub{die("timeout of $timeout seconds reached while booting system installer");};
                 $timeout=0 if not $timeout; # to get rid of warnings in case get_timeout failed above
                 alarm($timeout);
-
-                        my $msg = <$fh>;
+                
+                my $msg = <$fh>;
+                chomp $msg;
         
                 if ($msg!~/start-install/) {
                         $self->log->error( qq(Expected start-install signal from System Installer but received "$msg"));
@@ -120,10 +121,11 @@ method install($testrun_id, $fh)
         my $producer = new Artemis::MCP::Config;
         $self->log->debug("Create install config for $hostname");
 
-        my $yaml;
-        ($retval, $yaml) = $producer->create_config($testrun_id, 'install');
-        return $yaml if $retval;
-        $retval          = $producer->write_config($yaml, "$hostname-install");
+        my $config;
+        $config = $producer->create_config($testrun_id, 'install');
+        return $config if not ref($config) eq 'HASH';
+
+        $retval = $producer->write_config($config, "$hostname-install");
         return $retval if $retval;
 
         my $remote   = new Artemis::MCP::Net;
@@ -133,7 +135,7 @@ method install($testrun_id, $fh)
         $self->log->debug("rebooting $hostname");
         $remote->reboot_system($hostname);
         $self->log->debug("waiting for system installer on  $hostname");
-        $retval = $self->wait_for_systeminstaller($testrun_id, $fh);
+        $retval = $self->wait_for_systeminstaller($testrun_id, $config, $fh);
 
         # having a $retval instead of return function() makes debugging easier
         # (additional step in which the value of $retval can be checked)
