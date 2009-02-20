@@ -242,8 +242,7 @@ for easier testing.
 method wait_for_testrun($testrun_id, $fh)
 {
         my ($prc_status, $prc_started, $prc_stopped, $prc_count, $error_occured)=(undef, 0, 0, undef, 0);
-        my @report;
-        
+      
 
         # eval block used for timeout
         eval{
@@ -298,6 +297,8 @@ method wait_for_testrun($testrun_id, $fh)
                 }
         };
         alarm(0);
+
+        my @report;
         if (not $error_occured) {
                 @report = ({msg => "All tests finished"});
         }
