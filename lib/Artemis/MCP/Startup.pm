@@ -3,12 +3,10 @@ package Artemis::MCP::Startup;
 use strict;
 use warnings;
 
-use Artemis::MCP::XMLRPC;
-use Artemis::MCP::RunloopDaemon;
-
-use Method::Signatures;
+use Artemis::MCP::Master;
 
 use Moose;
+
 
 no strict 'refs';
 
@@ -55,23 +53,19 @@ Prints status of all registered daemons.
 
 =cut
 
-has runloopdaemon => (is      => 'rw',
-                      default => sub { new Artemis::MCP::RunloopDaemon ( pidfile => '/tmp/artemis_mcp_runloopdaemon.pid' ) }
+has master  => (is          => 'rw',
+                default     => sub { new Artemis::MCP::Master ( pidfile => '/tmp/artemis_mcp_master.pid' ) }
+               );
+
+has servers => ( is         => 'rw',
+                 isa        => 'ArrayRef',
+                 auto_deref => 1,
                      );
 
-has xmlrpc        => (is      => 'rw',
-                      default => sub { new Artemis::MCP::XMLRPC ( pidfile => '/tmp/artemis_mcp_xmlrpc.pid' ) }
-                     );
-
-has servers       => ( is         => 'rw',
-                       isa        => 'ArrayRef',
-                       auto_deref => 1,
-                     );
-
-method start   { $_->start   foreach $self->servers };
-method status  { $_->status  foreach $self->servers };
-method restart { $_->restart foreach $self->servers };
-method stop    { $_->stop    foreach $self->servers };
+sub start   { my ($self) = @_; $_->start   foreach $self->servers }
+sub status  { my ($self) = @_; $_->status  foreach $self->servers }
+sub restart { my ($self) = @_; $_->restart foreach $self->servers }
+sub stop    { my ($self) = @_; $_->stop    foreach $self->servers }
 
 around 'new' => sub {
                      my ($new, @args) = @_;
@@ -89,13 +83,13 @@ Registers all handled daemons in an array.
 
 =cut
 
-method set_servers
+sub set_servers
 {
- $self->servers ([
-#                  $self->xmlrpc,
-                  $self->runloopdaemon,
-                 ]);
-};
+        my ($self) = @_; 
+        $self->servers ([
+                         $self->master,
+                        ]);
+}
 
 =begin run
 
@@ -106,14 +100,14 @@ all its daemons.
 
 =cut
 
-method run
+sub run
 {
+        my ($self) = @_; 
         my ($command) = @ARGV;
         return unless $command && grep /^$command$/, qw(start status restart stop);
         local @ARGV;   # cleaner approach than changing @ARGV
         $self->$command;
-#        print join (".\n", map { ref().": ".$_->status_message } $self->servers), ".\n";
-};
+}
 
 1;
 

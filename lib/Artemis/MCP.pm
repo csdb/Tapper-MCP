@@ -3,13 +3,19 @@ package Artemis::MCP;
 use warnings;
 use strict;
 
-our $VERSION = '2.000004';
+our $VERSION = '2.000006';
 
 
 use Artemis::Config;
 use Moose;
 
 with 'MooseX::Log::Log4perl';
+
+sub cfg
+{
+        my ($self) = @_;
+        return Artemis::Config->subconfig();
+}
 
 =head1 NAME
 

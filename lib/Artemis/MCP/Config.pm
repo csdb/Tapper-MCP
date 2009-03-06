@@ -4,15 +4,21 @@ use strict;
 use warnings;
 
 use File::Basename;
-use File::Spec;
-use Log::Log4perl;
-use Method::Signatures;
 use Moose;
 use Socket;
 use YAML;
 
 use Artemis::Model 'model';
 use Artemis::Config;
+
+extends 'Artemis::MCP::Control';
+
+has mcp_info => (is  => 'rw',
+                 isa => 'HashRef',
+                 default => sub {{}},
+                );
+
+
 
 =head1 NAME
 
@@ -25,12 +31,6 @@ Artemis::MCP::Config - Generate config for a certain test run
 =head1 FUNCTIONS
 
 =cut
-
-method cfg()
-{
-        return Artemis::Config->subconfig();
-};
-
 
 =head2 parse_virt_preconditions
 
@@ -45,9 +45,10 @@ installed for this virt package to work.
 
 =cut 
 
-method parse_virt_preconditions($config, $virt)
+sub parse_virt_preconditions
 {
         
+        my ($self, $config, $virt) = @_;
         unshift @{$config->{preconditions}}, $virt->{host}->{root};
         push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}} if $virt->{host}->{preconditions};
         return "can't detect architecture of one guest, so I can't install PRC" 
@@ -65,8 +66,11 @@ method parse_virt_preconditions($config, $virt)
                 $main_prc_config->{test_program}              = $virt->{host}->{testprogram}->{execname};
                 $main_prc_config->{parameters}                = $virt->{host}->{testprogram}->{parameters}                if $virt->{host}->{testprogram}->{parameters};
                 $main_prc_config->{timeout_after_testprogram} = $virt->{host}->{testprogram}->{timeout_after_testprogram} if $virt->{host}->{testprogram}->{timeout_after_testprogram};
+                $self->{mcp_info}->{timeouts}->[0]->{end}     = $virt->{host}->{testprogram}->{timeout_after_testprogram} if $virt->{host}->{testprogram}->{timeout_after_testprogram};
+                
         }
         push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_after_testprogram}; # always have a value for host, undef if no tests there
+        
 
         
         # Not all guests need to have a test program and thus a PRC
@@ -101,13 +105,9 @@ method parse_virt_preconditions($config, $virt)
                         push @{$main_prc_config->{guests}}, {exec=>$guest->{config}->{exec}};
                 }
 
-                if ($guest->{testprogram}->{timeout_after_testprogram}) {
-                        push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{timeout_after_testprogram};
-                } elsif ($guest->{testprogram}->{runtime}){
-                        push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{runtime};
-                } else {
-                        push @{$main_prc_config->{timeouts}}, $self->cfg->{times}{test_runtime_default};
-                }
+
+            
+
                 
                 if ($guest->{testprogram}) {
                         my $prc_config->{precondition_type} = 'prc';
@@ -121,12 +121,23 @@ method parse_virt_preconditions($config, $virt)
                         $prc_config->{config}->{test_program}= $guest->{testprogram}->{execname};
                         $prc_config->{config}->{parameters} = $guest->{testprogram}->{parameters} 
                           if $guest->{testprogram}->{parameters};
-                        $prc_config->{config}->{timeout_after_testprogram}=$guest->{testprogram}->{timeout_after_testprogram} 
-                          if $guest->{testprogram}->{timeout_after_testprogram};
                         $prc_config->{config}->{guest_number} = ++$guest_number;
                         $prc_config->{config}->{runtime} = $self->cfg->{times}{test_runtime_default};
                         $prc_config->{config}->{runtime} = $guest->{testprogram}->{runtime} ||
                           $self->cfg->{times}{test_runtime_default};
+
+                        if ($guest->{testprogram}->{timeout_after_testprogram}) {
+                                $prc_config->{config}->{timeout_after_testprogram}=$guest->{testprogram}->{timeout_after_testprogram} ;
+                                push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{timeout_after_testprogram};
+                        } elsif ($guest->{testprogram}->{runtime}){
+                                push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{runtime};
+                        } else {
+                                push @{$main_prc_config->{timeouts}}, $self->cfg->{times}{test_runtime_default};
+                        }
+                        # push onto mcp_info timeout list, whatever the above if cascade descided to use as timeout for this PRC
+                        push @{$self->{mcp_info}->{timeouts}},{start => $self->cfg->{times}{boot_timeout}, 
+                                                               end   => $main_prc_config->{timeouts}->[$#{$main_prc_config->{timeouts}}]};
+
 
                         push @{$config->{preconditions}}, $prc_config;
 
@@ -151,7 +162,7 @@ method parse_virt_preconditions($config, $virt)
    
         
         return $config;
-};
+}
 
 
 =head2 parse_grub
@@ -169,11 +180,12 @@ file.
 
 =cut
 
-method  parse_grub($config, $grub)
+sub  parse_grub
 {
+        my ($self, $config, $grub) = @_;
         $config->{grub}=$grub->{config};
         return $config;
-};
+}
 
 
 =head2 get_install_config
@@ -187,11 +199,12 @@ Add installation configuration part to a given config hash.
 
 =cut
 
-method  get_install_config($config)
+sub get_install_config
 {
+        my ($self, $config) = @_;
 
-        my $testrun=$config->{test_run};
-        my $search=model('TestrunDB')->resultset('Testrun')->search({id => $testrun,})->first();
+        my $search=model('TestrunDB')->resultset('Testrun')->search({id => $self->{testrun},})->first();
+        $self->mcp_info->{timeouts}=[{start=> $self->cfg->{times}{boot_timeout}, end => 0}];
 
         foreach my $precondition ($search->ordered_preconditions) {
                 # make sure installing the root partition is always the first precondition
@@ -220,27 +233,24 @@ method  get_install_config($config)
         }
         return $config;
 }
-;
 
 
 =head2 get_common_config
 
 Create configuration to be used for installation on a given host.
 
-@param string - hostname
-
 @return success - config hash reference
 @return error   - error string
 
 =cut
 
-method get_common_config($testrun)
+sub get_common_config
 {
+        my ($self) = @_;
         my $config;
-        return "No testrun given to get_common_config" if not $testrun;
-        my $search=model('TestrunDB')->resultset('Testrun')->search({id => $testrun,})->first();
+        my $testrun = $self->{testrun};
+        my $search=model('TestrunDB')->resultset('Testrun')->search({id => $testrun})->first();
         return "Testrun $testrun not found in the database" if not $search;
-        
 
         $config->{paths}                     = $self->cfg->{paths};
         $config->{times}                     = $self->cfg->{times};
@@ -254,31 +264,45 @@ method get_common_config($testrun)
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun;
         return ($config)
-};
+}
+
+
+=head2 get_mcp_info
+
+Returns mcp_info attribute, no matter if its already set.
+
+@return hash reference
+
+=cut
+
+sub get_mcp_info
+{
+        my ($self) = @_;
+        return $self->{mcp_info};
+}
+
+
+
 
 =head2 create_config
 
 Create a configuration for the current status of the test machine. All config
 information are taken from the database based upon the given testrun id.
 
-@param int    - testrunid
-
-@returnlist success - config (hash reference)
-@returnlist error   - error string
+@return success - config (hash reference)
+@return error   - error string
 
 =cut
 
-method create_config($testrunid)
+sub create_config
 {
-        my $config=$self->get_common_config($testrunid);
-        return (1,$config) if not ref $config eq 'HASH';
+        my ($self) = @_;
+        my $config = $self->get_common_config();
+        return $config if not ref $config eq 'HASH';
 
-        $config = $self->get_install_config($config);
-        return $config
+        $config    = $self->get_install_config($config);
+        return $config;
 }
-;
-
-
 
 =head2 write_config
 
@@ -292,9 +316,10 @@ Write the config created before into appropriate YAML file.
 
 =cut
 
-method write_config($config, $cfg_file)
+sub write_config
 {
-        my $cfg = YAML::Dump($config)
+        my ($self, $config, $cfg_file) = @_;
+        my $cfg = YAML::Dump($config);
         $cfg_file = $self->cfg->{paths}{localdata_path}.$cfg_file if not $cfg_file =~ m(/);
         open (FILE, ">", $cfg_file)
           or return "Can't open config file $cfg_file for writing: $!";
@@ -302,7 +327,6 @@ method write_config($config, $cfg_file)
         close FILE;
         return 0;
 }
-;
 
 1;
 

@@ -3,16 +3,14 @@ package Artemis::MCP::Net;
 use strict;
 use warnings;
 
-use Method::Signatures;
 use Moose;
 use Net::SSH;
 use Net::SSH::Expect;
 use IO::Socket::INET;
 use Sys::Hostname;
-use File::Glob ':globally';
 use File::Basename;
 
-extends 'Artemis';
+extends 'Artemis::MCP';
 
 use Artemis::Model 'model';
 
@@ -31,8 +29,9 @@ can be given as arguments, yet are optional.
 
 =cut
 
-method conserver_connect($system, $conserver, $conserver_port, $conuser)
+sub conserver_connect
 {
+        my ($self, $system, $conserver, $conserver_port, $conuser) = @_;
         $conserver      ||= $self->cfg->{conserver}{server};
         $conserver_port ||= $self->cfg->{conserver}{port};
         $conuser        ||= $self->cfg->{conserver}{user};
@@ -75,7 +74,7 @@ method conserver_connect($system, $conserver, $conserver_port, $conuser)
         print ($sock "\005c;\n");  # console needs to be "activated"
         $data=<$sock>;return($data) unless $data=~/^(\[connected\])/;
         return($sock);
-};
+}
 
 =head2 conserver_disconnect
 
@@ -90,8 +89,9 @@ function always succeeds. Thus no return value is needed.
 
 =cut
 
-method conserver_disconnect($sock)
+sub conserver_disconnect
 {
+        my ($self, $sock) = @_;
         if ($sock) {
                 if ($sock->can("connected") and $sock->connected()) {
                         print ($sock "\005c.\n");
@@ -99,7 +99,7 @@ method conserver_disconnect($sock)
                 }
                 $sock->close() if $sock->can("close");
         }
-};
+}
 
 
 =head2 reboot_system
@@ -117,8 +117,9 @@ since it would make it to complex.
 
 =cut
 
-method reboot_system($host)
+sub reboot_system
 {
+        my ($self, $host) = @_;
 	$self->log->debug("Trying to reboot $host.");
 	
 	# ssh returns 0 in case of success
@@ -156,209 +157,55 @@ method reboot_system($host)
         else # trigger reset switch
         {
                 $self->log->info("Try reboot via reset switch");
-                my $cmd = Artemis->cfg->{osrc_rst}." -f $host";
+                my $cmd = $self->cfg->{osrc_rst}." -f $host";
                 $self->log->info("trying $cmd");
                 `$cmd`;
         }
 
 	return 0;
-};
+}
 
 =head2 write_grub_file
 
-This function expects a system name and a state and creates the
-appropriate grub config files for this combination. At the moment,
-two states are recognised: "nfs" and "disk". The function is not
-very generic at the moment. This is hopefully going to change in the
-future.
+Write a grub file for the system given as parameter. The second parameter is a
+port number which is set as 
 
 @param string - name of the system 
-@param string - state of the test process
-
-Return values still have to be revised
 
 @return success - 0
-@return error   - errorstring
+@return error   - error string
 
 =cut
 
-method write_grub_file($system)
+sub write_grub_file
 {	
+        my ($self, $system) = @_;
         my $artemis_host = Sys::Hostname::hostname();
-        my $grub_file    = Artemis->cfg->{paths}{grubpath}."/$system.lst";
+        my $grub_file    = $self->cfg->{paths}{grubpath}."/$system.lst";
 
 	$self->log->debug("writing grub file ($artemis_host, $grub_file)");
 
 	# create the initial grub file for installation of the test system,
-	open (GRUBFILE, ">", $grub_file) or return "Can open ".Artemis->cfg->{paths}{grubpath}."/$system.lst for writing: $!";
+	open (GRUBFILE, ">", $grub_file) or return "Can open ".$self->cfg->{paths}{grubpath}."/$system.lst for writing: $!";
 
-	my $text="\nserial --unit=0 --speed=115200\nterminal serial\n\n".
-          "default 0\ntimeout 2\n\n";
+        my $tftp_server = $self->cfg->{tftp_server_address};
+        my $kernel = $self->cfg->{paths}{nfskernel_path}."/bzImage";
+        my $nfsroot = $self->cfg->{paths}{nfsroot};
+	my $text= <<END;
+serial --unit=0 --speed=115200
+terminal serial
+
+default 0
+timeout 2
 	
-        $text .= "title Test System\n".
-          "\ttftpserver ".Artemis->cfg->{tftp_server_address}."\n".
-            "\tkernel ".Artemis->cfg->{paths}{nfskernel_path}."/bzImage console=ttyS0,115200 noapic acpi=off root=/dev/nfs ro ip=dhcp nfsroot=".Artemis->cfg->{paths}{nfsroot}.
-              " artemis_host=$artemis_host";
-
+title Test 
+     tftpserver $tftp_server
+     kernel $kernel console=ttyS0,115200 noapic acpi=off root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host
+END
 	print GRUBFILE $text;
-	close GRUBFILE;
+	close GRUBFILE or return "Can't save grub file for $system:$!";
 	return(0);
-};
-
-=head2 gettimeout
-
-Determine timeout for tests in testrun with given id.
-
-@param int - test run id
-
-@return success - timeout
-@return error   - undef
-
-=cut
-
-method gettimeout($testrun_id)
-{
-        my $run = model->resultset('Testrun')->search({id=>$testrun_id})->first();
-        return 0 if not $run;
-        $self->log->debug('Timeout is "'.$run->wait_after_tests.'"');
-        return $run->wait_after_tests || 0;
-};
-
-
-=head2 wait_for_testrun
-
-Wait for start and end of a test program. Put start and end time into
-database. The function also recognises errors send from the PRC. It returns an
-array that can be handed over to tap_report_send. Optional file handle is used
-for easier testing.
-
-@param int - testrun id
-@param file handle - read from this handle
-
-@return reference to report array
-
-=cut
-
-method wait_for_testrun($testrun_id, $fh)
-{
-        my ($prc_status, $prc_started, $prc_stopped, $prc_count, $error_occured)=(undef, 0, 0, undef, 0);
-      
-
-        # eval block used for timeout
-        eval{
-                my $timeout = $self->cfg->{times}{boot_timeout};
-                
-                alarm($timeout);
-                $SIG{ALRM}=sub{$error_occured=1;die("timeout for booting test system ($timeout seconds) reached.\n");};
-
-                no warnings 'io';
-        MESSAGE:
-                while (my $msg=<$fh>) {
-                        use warnings;
-                        chomp $msg;
-                        #        prc_number:0,end-testprogram,prc_count:1
-                        my ($number, $status, undef, $error, $count) = $msg =~/prc_number:(\d+),(start|end|error)-testprogram(:(.+))?,prc_count:(\d+)/ 
-                          or $self->log->error(qq(Can't parse message "$msg" received from test machine. I'll ignore the message.)) and next MESSAGE;
-                        $self->log->debug("status $status in PRC $number, last PRC is $count");
-                        
-                        if (not defined($prc_count)) {
-                                $prc_count = $count;
-                        } elsif ($prc_count != $count) {
-                                $self->log->error("Got new PRC count for testrun $testrun_id, old value was $prc_count, new value is $count");
-                                $prc_count = $count;
-                        }
-
-
-                        if (not defined($prc_status)) {
-                                $timeout = $self->gettimeout($testrun_id);
-                                alarm($timeout);
-                                $SIG{ALRM}=sub{die("timeout for tests ($timeout seconds) reached.\n");};
-
-                                for (my $i=0; $i<$prc_count;$i++) {
-                                        $prc_status->[$i] = {start => 0, end => 0};
-                                }
-                        }
-                        
-                        if ($status eq 'start') {
-                                $prc_status->[$number]->{start} = 1;
-                                $prc_started++;
-                        } elsif ($status eq 'end') {
-                                $prc_status->[$number]->{end} = 1;
-                                $prc_stopped++;
-                        } elsif ($status eq 'error') {
-                                $prc_status->[$number]->{end} = -1;
-                                $error_occured=1;
-                                $prc_status->[$number]->{error} = $error;
-                                $prc_stopped++;
-                        } else {
-                                $self->log->error("Unknown status $status for PRC $number");
-                        }
-                        last MESSAGE if $prc_stopped == $count;
-                }
-        };
-        alarm(0);
-
-        my @report;
-        if (not $error_occured) {
-                @report = ({msg => "All tests finished"});
-        }
-        else {
-                
-                # save eval return value, just to be sure
-                chomp $@;
-                my $got_timeout = $@;
-                
-
-                my $offset=0;
-                # $prc_status is undefined only if we did not get any message and were
-                # kicked out by timeout
-                if ($prc_status) {
-                        # we got a test in virtualisation host
-                        if ($prc_status->[0]->{start} != 0 or $prc_status->[0]->{end} != 0) {
-                                if ($prc_status->[0]->{end} == -1) {
-                                        push(@report, {error => 1, msg => $prc_status->[0]->{error}});
-                                } elsif ($prc_status->[0]->{end} == 1) {
-                                        push (@report, {msg => "Test on PRC 0"});
-                                } elsif ($@) {
-                                        push(@report, {error => 1, msg => "test on PRC 0 started but not finished: $@"});
-                                } else {
-                                        push(@report, {error => 1, msg => "PRC 0 has unidentifiably end status ".$prc_status->[0]->{end}});
-                                        $self->log->warn("PRC 0 has unidentifiably end status ",$prc_status->[0]->{end});
-                                }
-                                $prc_count--;
-                                $offset =1;
-                        }
-                        shift @$prc_status;
-                        
-
-                        for (my $i=0; $i<$prc_count;$i++) {
-                                # $prc_status starts with 0, guests starts with 1
-                                # offset is used when we removed 
-                                my $guest=$i+1+$offset;
-                                if ($prc_status->[$i]->{end} == 1) {
-                                        push (@report, {msg => "Test on guest $guest"});
-                                } elsif ($prc_status->[$i]->{end} == -1) {
-                                        push (@report, {error => 1, msg => "guest $guest:".$prc_status->[$i]->{error}});
-                                } elsif ($@) {
-                                        if ($prc_status->[$i]->{end}) {
-                                                if ($prc_status->[$i]->{start}) {
-                                                        push(@report, {error => 1, msg => "test on guest $guest started but not finished: $@"});
-                                                } else {
-                                                        push(@report, {error => 1, msg => "test on guest $guest not started: $@"});
-                                                }
-                                        }
-                                } else {
-                                        push(@report, {error => 1, msg => "guest $guest has unidentifiably end status ".$prc_status->[$i]->{end}});
-                                        $self->log->warn("guest $guest has unidentifiably end status ",$prc_status->[$i]->{end});
-                                }
-                        }
-                }
-                push (@report, {error=> 1, msg => $got_timeout}) if $got_timeout;
-        }
-        return \@report;
 }
-;
-
 
 =head2 upload_files
 
@@ -372,8 +219,9 @@ Upload files written in one stage of the testrun to report framework.
 
 =cut 
 
-method upload_files($reportid, $testrunid)
+sub upload_files
 {
+        my ($self, $reportid, $testrunid) = @_;
         my $host = $self->cfg->{report_server};
         my $port = $self->cfg->{report_api_port};
         
@@ -407,7 +255,7 @@ method upload_files($reportid, $testrunid)
         chdir $cwd;
         return 0;
 }
-;
+
 
 =head2 tap_report_send
 
@@ -422,18 +270,19 @@ protocol.
 
 =cut
 
-method tap_report_send($testrun, $report)
+sub tap_report_send
 {
+        my ($self, $testrun, $report) = @_;
         my $tap = $self->tap_report_create($testrun, $report);
         my $reportid;
         $self->log->debug($tap);
         
-        if (my $sock = IO::Socket::INET->new(PeerAddr => Artemis->cfg->{report_server},
-					     PeerPort => Artemis->cfg->{report_port},
+        if (my $sock = IO::Socket::INET->new(PeerAddr => $self->cfg->{report_server},
+					     PeerPort => $self->cfg->{report_port},
 					     Proto    => 'tcp')){
                 eval{
                         my $timeout = 100;
-                        $SIG{ALRM}=sub{die("timeout for sending tap report ($timeout seconds) reached.");};
+                        local $SIG{ALRM}=sub{die("timeout for sending tap report ($timeout seconds) reached.");};
                         alarm($timeout);
                         ($reportid) = <$sock> =~m/(\d+)$/g;
                         $sock->print($tap);
@@ -445,7 +294,7 @@ method tap_report_send($testrun, $report)
                 return(1,"Can't connect to report server: $!");
 	}
         return (0,$reportid);
-};
+}
   
 
 =head2 tap_report_create
@@ -460,8 +309,9 @@ does data transformation, no error should ever occur.
 
 =cut
 
-method tap_report_create($testrun, $report)
+sub tap_report_create
 {
+        my ($self, $testrun, $report) = @_;
         my @report = @$report;
         my $run = model->resultset('Testrun')->search({id=>$testrun})->first();
         my $hostname = model('HardwareDB')->resultset('Systems')->search({lid => $run->hardwaredb_systems_id})->first->systemname;
@@ -483,7 +333,7 @@ method tap_report_create($testrun, $report)
                 $message .="\n";
         }
         return ($message);
-};
+}
 
 
 1;
