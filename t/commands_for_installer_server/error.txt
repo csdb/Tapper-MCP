@@ -1,3 +1,0 @@
-start-install
-error-install:Can't mount /data/bancroft
-
