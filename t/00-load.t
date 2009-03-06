@@ -3,16 +3,21 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More;
 
-BEGIN {
-        use_ok( 'Artemis::MCP' );
-        use_ok( 'Artemis::MCP::Config' );
-        use_ok( 'Artemis::MCP::Installer' );
-        use_ok( 'Artemis::MCP::Net' );
-        use_ok( 'Artemis::MCP::RunloopDaemon' );
-        use_ok( 'Artemis::MCP::Startup' );
-        use_ok( 'Artemis::MCP::XMLRPC' );
+my @modules = ('Artemis::MCP', 
+               'Artemis::MCP::Child',
+               'Artemis::MCP::Control', 
+               'Artemis::MCP::Config',
+               'Artemis::MCP::Scheduler',
+               'Artemis::MCP::Master',
+               'Artemis::MCP::Net',
+               'Artemis::MCP::Startup', 
+              );
+plan tests => $#modules+1;
+
+foreach my $module(@modules) {
+        require_ok($module);
 }
 
-diag( "Testing Artemis $Artemis::VERSION, Perl $], $^X" );
+diag( "Testing Artemis $Artemis::MCP::VERSION,Perl $], $^X" );
