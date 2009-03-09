@@ -19,7 +19,7 @@ use Artemis::MCP::Child;
 
 use Test::More tests => 14;
 
-BEGIN { use_ok('Artemis::MCP::Net'); }
+BEGIN { use_ok('Artemis::MCP::Child'); }
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
