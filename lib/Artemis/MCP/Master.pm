@@ -157,6 +157,33 @@ sub console_close
         return 0;
 }
 
+=head2 handle_dead_children
+
+Each test run is handled by a child process. All information needed for
+communication with this child process is kept in $self->child. Reset all these
+information when the test run is finished and the child process ends.
+
+=cut
+
+sub handle_dead_children
+{
+        my ($self) = @_;
+ CHILD: while ($self->dead_child) {
+                $self->log->debug("Number of dead children is ".$self->dead_child);
+                my $dead_pid = wait(); # there have to be childs pending, otherwise $self->DEAD_CHILD should be 0
+        CHILDREN_CHECK: foreach my $this_child (keys %{$self->child})
+                {
+                        if ($self->child->{$this_child}->{pid} == $dead_pid) {
+                                $self->log->debug("$this_child finished");
+                                $self->console_close($self->child->{$this_child}->{console});
+                                delete $self->child->{$this_child};
+                                $self->dead_child($self->dead_child - 1);
+                                last CHILDREN_CHECK;
+                        }
+                }
+        }
+}
+
 
 =head2 consolelogfrom
 
