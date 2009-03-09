@@ -309,11 +309,10 @@ itself is put outside of function to allow testing.
 sub runloop
 {
         my ($self, $lastrun) = @_;
-        my $timeout = $self->cfg->{times}{poll_intervall};
+        my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
                 
         # sleep if no data has to be handled
         my @ready = $self->readset->can_read( $timeout );
-        sleep ($timeout);
         $self->handle_dead_children() if $self->dead_child;
                
         foreach my $handle (@ready) {
@@ -321,10 +320,8 @@ sub runloop
                 $self->log->error($retval) if $retval;
         }
                 
-        $timeout = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
                 
-        if ($timeout <= 0) {
-                $lastrun = time();
+        if (not @ready) {
                 # run_due_tests needs the hostname, so we let get_next_test search it
                 my $scheduler = Artemis::MCP::Scheduler->new();
                 my %due_tests = $scheduler->get_next_testrun();
@@ -364,8 +361,8 @@ sub run
         my ($self) = @_;
         $self->set_interrupt_handlers();
         $self->prepare_server();
-        my $lastrun = time();
         while (1) {
+                my $lastrun = time();
                 $self->runloop();
         }
 
