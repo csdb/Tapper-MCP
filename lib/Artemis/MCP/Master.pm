@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Devel::Backtrace;
+use File::Path;
 use IO::Select;
 use Log::Log4perl;
 use Moose;
@@ -114,13 +115,15 @@ failure.
 sub console_open
 {
         my ($self, $system, $testrunid) = @_;
+        return "Incomplete data given to function console_open" if not $system and defined($testrunid);
+
         my $net = Artemis::MCP::Net->new();
         my $console = $net->conserver_connect($system);
         return $console if not ref $console eq 'IO::Socket::INET';
         $self->readset->add($console);
         my $path = $self->cfg->{paths}{output_dir}."/$testrunid/";
         
-        mkpath($path, {error => \my $retval}) if not -d $path;
+        File::Path::mkpath($path, {error => \my $retval}) if not -d $path;
         foreach my $diag (@$retval) {
                 my ($file, $message) = each %$diag;
                 return "general error: $message\n" if $file eq '';
