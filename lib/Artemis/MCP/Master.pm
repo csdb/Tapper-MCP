@@ -78,6 +78,8 @@ has readset      => (is      => 'rw');
 
 Set interrupt handlers for important signals. No parameters, no return values.
 
+@return success - 0
+
 =cut
 
 sub set_interrupt_handlers
@@ -96,6 +98,7 @@ sub set_interrupt_handlers
 
                 exit -1;
         };
+        return 0;
 }
 
 =head2 console_open
@@ -298,40 +301,38 @@ SYSTEM:
 
 =head2 runloop
 
-Main loop of this module. Checks for new tests and runs them. No params
-expected and it never returns.
+Main loop of this module. Checks for new tests and runs them. The looping
+itself is put outside of function to allow testing.
 
 =cut
 
 sub runloop
 {
-        my ($self) = @_;
-        my $lastrun;
-        while (1) {
-                my $timeout;
+        my ($self, $lastrun) = @_;
+        my $timeout = $self->cfg->{times}{poll_intervall};
                 
-                # sleep if no data has to be handled
-                my @ready = $self->readset->can_read( $timeout );
-                sleep ($timeout);
-                $self->handle_dead_children() if $self->dead_child;
+        # sleep if no data has to be handled
+        my @ready = $self->readset->can_read( $timeout );
+        sleep ($timeout);
+        $self->handle_dead_children() if $self->dead_child;
                
-                foreach my $handle (@ready) {
-                        my $retval = $self->consolelogfrom($handle);
-                        $self->log->error($retval) if $retval;
-                }
-                
-                $timeout = $self->lastrun + $self->cfg->{times}{poll_intervall} - time(); 
-                
-                if ($timeout <= 0) {
-                        $lastrun = time();
-                        # run_due_tests needs the hostname, so we let get_next_test search it
-                        my $scheduler = Artemis::MCP::Scheduler->new();
-                        my %due_tests = $scheduler->get_next_testrun();
-                        $self->run_due_tests(\%due_tests);
-                }
+        foreach my $handle (@ready) {
+                my $retval = $self->consolelogfrom($handle);
+                $self->log->error($retval) if $retval;
         }
-        
+                
+        $timeout = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
+                
+        if ($timeout <= 0) {
+                $lastrun = time();
+                # run_due_tests needs the hostname, so we let get_next_test search it
+                my $scheduler = Artemis::MCP::Scheduler->new();
+                my %due_tests = $scheduler->get_next_testrun();
+                $self->run_due_tests(\%due_tests);
+        }
 }
+        
+
 
 
 =head2 prepare_server
@@ -363,7 +364,10 @@ sub run
         my ($self) = @_;
         $self->set_interrupt_handlers();
         $self->prepare_server();
-        $self->runloop();
+        my $lastrun = time();
+        while (1) {
+                $self->runloop();
+        }
 
 }
 
