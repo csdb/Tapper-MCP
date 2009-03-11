@@ -363,7 +363,7 @@ sub run
         $self->prepare_server();
         while (1) {
                 my $lastrun = time();
-                $self->runloop();
+                $self->runloop($lastrun);
         }
 
 }
