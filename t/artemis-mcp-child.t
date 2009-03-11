@@ -12,12 +12,13 @@ use Test::MockModule;
 
 use Artemis::Model 'model';
 use Artemis::Schema::TestTools;
+use Artemis::Config;
 
 # for mocking
 use Artemis::MCP::Child;
 
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 BEGIN { use_ok('Artemis::MCP::Child'); }
 
@@ -34,6 +35,26 @@ log4perl.appender.root        = Log::Log4perl::Appender::Screen
 log4perl.appender.root.stderr = 1
 log4perl.appender.root.layout = SimpleLayout";
 Log::Log4perl->init(\$string);
+
+
+#''''''''''''''''''''''''''''''''''''#
+#                                    #
+#       Permanent mocking            #
+#                                    #
+#''''''''''''''''''''''''''''''''''''#
+
+
+my $mock_net = new Test::MockModule('Artemis::MCP::Net');
+$mock_net->mock('reboot_system',sub{return 0;});
+$mock_net->mock('tap_report_send',sub{return 0;});
+$mock_net->mock('upload_files',sub{return 0;});
+$mock_net->mock('write_grub_file',sub{return 0;});
+
+my $mock_conf = new Test::MockModule('Artemis::MCP::Config');
+$mock_conf->mock('write_config',sub{return 0;});
+
+my $mock_inet     = new Test::MockModule('IO::Socket::INET');
+
 
 my $testrun = 4;
 my $child   = Artemis::MCP::Child->new($testrun);
@@ -122,13 +143,20 @@ is($to_stop, 0, 'Second test for recalculate number of guests to start after tim
 #                                    #
 #''''''''''''''''''''''''''''''''''''#
 
-my $mock_inet     = new Test::MockModule('IO::Socket::INET');
 # NOTE: assigning to $! has to be an error number, reading from $! will be the associated error string
 $mock_inet->mock('new', sub { $!=1, return undef; });        
-$retval =  $child->runtest_handling();
+$retval =  $child->runtest_handling('bullock');
 is($retval, q(Can't open socket for testrun 4:Operation not permitted), "Catching unsuccessful socket creation");
 
 
+
+my ($read, $write);
+pipe($read, $write) or die "Can't open pipe:$!";
+$mock_inet->mock('new', sub { return $read; });
+$retval =  $child->runtest_handling('bullock');
+my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
+is ($retval, "Failed to boot Installer after timeout of $timeout seconds", 'Detect timeout during installer booting');
+$mock_inet->original('new');
 
 
 __END__
