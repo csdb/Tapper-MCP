@@ -31,7 +31,7 @@ Artemis::MCP::Child - Control one specific testrun on MCP side
 
  use Artemis::MCP::Child;
  my $client = Artemis::MCP::Child->new($testrun_id);
- $child->runtest_handling();
+ $child->runtest_handling($system);
 
 
 =head1 FUNCTIONS
@@ -149,6 +149,7 @@ sub wait_for_systeminstaller
         
         my $msg = $self->get_message($fh, $timeout);
         return $msg if not ref($msg) eq 'HASH';
+        return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
         
         if (not $msg->{status} eq "start-install") {
                 return qq(MCP expected status start-install but remote system is in status $msg->{status});
@@ -156,6 +157,7 @@ sub wait_for_systeminstaller
         $self->log->debug("Installation started for testrun ".$self->testrun);
 
         $msg=$self->get_message($fh, 0);
+        return $msg if not ref($msg) eq 'HASH';
 
         if ($msg->{state} eq 'end-install') {
                 $self->log->debug("Installation finished for testrun ".$self->testrun);
@@ -221,7 +223,6 @@ sub time_reduce
                         $test_timeout = min($test_timeout, $prc_status->[$i]->{end})
                 }
         }
-        
         return ($boot_timeout, $prc_status, $to_start, $to_stop) if $boot_timeout;
         return (max(1,$test_timeout), $prc_status, $to_start, $to_stop);
 
@@ -254,6 +255,7 @@ sub wait_for_testrun
         # eval block used for timeout
         my $timeout = $self->cfg->{times}{boot_timeout};
         my $msg     = $self->get_message($fh, $timeout);
+        return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
         return [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}] if $msg->{timeout};
         $prc_status->[0]->{start} = 0;
 
@@ -262,6 +264,8 @@ sub wait_for_testrun
         while (1) {
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
+                return $msg if not ref($msg) eq 'HASH';
+
                 $self->log->debug(qq(status $msg->{status} in PRC $msg->{prc_number}, last PRC is $msg->{prc_count}));
                         
                 $self->log->error("Received PRC count of $msg->{prc_count} for testrun $self->{testrun} but we have ".($#{$prc_status} + 1)." PRCs in the config")
@@ -318,10 +322,9 @@ sub install
 
         $self->log->debug("rebooting $hostname");
         $remote->reboot_system($hostname);
+        return 0;
 
-        # having a $retval instead of return function() makes debugging easier
-        # (additional step in which the value of $retval can be checked)
-        return $retval;
+
 }
 
 
@@ -346,12 +349,13 @@ sub runtest_handling
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
 
 
-        my $producer               = Artemis::MCP::Config->new($self->id);
+        my $producer = Artemis::MCP::Config->new($self->testrun);
+        my $net      = Artemis::MCP::Net->new();
+
         $self->log->debug("Create install config for $system");
         my $config                 = $producer->create_config();
         return $config if not ref($config) eq 'HASH';
         my $mcp_info = $producer->get_mcp_info();
-        undef $producer; # and free its memory
 
         # check if $srv really knows sockport(), because in case of a test
         # IO::Socket::INET is overwritten to read from a file
@@ -360,9 +364,9 @@ sub runtest_handling
         $retval                    = $producer->write_config($config, "$system-install");
         return $retval if $retval;
 
-
-        $retval = $self->install($system, $srv);
-        my $net = Artemis::MCP::Net->new($self->testrun);
+        $self->install($system, $srv);
+        $retval = $self->wait_for_systeminstaller($srv);
+        
         my ($report_id, $error);
         if ($retval) {
                 ($error, $report_id) = $net->tap_report_send($self->testrun, [{error => 1, msg => $retval}]);
