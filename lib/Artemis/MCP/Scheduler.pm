@@ -63,7 +63,7 @@ sub reschedule_testrun
         my ($self, $testrun) = @_;
         my $run  = model->resultset('Testrun')->search({id=>$testrun})->first();
         my $time = DateTime->now;
-        $time->add(seconds => Artemis->cfg->{times}{reschedule_time});
+        $time->add(seconds => $self->cfg->{times}{reschedule_time});
         $run->starttime_earliest(model('TestrunDB')->storage->datetime_parser->format_datetime($time));
         $run->update();
         return (0,$time);
