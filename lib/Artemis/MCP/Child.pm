@@ -58,6 +58,50 @@ sub gettimeout
         return $run->wait_after_tests || 0;
 }
 
+=head2 net_read
+
+Reads new message from network socket. 
+
+This function can be mocked when
+testing allowing messages to come from a file during tests.
+
+@param file handle - read from this socket
+@param int         - timeout in seconds
+
+@return success - message string read from remote)
+@return error   - undef (check $!)
+@return timeout - 0
+
+
+=cut
+
+sub net_read
+{
+        my ($self, $fh, $timeout) = @_;
+        my $msg;
+        if ($fh->can('accept')) {
+                my $sock           = $fh->accept();
+                $fh = $sock;
+        }
+
+        my $select = IO::Select->new() or return undef;
+        $select->add($fh);
+        
+ NETREAD:
+        while (1) {
+                my $time   = time();
+                my @ready  = $select->can_read($timeout);
+                $timeout  -= time() - $time;
+                return 0 if not @ready;
+                my $tmp;
+                my $readbytes = sysread($fh, $tmp, BUFLEN);
+                last NETREAD if not $readbytes;
+                $msg     .= $tmp;
+        }
+        chomp $msg;
+        return $msg;
+};
+
 
 =head2 get_message
 
@@ -76,29 +120,13 @@ Read a message from socket.
 sub get_message
 {
         my ($self, $fh, $timeout) = @_;
-        my $received_timeout = $timeout; # needed for error messages
-        if ($fh->can('accept')) {
-                my $sock           = $fh->accept();
-                $fh = $sock;
+        my $msg = $self->net_read($fh, $timeout);
+        if (not $msg) {
+                return "$!" if not defined($msg);
+                return {timeout => $timeout};
         }
-        my ($msg, $retval);
-        my $select = IO::Select->new() or return "Can't create Select object:$!";
-        $select->add($fh);
-        my ($number, $state, undef, $error, $count);
 
- NETREAD:
-        while (1) {
-                my $time   = time();
-                my @ready  = $select->can_read($timeout);
-                $timeout  -= time() - $time;
-                return {timeout => $received_timeout} if not @ready;
-                my $tmp;
-                my $readbytes = sysread($fh, $tmp, BUFLEN);
-                last NETREAD if not $readbytes;
-                $msg     .= $tmp;
-        }
-        chomp $msg;
-
+        my ($number, $state, $error, $count);
         return {state => "$state-install", error => $error} 
           if ($state, undef, $error) = $msg =~ m/(start|end|error)-install(:(.+))?/;
         
