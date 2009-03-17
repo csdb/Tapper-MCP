@@ -139,16 +139,16 @@ sub get_message
         return qq(Can't parse message "$msg" received from system installer);
 }
 
-=head2 set_prc_status
+=head2 set_prc_state
 
-Set timeouts in prc status array.
+Set timeouts in prc state array.
 
-@return success - array ref to prc status array
+@return success - array ref to prc state array
 @return error   - error string
 
 =cut
 
-sub set_prc_status
+sub set_prc_state
 {
         my ($self, $mcp_info) = @_;
         return $mcp_info->{timeouts};
@@ -156,7 +156,7 @@ sub set_prc_status
 
 =head2 wait_for_systeminstaller
 
-Wait for status messages of System Installer and apply timeout on
+Wait for state messages of System Installer and apply timeout on
 booting to make sure we react on a system that is stuck while booting
 into system installer. The time needed to install a system can vary
 widely thus no timeout for installation is applied.
@@ -179,8 +179,8 @@ sub wait_for_systeminstaller
         return $msg if not ref($msg) eq 'HASH';
         return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
         
-        if (not $msg->{status} eq "start-install") {
-                return qq(MCP expected status start-install but remote system is in status $msg->{status});
+        if (not $msg->{state} eq "start-install") {
+                return qq(MCP expected state start-install but remote system is in state $msg->{state});
         }
         $self->log->debug("Installation started for testrun ".$self->testrun);
 
@@ -193,7 +193,7 @@ sub wait_for_systeminstaller
         } elsif ($msg->{state} eq 'error-install') {
                 return $msg->{error};
         } else {
-                return  qq(MCP expected status end-install or error-install but remote system is in status "$msg->{status}");
+                return  qq(MCP expected state end-install or error-install but remote system is in state "$msg->{state}");
         }
 }
 
@@ -216,43 +216,44 @@ reduced accordingly.
 
 sub time_reduce
 {
-        my ($self, $elapsed, $prc_status, $to_start, $to_stop) = @_;
+        my ($self, $elapsed, $prc_state, $to_start, $to_stop) = @_;
         my $test_timeout;
         my $boot_timeout;
 
  PRC:
-        for (my $i=0; $i<=$#{$prc_status}; $i++) {
-                if ($prc_status->[$i]->{start} != 0) {
-                        if (($prc_status->[$i]->{start} - $elapsed) <= 0) {
-                                $prc_status->[$i]->{start} = 0;
-                                $prc_status->[$i]->{end}  = 0;
-                                $prc_status->[$i]->{error} = "Guest $i: booting not finished in time, timeout reached";
+        for (my $i=0; $i<=$#{$prc_state}; $i++) {
+                if ($prc_state->[$i]->{start} != 0) {
+                        if (($prc_state->[$i]->{start} - $elapsed) <= 0) {
+                                $prc_state->[$i]->{start} = 0;
+                                $prc_state->[$i]->{end}  = 0;
+                                $prc_state->[$i]->{error} = "Guest $i: booting not finished in time, timeout reached";
                                 $to_start--;
                                 $to_stop--;
                                 next PRC;
                         } else {
-                                $prc_status->[$i]->{start}= $prc_status->[$i]->{start} - $elapsed;
+                                $prc_state->[$i]->{start}= $prc_state->[$i]->{start} - $elapsed;
                         }
-                        $boot_timeout = $prc_status->[$i]->{start} if not defined($boot_timeout);
-                        $boot_timeout = min($boot_timeout, $prc_status->[$i]->{start});
+                        $boot_timeout = $prc_state->[$i]->{start} if not defined($boot_timeout);
+                        $boot_timeout = min($boot_timeout, $prc_state->[$i]->{start});
 
-                } elsif ($prc_status->[$i]->{end} != 0) {
-                        if (($prc_status->[$i]->{end} - $elapsed) <= 0) {
-                                $prc_status->[$i]->{end}  = 0;
-                                $prc_status->[$i]->{error} = "Host: Testing not finished in time, timeout reached";
-                                $prc_status->[$i]->{error} = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;  # avoid another if/then/else, simply overwrite error for guests
+                } elsif ($prc_state->[$i]->{end} != 0) {
+                        if (($prc_state->[$i]->{end} - $elapsed) <= 0) {
+                                $prc_state->[$i]->{end}  = 0;
+                                $prc_state->[$i]->{error} = "Host: Testing not finished in time, timeout reached";
+                                $prc_state->[$i]->{error} = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;  # avoid another if/then/else, simply overwrite error for guests
                                 $to_stop--;
                                 next PRC;
                         } else {
-                                $prc_status->[$i]->{end}= $prc_status->[$i]->{end} - $elapsed;
+                                $prc_state->[$i]->{end}= $prc_state->[$i]->{end} - $elapsed;
                         }
                         
-                        $test_timeout = $prc_status->[$i]->{end} if not defined($test_timeout);
-                        $test_timeout = min($test_timeout, $prc_status->[$i]->{end})
+                        $test_timeout = $prc_state->[$i]->{end} if not defined($test_timeout);
+                        $test_timeout = min($test_timeout, $prc_state->[$i]->{end})
                 }
         }
-        return ($boot_timeout, $prc_status, $to_start, $to_stop) if $boot_timeout;
-        return (max(1,$test_timeout), $prc_status, $to_start, $to_stop);
+        return ($boot_timeout, $prc_state, $to_start, $to_stop) if $boot_timeout;
+        no warnings 'uninitialized'; # if all loop cycles lead to timeouts, $test_timeout might be uninitialized
+        return (max(1,$test_timeout), $prc_state, $to_start, $to_stop);
 
 }
 
@@ -275,17 +276,17 @@ sub wait_for_testrun
         my ($self, $fh, $mcp_info) = @_;
         my $error_occured=0;
       
-        my $prc_status = $self->set_prc_status($mcp_info);
-        my $to_start   = $#{$prc_status};  
+        my $prc_state = $self->set_prc_state($mcp_info);
+        my $to_start   = $#{$prc_state};  
         my $to_stop    = $to_start;
-        $to_stop++ if $prc_status->[0]->{end};   # don't need to count starting of PRC0 but do need to count stopping
+        $to_stop++ if $prc_state->[0]->{end};   # don't need to count starting of PRC0 but do need to count stopping
 
         # eval block used for timeout
         my $timeout = $self->cfg->{times}{boot_timeout};
         my $msg     = $self->get_message($fh, $timeout);
         return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
         return [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}] if $msg->{timeout};
-        $prc_status->[0]->{start} = 0;
+        $prc_state->[0]->{start} = 0;
 
 
  MESSAGE:
@@ -294,30 +295,30 @@ sub wait_for_testrun
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
 
-                $self->log->debug(qq(status $msg->{status} in PRC $msg->{prc_number}, last PRC is $msg->{prc_count}));
+                $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $msg->{prc_count}));
                         
-                $self->log->error("Received PRC count of $msg->{prc_count} for testrun $self->{testrun} but we have ".($#{$prc_status} + 1)." PRCs in the config")
-                  if ($#{$prc_status} + 1) != $msg->{prc_count};
+                $self->log->error("Received PRC count of $msg->{prc_count} for testrun $self->{testrun} but we have ".($#{$prc_state} + 1)." PRCs in the config")
+                  if ($#{$prc_state} + 1) != $msg->{prc_count};
                         
                 my $number = $msg->{prc_number}; # just to make the code shorter
 
                 if ($msg->{state} eq 'test-start') {
-                        $prc_status->[$number]->{start} = 0;
+                        $prc_state->[$number]->{start} = 0;
                         $to_start--;
                 } elsif ($msg->{state} eq 'test-end') {
-                        $prc_status->[$number]->{end} = 0;
+                        $prc_state->[$number]->{end} = 0;
                         $to_stop--;
                 } elsif ($msg->{state} eq 'test-error') {
-                        $prc_status->[$number]->{end} = 0;
+                        $prc_state->[$number]->{end} = 0;
                         $error_occured=1;
-                        $prc_status->[$number]->{error} = $msg->{error};
+                        $prc_state->[$number]->{error} = $msg->{error};
                         $to_stop--;
                 } else {
                         $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
                 }
                 last MESSAGE if $to_stop <= 0;
                 
-                ($timeout, $prc_status, $to_start, $to_stop) = $self->time_reduce(time() - $lastrun, $prc_status, $to_start, $to_stop)
+                ($timeout, $prc_state, $to_start, $to_stop) = $self->time_reduce(time() - $lastrun, $prc_state, $to_start, $to_stop)
 
         }
         my @report;
