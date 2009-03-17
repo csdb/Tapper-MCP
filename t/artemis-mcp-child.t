@@ -18,7 +18,7 @@ use Artemis::Config;
 use Artemis::MCP::Child;
 
 
-use Test::More tests => 15;
+use Test::More tests => 17;
 
 BEGIN { use_ok('Artemis::MCP::Child'); }
 
@@ -43,6 +43,8 @@ Log::Log4perl->init(\$string);
 #                                    #
 #''''''''''''''''''''''''''''''''''''#
 
+my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
+
 
 my $mock_net = new Test::MockModule('Artemis::MCP::Net');
 $mock_net->mock('reboot_system',sub{return 0;});
@@ -56,8 +58,9 @@ $mock_conf->mock('write_config',sub{return 0;});
 my $mock_inet     = new Test::MockModule('IO::Socket::INET');
 
 
-my $testrun = 4;
-my $child   = Artemis::MCP::Child->new($testrun);
+my $testrun    = 4;
+my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
+my $child      = Artemis::MCP::Child->new($testrun);
 my $retval;
 
 #''''''''''''''''''''''''''''''''''''#
@@ -71,14 +74,14 @@ my $retval;
 # get_message()
 #
 
-my ($fh, $dont_need);
-pipe $fh, $dont_need or die "Can't open pipe:$!";
+my ($pipe, $fh, $dont_need);
+pipe $pipe, $dont_need or die "Can't open pipe:$!";
 
 # use eval to prevent waiting forever when test fails
 eval {
         local $SIG{ALRM}=sub{die 'Timeout handling in get_message did not return in time'};
         alarm(10);
-        $retval = $child->get_message($fh, 2);
+        $retval = $child->get_message($pipe, 2);
 };
 alarm(0);
 print STDERR $@  if $@;
@@ -99,43 +102,65 @@ is(ref $retval, 'HASH', 'Timeout handling in get_message');
 
 
 #
-# set_prc_status
+# set_prc_state
 #
 
 my $mcp_info={timeouts => [{start=> 0, end=> 100},{start => 5, end => 100}]};
-$retval = $child->set_prc_status($mcp_info);
-is_deeply($retval, [{start=>0, end=>100},{start=>5, end=>100}] ,'Setting PRC status array');
+$retval = $child->set_prc_state($mcp_info);
+is_deeply($retval, [{start=>0, end=>100},{start=>5, end=>100}] ,'Setting PRC state array');
 
 
 
 #
 # time_reduce
 #
-my $prc_status=$mcp_info->{timeouts};
+my $prc_state=$mcp_info->{timeouts};
 my ($to_start, $to_stop) = (1,2);
-($retval, $prc_status, $to_start, $to_stop )= $child->time_reduce(3, $prc_status, $to_start, $to_stop );
-is_deeply($prc_status, [{start=>0, end=>97},{start=>2, end=>100}] ,'Recalculation of PRC status during boot');
-is($retval, 2, 'New timeout value after recalculation of PRC status during boot');
+($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(3, $prc_state, $to_start, $to_stop );
+is_deeply($prc_state, [{start=>0, end=>97},{start=>2, end=>100}] ,'Recalculation of PRC state during boot');
+is($retval, 2, 'New timeout value after recalculation of PRC state during boot');
 
 
-$prc_status = [{start=>0, end=>97}, {start=>2, end=>100}, {start=>5, end=>100}];
+$prc_state = [{start=>0, end=>97}, {start=>2, end=>100}, {start=>5, end=>100}];
 ($to_start, $to_stop) = (2,3);
-($retval, $prc_status, $to_start, $to_stop )= $child->time_reduce(3, $prc_status, $to_start, $to_stop );
-is_deeply($prc_status, [{start=>0, end=>94},{start=>0, end=>0, error => "Guest 1: booting not finished in time, timeout reached"}, {start=>2, end=>100}] ,'Setting PRC status after timeout');
-is($retval, 2, 'New timeout value after recalculation of PRC status after boot timeout');
+($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(3, $prc_state, $to_start, $to_stop );
+is_deeply($prc_state, [{start=>0, end=>94},{start=>0, end=>0, error => "Guest 1: booting not finished in time, timeout reached"}, {start=>2, end=>100}] ,'Setting PRC state after timeout');
+is($retval, 2, 'New timeout value after recalculation of PRC state after boot timeout');
 is($to_start, 1, 'Recalculate number of guests to start after timeout');
 is($to_stop, 2, 'Recalculate number of guests to start after timeout');
 
-$prc_status = [{start=>0, end=>9}, {start=>0, end=>10}, {start=>0, end=>10}];
+$prc_state = [{start=>0, end=>9}, {start=>0, end=>10}, {start=>0, end=>10}];
 ($to_start, $to_stop) = (0,3);
-($retval, $prc_status, $to_start, $to_stop )= $child->time_reduce(20, $prc_status, $to_start, $to_stop );
-is_deeply($prc_status, [{start=>0, end=>0, error => "Host: Testing not finished in time, timeout reached"},
+($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(20, $prc_state, $to_start, $to_stop );
+is_deeply($prc_state, [{start=>0, end=>0, error => "Host: Testing not finished in time, timeout reached"},
                         {start=>0, end=>0, error => "Guest 1: Testing not finished in time, timeout reached"}, 
-                        {start=>0, end=>0, error => "Guest 2: Testing not finished in time, timeout reached"}] ,'Second test for setting PRC status after timeout');
+                        {start=>0, end=>0, error => "Guest 2: Testing not finished in time, timeout reached"}] ,'Second test for setting PRC state after timeout');
 is($to_start, 0, 'Second test for recalculate number of guests to start after timeout');
 is($to_stop, 0, 'Second test for recalculate number of guests to start after timeout');
 
 
+#
+# wait_for_systeminstaller
+# 
+$mock_child->mock('net_read',sub{my ($self, $file) = @_; my $msg = <$file>; return $msg});
+open $fh, "<","t/command_files/install-success.txt" or die "Can't open commands file installation with error:$!";
+# use eval to prevent waiting forever when test fails
+eval {
+        local $SIG{ALRM}=sub{die 'Parsing error in get_message did not return in time';};
+        alarm(10);
+        $retval = $child->wait_for_systeminstaller($fh);
+};
+alarm(0);
+print STDERR $@ if $@;
+is($retval, 0, 'Waiting for successful installation');
+$mock_child->unmock('net_read');
+
+#
+# wait_for_testrun
+# 
+
+$retval = $child->wait_for_testrun($pipe, $mcp_info);
+is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeout seconds", error => 1}] , 'wait_for_testrun detects timeout while booting test machine');
 
 #''''''''''''''''''''''''''''''''''''#
 #                                    #
@@ -150,13 +175,12 @@ is($retval, q(Can't open socket for testrun 4:Operation not permitted), "Catchin
 
 
 
-my ($read, $write);
-pipe($read, $write) or die "Can't open pipe:$!";
-$mock_inet->mock('new', sub { return $read; });
+$mock_inet->mock('new', sub { return $pipe; });
 $retval =  $child->runtest_handling('bullock');
-my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
 is ($retval, "Failed to boot Installer after timeout of $timeout seconds", 'Detect timeout during installer booting');
 $mock_inet->original('new');
+
+
 
 
 __END__
@@ -179,7 +203,7 @@ Normaler Ablauf Live:
 * tap_report -> immer noch mocken
 * upload_files -> mocken
 
--> nach jedem status Ergebnis prüfen -> 9 Tests + Tests ob Mocking gewirkt hat
+-> nach jedem state Ergebnis prüfen -> 9 Tests + Tests ob Mocking gewirkt hat
 
 ----------------------------------------------------
 Tests transfered from old installer test
