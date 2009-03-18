@@ -126,16 +126,15 @@ sub get_message
                 return {timeout => $timeout};
         }
 
-        my ($number, $state, $error, $count);
+        my ($number, $state, $error);
         return {state => "$state-install", error => $error} 
           if ($state, undef, $error) = $msg =~ m/(start|end|error)-install(:(.+))?/;
         
         # prc_number:0,end-testprogram,prc_count:1
         return {state   => "$state-test",
                 error   => $error,
-                prc_number => $number,
-                prc_count => $count} if 
-                  ($number, $state, undef, $error, $count) = $msg =~ m/prc_number:(\d+),(start|end|error)-testprogram(:(.+))?,prc_count:(\d+)/ ;
+                prc_number => $number} if 
+                  ($number, $state, undef, $error) = $msg =~ m/prc_number:(\d+),(start|end|error)-testprogram(:(.+))?/ ;
         return qq(Can't parse message "$msg" received from system installer);
 }
 
