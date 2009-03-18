@@ -256,6 +256,46 @@ sub time_reduce
 
 }
 
+=head2 
+
+Update PRC state array based on the received message.
+
+@param hash ref  - message received
+@param array ref - states of all guests
+@param int       - number of PRCs to start
+@param int       - number of PRCs to stop
+
+@returnlist - new values for (timeout, guest states, number of PRCs to start, new number of PRCs to stop)
+
+=cut
+
+sub update_prc_state
+{
+        my ($self, $msg, $prc_state, $to_start, $to_stop) = @_;
+        my $number = $msg->{prc_number}; # just to make the code shorter
+        
+        if ($msg->{state} eq 'start-test') {
+                $prc_state->[$number]->{start} = 0;
+                $prc_state->[$number]->{msg} = "Test in guest $number started" if $number != 0;;
+                $prc_state->[$number]->{msg} = "Test in PRC 0 started" if $number == 0;
+                $to_start--;
+        } elsif ($msg->{state} eq 'end-test') {
+                $prc_state->[$number]->{end} = 0;
+                $prc_state->[$number]->{msg} = "Test in guest $number finished" if $number != 0;;
+                $prc_state->[$number]->{msg} = "Test in PRC 0 finished" if $number == 0;
+                $to_stop--;
+        } elsif ($msg->{state} eq 'error-test') {
+                $prc_state->[$number]->{end} = 0;
+                $prc_state->[$number]->{error} = $msg->{error};
+                $prc_state->[$number]->{msg} = "Error in guest $number: $msg->{error}" if $number != 0;;
+                $prc_state->[$number]->{msg} = "Error in PRC 0: $msg->{error}" if $number == 0;
+                $to_stop--;
+        } else {
+                $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
+        }
+        return ($prc_state, $to_start, $to_stop);
+}
+
 =head2 wait_for_testrun
 
 Wait for start and end of a test program. Put start and end time into
@@ -273,7 +313,6 @@ for easier testing.
 sub wait_for_testrun
 {
         my ($self, $fh, $mcp_info) = @_;
-        my $error_occured=0;
       
         my $prc_state = $self->set_prc_state($mcp_info);
         my $to_start   = $#{$prc_state};  
@@ -282,43 +321,25 @@ sub wait_for_testrun
 
         # eval block used for timeout
         my $timeout = $self->cfg->{times}{boot_timeout};
+
         my $msg     = $self->get_message($fh, $timeout);
         return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
         return [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}] if $msg->{timeout};
-        $prc_state->[0]->{start} = 0;
-
+        ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
 
  MESSAGE:
         while (1) {
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
-
-                $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
-                        
-                my $number = $msg->{prc_number}; # just to make the code shorter
-
-                if ($msg->{state} eq 'start-test') {
-                        $prc_state->[$number]->{start} = 0;
-                        $to_start--;
-                } elsif ($msg->{state} eq 'end-test') {
-                        $prc_state->[$number]->{end} = 0;
-                        $to_stop--;
-                } elsif ($msg->{state} eq 'error-test') {
-                        $prc_state->[$number]->{end} = 0;
-                        $error_occured=1;
-                        $prc_state->[$number]->{error} = $msg->{error};
-                        $to_stop--;
-                } else {
-                        $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
-                }
-                last MESSAGE if $to_stop <= 0;
                 
+                $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
+                ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
+                last MESSAGE if $to_stop <= 0;
                 ($timeout, $prc_state, $to_start, $to_stop) = $self->time_reduce(time() - $lastrun, $prc_state, $to_start, $to_stop)
 
         }
-        my @report;
-        return \@report;
+        return $prc_state;
 }
 
 
