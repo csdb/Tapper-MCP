@@ -294,20 +294,17 @@ sub wait_for_testrun
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
 
-                $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $msg->{prc_count}));
-                        
-                $self->log->error("Received PRC count of $msg->{prc_count} for testrun $self->{testrun} but we have ".($#{$prc_state} + 1)." PRCs in the config")
-                  if ($#{$prc_state} + 1) != $msg->{prc_count};
+                $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
                         
                 my $number = $msg->{prc_number}; # just to make the code shorter
 
-                if ($msg->{state} eq 'test-start') {
+                if ($msg->{state} eq 'start-test') {
                         $prc_state->[$number]->{start} = 0;
                         $to_start--;
-                } elsif ($msg->{state} eq 'test-end') {
+                } elsif ($msg->{state} eq 'end-test') {
                         $prc_state->[$number]->{end} = 0;
                         $to_stop--;
-                } elsif ($msg->{state} eq 'test-error') {
+                } elsif ($msg->{state} eq 'error-test') {
                         $prc_state->[$number]->{end} = 0;
                         $error_occured=1;
                         $prc_state->[$number]->{error} = $msg->{error};
