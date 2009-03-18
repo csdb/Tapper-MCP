@@ -23,6 +23,28 @@ Artemis::MCP::Scheduler - Arrange upcoming test runs in appropriate order
 
 =cut
 
+=head2
+
+Get the hostname associated to the given testrun, get the currently active id
+associated with this hostname in the hardware database, set this id as used
+system for the given testrun and return the found hostname.
+
+@param DBIx::Class object - found testrun result
+
+@return success - hostname
+
+=cut
+
+sub get_hostname_from_refreshed_testrun
+{
+        my ($self, $testrun) = @_;
+        my $hostname = model('HardwareDB')->resultset('Systems')->search({lid => $testrun->hardwaredb_systems_id})->first->systemname;
+        my $lid = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1})->first->lid;
+        $testrun->hardwaredb_systems_id($lid);
+        $testrun->update();
+        return $hostname;
+}
+
 =head2 get_next_testrun
 
 Get next test runs to handle.
@@ -37,7 +59,7 @@ sub get_next_testrun
         my %ids;
         my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
         foreach my $testrun($testruns->all) {
-                my $hostname = model('HardwareDB')->resultset('Systems')->search({lid => $testrun->hardwaredb_systems_id})->first->systemname;
+                my $hostname = $self->get_hostname_from_refreshed_testrun($testrun);
                 $ids{$hostname}=$testrun->id if $hostname and not $ids{$hostname};
         }
         return %ids;
