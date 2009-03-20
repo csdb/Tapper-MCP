@@ -230,8 +230,9 @@ sub time_reduce
                 if ($prc_state->[$i]->{start} != 0) {
                         if (($prc_state->[$i]->{start} - $elapsed) <= 0) {
                                 $prc_state->[$i]->{start} = 0;
-                                $prc_state->[$i]->{end}  = 0;
-                                $prc_state->[$i]->{error} = "Guest $i: booting not finished in time, timeout reached";
+                                $prc_state->[$i]->{end}   = 0;
+                                $prc_state->[$i]->{error} = 1;
+                                $prc_state->[$i]->{msg}   = "Guest $i: booting not finished in time, timeout reached";
                                 $to_start--;
                                 $to_stop--;
                                 next PRC;
@@ -243,9 +244,10 @@ sub time_reduce
 
                 } elsif ($prc_state->[$i]->{end} != 0) {
                         if (($prc_state->[$i]->{end} - $elapsed) <= 0) {
-                                $prc_state->[$i]->{end}  = 0;
-                                $prc_state->[$i]->{error} = "Host: Testing not finished in time, timeout reached";
-                                $prc_state->[$i]->{error} = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;  # avoid another if/then/else, simply overwrite error for guests
+                                $prc_state->[$i]->{end}   = 0;
+                                $prc_state->[$i]->{error} = 1;
+                                $prc_state->[$i]->{msg}   = "Host: Testing not finished in time, timeout reached";
+                                $prc_state->[$i]->{msg}   = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;  # avoid another if/then/else, simply overwrite error for guests
                                 $to_stop--;
                                 next PRC;
                         } else {
