@@ -124,7 +124,7 @@ is($retval, 2, 'New timeout value after recalculation of PRC state during boot')
 $prc_state = [{start=>0, end=>97}, {start=>2, end=>100}, {start=>5, end=>100}];
 ($to_start, $to_stop) = (2,3);
 ($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(3, $prc_state, $to_start, $to_stop );
-is_deeply($prc_state, [{start=>0, end=>94},{start=>0, end=>0, error => "Guest 1: booting not finished in time, timeout reached"}, {start=>2, end=>100}] ,'Setting PRC state after timeout');
+is_deeply($prc_state, [{start=>0, end=>94},{start=>0, end=>0, error => 1, msg => "Guest 1: booting not finished in time, timeout reached"}, {start=>2, end=>100}] ,'Setting PRC state after timeout');
 is($retval, 2, 'New timeout value after recalculation of PRC state after boot timeout');
 is($to_start, 1, 'Recalculate number of guests to start after timeout');
 is($to_stop, 2, 'Recalculate number of guests to start after timeout');
@@ -132,9 +132,9 @@ is($to_stop, 2, 'Recalculate number of guests to start after timeout');
 $prc_state = [{start=>0, end=>9}, {start=>0, end=>10}, {start=>0, end=>10}];
 ($to_start, $to_stop) = (0,3);
 ($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(20, $prc_state, $to_start, $to_stop );
-is_deeply($prc_state, [{start=>0, end=>0, error => "Host: Testing not finished in time, timeout reached"},
-                        {start=>0, end=>0, error => "Guest 1: Testing not finished in time, timeout reached"}, 
-                        {start=>0, end=>0, error => "Guest 2: Testing not finished in time, timeout reached"}] ,'Second test for setting PRC state after timeout');
+is_deeply($prc_state, [{start=>0, end=>0, error => 1, msg => "Host: Testing not finished in time, timeout reached"},
+                        {start=>0, end=>0, error => 1, msg => "Guest 1: Testing not finished in time, timeout reached"}, 
+                        {start=>0, end=>0, error => 1, msg => "Guest 2: Testing not finished in time, timeout reached"}] ,'Second test for setting PRC state after timeout');
 is($to_start, 0, 'Second test for recalculate number of guests to start after timeout');
 is($to_stop, 0, 'Second test for recalculate number of guests to start after timeout');
 
