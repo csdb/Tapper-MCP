@@ -323,9 +323,8 @@ sub wait_for_testrun
         my ($self, $fh, $mcp_info) = @_;
       
         my $prc_state = $self->set_prc_state($mcp_info);
-        my $to_start   = $#{$prc_state};  
+        my $to_start   = scalar @$prc_state;  
         my $to_stop    = $to_start;
-        $to_stop++ if $prc_state->[0]->{end};   # don't need to count starting of PRC0 but do need to count stopping
 
         # eval block used for timeout
         my $timeout = $self->cfg->{times}{boot_timeout};
@@ -336,16 +335,17 @@ sub wait_for_testrun
         ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
 
  MESSAGE:
-        while (1) {
+        while ($to_stop) {
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
                 
-                $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
-                ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
+                if (not $msg->{timeout}) {
+                        $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
+                        ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
+                }
                 last MESSAGE if $to_stop <= 0;
                 ($timeout, $prc_state, $to_start, $to_stop) = $self->time_reduce(time() - $lastrun, $prc_state, $to_start, $to_stop)
-
         }
         return $prc_state;
 }
