@@ -80,8 +80,14 @@ sub net_read
         my ($self, $fh, $timeout) = @_;
         my $msg;
         if ($fh->can('accept')) {
-                my $sock           = $fh->accept();
-                $fh = $sock;
+                eval{
+                        local $SIG{ALRM}=sub{die 'Timeout'};
+                        alarm($timeout);
+                        my $sock           = $fh->accept();
+                        $fh = $sock;
+                };
+                alarm(0);
+                return 0 if $@=~m/Timeout/;
         }
 
         my $select = IO::Select->new() or return undef;
