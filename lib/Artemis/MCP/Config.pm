@@ -65,11 +65,11 @@ sub parse_virt_preconditions
                 push @{$config->{preconditions}}, $virt->{host}->{testprogram};
                 $main_prc_config->{test_program}              = $virt->{host}->{testprogram}->{execname};
                 $main_prc_config->{parameters}                = $virt->{host}->{testprogram}->{parameters}                if $virt->{host}->{testprogram}->{parameters};
-                $main_prc_config->{timeout_after_testprogram} = $virt->{host}->{testprogram}->{timeout_after_testprogram} if $virt->{host}->{testprogram}->{timeout_after_testprogram};
-                $self->{mcp_info}->{timeouts}->[0]->{end}     = $virt->{host}->{testprogram}->{timeout_after_testprogram} if $virt->{host}->{testprogram}->{timeout_after_testprogram};
+                $main_prc_config->{timeout_testprogram} = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
+                $self->{mcp_info}->{timeouts}->[0]->{end}     = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
                 
         }
-        push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_after_testprogram}; # always have a value for host, undef if no tests there
+        push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_testprogram}; # always have a value for host, undef if no tests there
         
 
         
@@ -126,9 +126,9 @@ sub parse_virt_preconditions
                         $prc_config->{config}->{runtime} = $guest->{testprogram}->{runtime} ||
                           $self->cfg->{times}{test_runtime_default};
 
-                        if ($guest->{testprogram}->{timeout_after_testprogram}) {
-                                $prc_config->{config}->{timeout_after_testprogram}=$guest->{testprogram}->{timeout_after_testprogram} ;
-                                push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{timeout_after_testprogram};
+                        if ($guest->{testprogram}->{timeout_testprogram}) {
+                                $prc_config->{config}->{timeout_testprogram}=$guest->{testprogram}->{timeout_testprogram} ;
+                                push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{timeout_testprogram};
                         } elsif ($guest->{testprogram}->{runtime}){
                                 push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{runtime};
                         } else {
