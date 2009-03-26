@@ -8,7 +8,7 @@ use YAML;
 
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 6; 
+use Test::More tests => 7; 
 
 BEGIN { use_ok('Artemis::MCP::Config'); }
 
@@ -26,7 +26,8 @@ is(ref($config),'HASH', 'Config created');
 
 
 is($config->{preconditions}->[0]->{image}, "suse/suse_sles10_64b_smp_raw.tar.gz", 'first precondition is root image');
-is($config->{preconditions}->[8]->{artemis_package}, "artemisutils/opt-artemis64.tar.gz", 'setting opt-artemis package');
+is($config->{preconditions}->[4]->{filename}, "artemisutils/opt-artemis64.tar.gz", 'setting opt-artemis package for Dom0');
+is($config->{preconditions}->[8]->{artemis_package}, "artemisutils/opt-artemis64.tar.gz", 'setting opt-artemis package for guest');
 
 
 is($config->{installer_stop}, 1, 'installer_stop');
