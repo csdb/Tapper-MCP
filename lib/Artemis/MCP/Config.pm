@@ -54,8 +54,7 @@ sub parse_virt_preconditions
         return "can't detect architecture of one guest, so I can't install PRC" 
           if not $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
         push @{$config->{preconditions}}, {precondition_type => 'package', 
-                                           filename => basename($self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}}),
-                                           path     => dirname($self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}}),
+                                           filename => $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}},
                                           };
         
         my $main_prc_config;
