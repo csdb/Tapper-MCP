@@ -229,7 +229,7 @@ sub upload_files
         $path .= "/$testrunid/";
         my $cwd=`pwd`;
         chdir($path) or return "Can't change into directory $path:$!";
-        my @files=`find -type f -size +0`;
+        my @files=`find -type f`;
         $self->log->debug(@files);
         foreach my $file(@files) {
                 chomp $file;
