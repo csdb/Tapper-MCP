@@ -18,7 +18,7 @@ has mcp_info => (is  => 'rw',
                  default => sub {{}},
                 );
 
-
+our $MODIFIER = 3; # timeout = $MODIFIER * runtime; XXX find better way 
 
 =head1 NAME
 
@@ -128,12 +128,10 @@ sub parse_virt_preconditions
                         if ($guest->{testprogram}->{timeout_testprogram}) {
                                 $prc_config->{config}->{timeout_testprogram}=$guest->{testprogram}->{timeout_testprogram} ;
                                 push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{timeout_testprogram};
-                        } elsif ($guest->{testprogram}->{runtime}){
-                                push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{runtime};
                         } else {
-                                push @{$main_prc_config->{timeouts}}, $self->cfg->{times}{test_runtime_default};
+                                push @{$main_prc_config->{timeouts}}, $self->cfg->{times}{test_runtime_default} * $MODIFIER;
                         }
-                        # push onto mcp_info timeout list, whatever the above if cascade descided to use as timeout for this PRC
+                        # push onto mcp_info timeout list, whatever the above if-cascade descided to use as timeout for this PRC
                         push @{$self->{mcp_info}->{timeouts}},{start => $self->cfg->{times}{boot_timeout}, 
                                                                end   => $main_prc_config->{timeouts}->[$#{$main_prc_config->{timeouts}}]};
 
