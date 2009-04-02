@@ -262,9 +262,6 @@ SYSTEM:
 		
                 $self->log->info("start testing on $system");
 
-                my $console = $self->console_open($system, $id);
-                $self->log->error($console) if not ref($console) eq 'IO::Socket::INET';
-
                 my $pid = fork();
                 die "fork failed: $!" if (not defined $pid);
 		
@@ -291,6 +288,9 @@ SYSTEM:
                 }
                 else
                 {
+                        my $console = $self->console_open($system, $id);
+                        $self->log->error($console) if not ref($console) eq 'IO::Socket::INET';
+
                         $self->child->{$system}->{pid}      = $pid;
                         $self->child->{$system}->{test_run} = $id;
                         $self->child->{$system}->{console}  = $console;
