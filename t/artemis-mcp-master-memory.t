@@ -64,7 +64,7 @@ $mockchild->mock('install',sub{my ($self, $hostname, $fh) = @_;
                                        print STDERR "Wrote start-testprogram\n";
 
                                        
-                                       sleep($timeout);
+                                       sleep(600);
                                        $sock = IO::Socket::INET->new(PeerAddr => 'localhost', PeerPort => $port, Proto => 'tcp');
                                        $sock->print("prc_number:0,end-testprogram\n");
                                        close $sock;
@@ -88,7 +88,8 @@ my $retval;
 
 $master->set_interrupt_handlers();
 $master->prepare_server();
-foreach (1..5) 
+#$master->cfg->{times}{poll_intervall} = 0;
+foreach (1..10) 
 {
         my $lastrun = time();
         $master->runloop($lastrun);
