@@ -313,8 +313,16 @@ sub runloop
         my ($self, $lastrun) = @_;
         my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
                 
-        # sleep if no data has to be handled
-        my @ready = $self->readset->can_read( $timeout );
+        my @ready;
+        # if readset is empty, can_read immediately returns with an empty
+        # array; this makes runloop a CPU burn loop
+        if ($self->readset->count) {
+                @ready = $self->readset->can_read( $timeout );
+        } else {
+                sleep $timeout;
+        }
+        
+        
         $self->handle_dead_children() if $self->dead_child;
                
         foreach my $handle (@ready) {
