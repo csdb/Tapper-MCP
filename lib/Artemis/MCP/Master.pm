@@ -245,6 +245,9 @@ SYSTEM:
                 {
                         if ($self->child->{$system}->{test_run}==$id)
                         {
+                                # Occurs in the rare case that child updates
+                                # the test run in the db(inside forked child) slower
+                                # than parent rereads the schedule 
                                 $self->log->warn("Test run id $id is returned twice.");
                                 next SYSTEM;
                         } 
@@ -277,7 +280,6 @@ SYSTEM:
                         my $retval = $child->runtest_handling( $system );
                         $run->endtime_test_program(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
                         $run->update();
-
 
                         if ($retval) {
                                 $self->log->error("An error occured while trying to run testrun $id on $system: $retval");

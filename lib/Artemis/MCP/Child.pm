@@ -58,6 +58,48 @@ sub gettimeout
         return $run->wait_after_tests || 0;
 }
 
+
+=head2 net_read_do
+
+Put worker part of net_read into a sub so we can call it with accepted socket
+as well as with readl file handle.
+
+@param file handle - read from this socket
+@param int         - timeout in seconds
+
+@return success - message string read from remote)
+@return timeout - 0
+
+=cut
+
+sub net_read_do
+{
+        my ($self, $fh, $timeout) = @_;
+        my $msg;
+        my $timeout_calc = $timeout;
+        my $select = IO::Select->new() or return undef;
+        $select->add($fh);
+        
+ NETREAD:
+        while (1) {
+                my $time   = time();
+                my @ready;
+                # if no timeout is given, it's ok to wait forever
+                if ($timeout) {
+                         @ready  = $select->can_read($timeout_calc);
+                } else {
+                         @ready  = $select->can_read();
+                }
+                $timeout_calc -= time() - $time;
+                return 0 if not @ready;
+                my $tmp;
+                my $readbytes = sysread($fh, $tmp, BUFLEN);
+                last NETREAD if not $readbytes;
+                $msg     .= $tmp;
+        }
+        return $msg;
+}
+
 =head2 net_read
 
 Reads new message from network socket. 
@@ -79,34 +121,25 @@ sub net_read
 {
         my ($self, $fh, $timeout) = @_;
         my $msg;
+        my $sock;
+
         if ($fh->can('accept')) {
                 eval{
                         local $SIG{ALRM}=sub{die 'Timeout'};
                         alarm($timeout);
-                        my $sock           = $fh->accept();
-                        $fh = $sock;
+                        $sock = $fh->accept();
                 };
                 alarm(0);
                 return 0 if $@=~m/Timeout/;
+                $msg = $self->net_read_do($sock, $timeout);
         }
-
-        my $select = IO::Select->new() or return undef;
-        $select->add($fh);
-        
- NETREAD:
-        while (1) {
-                my $time   = time();
-                my @ready  = $select->can_read($timeout);
-                $timeout  -= time() - $time;
-                return 0 if not @ready;
-                my $tmp;
-                my $readbytes = sysread($fh, $tmp, BUFLEN);
-                last NETREAD if not $readbytes;
-                $msg     .= $tmp;
+        else {
+                $msg = $self->net_read_do($fh, $timeout);
         }
-        chomp $msg;
+        chomp $msg if $msg;
         return $msg;
-};
+
+}
 
 
 =head2 get_message
