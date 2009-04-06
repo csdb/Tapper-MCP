@@ -227,13 +227,12 @@ sub upload_files
         
         my $path = $self->cfg->{paths}{output_dir};
         $path .= "/$testrunid/";
-        my $cwd=`pwd`;
-        chdir($path) or return "Can't change into directory $path:$!";
-        my @files=`find -type f`;
+        my @files=`find $path -type f`;
         $self->log->debug(@files);
         foreach my $file(@files) {
                 chomp $file;
                 my $reportfile=$file;
+                $reportfile =~ s|^$path||;
                 $reportfile =~ s|^./||;
                 $reportfile =~ s|[^A-Za-z0-9_-]|_|g;
                 my $cmdline =  "#! upload $reportid ";
@@ -252,7 +251,6 @@ sub upload_files
                 close(FH);
                 $server->close();
         }
-        chdir $cwd;
         return 0;
 }
 
