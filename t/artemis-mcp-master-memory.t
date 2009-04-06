@@ -3,6 +3,12 @@
 use strict;
 use warnings;
 
+# This file was created to be used with the debugger to find a memory leak in
+# Artemis::MCP. It does not include any real test. Then again it walks through
+# the whole MCP so its a good starting point to create a real test that tests
+# all of MCP.
+
+
 # get rid of warnings
 use Class::C3;
 use MRO::Compat;
@@ -21,6 +27,9 @@ autoflush STDOUT 1;
 autoflush STDERR 1;
 
 use Test::More tests => 1;
+ok (1,'dummy');
+__END__
+
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
@@ -94,5 +103,4 @@ foreach (1..10)
         my $lastrun = time();
         $master->runloop($lastrun);
 }
-ok (1,'dummy');
 
