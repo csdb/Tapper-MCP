@@ -366,7 +366,7 @@ Set up all needed data structures then wait for new tests.
 
 =cut
 
-sub run
+sub start
 {
         my ($self) = @_;
         $self->set_interrupt_handlers();
