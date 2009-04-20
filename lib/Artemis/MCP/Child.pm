@@ -168,12 +168,19 @@ sub get_message
         my ($number, $state, $error);
         return {state => "$state-install", error => $error} 
           if ($state, undef, $error) = $msg =~ m/(start|end|error)-install(:(.+))?/;
-        
+
         # prc_number:0,end-testprogram,prc_count:1
         return {state   => "$state-test",
                 error   => $error,
                 prc_number => $number} if 
                   ($number, $state, undef, $error) = $msg =~ m/prc_number:(\d+),(start|end|error)-testprogram(:(.+))?/ ;
+
+
+        # reboot:1,2
+        my ($count, $max_reboot);
+        return {state => "reboot", count => $count, max => $max_reboot} 
+          if ($state, $count, $max_reboot) = $msg =~ m/reboot:(\d+),(\d+)/;
+
         return qq(Can't parse message "$msg" received from system installer);
 }
 
