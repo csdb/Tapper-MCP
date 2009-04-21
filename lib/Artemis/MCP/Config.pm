@@ -225,6 +225,7 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'reboot') {
                         $config->{max_reboot} = $precondition->precondition_as_hash->{count} || 1; # reboot at least once
+                        $self->mcp_info->{max_reboot} = $config->{max_reboot};
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
