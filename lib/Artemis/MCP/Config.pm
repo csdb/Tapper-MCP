@@ -184,7 +184,6 @@ sub  parse_grub
         return $config;
 }
 
-
 =head2 get_install_config
 
 Add installation configuration part to a given config hash.
@@ -223,6 +222,9 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'installer_stop') {
                         $config->{installer_stop} = 1;
+                }
+                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'reboot') {
+                        $config->{max_reboot} = $precondition->precondition_as_hash->{count} || 1; # reboot at least once
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
