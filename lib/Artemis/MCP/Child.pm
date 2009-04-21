@@ -177,7 +177,7 @@ sub get_message
 
         # prc_number:0,reboot:1,2
         my ($count, $max_reboot);
-        return {state => "reboot", count => $count, max => $max_reboot} 
+        return {state => "reboot", count => $count, max_reboot => $max_reboot} 
           if ($state, $count, $max_reboot) = $msg =~ m/prc_number:(\d+),reboot:(\d+),(\d+)/;
 
         return qq(Can't parse message "$msg" received from system installer);
@@ -271,7 +271,13 @@ sub time_reduce
                                 $prc_state->[$i]->{start} = 0;
                                 $prc_state->[$i]->{end}   = 0;
                                 $prc_state->[$i]->{error} = 1;
-                                $prc_state->[$i]->{msg}   = "Guest $i: booting not finished in time, timeout reached";
+                                if ($prc_state->[$i]->{max_reboot}) {
+                                        $prc_state->[$i]->{msg} = "reboot-test-summary\n   ---\n   got:";
+                                        $prc_state->[$i]->{msg}.= $prc_state->[$i]->{count} || "0";
+                                        $prc_state->[$i]->{msg}.= "\n   expected:$prc_state->[$i]->{max_reboot}\n   ...";
+                                } else {
+                                        $prc_state->[$i]->{msg}   = "Guest $i: booting not finished in time, timeout reached";
+                                }
                                 $to_start--;
                                 $to_stop--;
                                 next PRC;
@@ -337,6 +343,14 @@ sub update_prc_state
                 $prc_state->[$number]->{msg} = "Error in guest $number: $msg->{error}" if $number != 0;;
                 $prc_state->[$number]->{msg} = "Error in PRC 0: $msg->{error}" if $number == 0;
                 $to_stop--;
+        } elsif ($msg->{state} eq 'reboot') {
+                $prc_state->[$number]->{count} = $msg->{count};
+                if (not $msg->{max_reboot} eq $prc_state->[$number]->{max_reboot}) {
+                        $self->log->warning("Got a new max_reboot count for PRC $number. Old value was $prc_state->[$number]->{max_reboot} ",
+                                            "new value is $msg->{max_reboot}. I continue with new value");
+                        $prc_state->[$number]->{max_reboot} = $msg->{max_reboot};
+                }
+                $to_stop-- if $msg->{count} eq $prc_state->[$number]->{max_reboot};
         } else {
                 $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
         }
@@ -365,8 +379,10 @@ sub wait_for_testrun
         my $to_start   = scalar @$prc_state;  
         my $to_stop    = $to_start;
 
-        # eval block used for timeout
         my $timeout = $self->cfg->{times}{boot_timeout};
+
+        # currently reboot not for virt guests
+        $prc_state->[0]->{max_reboot} = $mcp_info->{max_reboot} if $mcp_info->{max_reboot};
 
         my $msg     = $self->get_message($fh, $timeout);
         return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
