@@ -175,11 +175,10 @@ sub get_message
                 prc_number => $number} if 
                   ($number, $state, undef, $error) = $msg =~ m/prc_number:(\d+),(start|end|error)-testprogram(:(.+))?/ ;
 
-
-        # reboot:1,2
+        # prc_number:0,reboot:1,2
         my ($count, $max_reboot);
         return {state => "reboot", count => $count, max => $max_reboot} 
-          if ($state, $count, $max_reboot) = $msg =~ m/reboot:(\d+),(\d+)/;
+          if ($state, $count, $max_reboot) = $msg =~ m/prc_number:(\d+),reboot:(\d+),(\d+)/;
 
         return qq(Can't parse message "$msg" received from system installer);
 }
