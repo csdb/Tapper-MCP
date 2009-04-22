@@ -5,6 +5,7 @@ use warnings;
 
 # get rid of warnings
 use Class::C3;
+use IO::Socket::INET;
 use MRO::Compat;
 use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
@@ -18,7 +19,21 @@ use Artemis::Config;
 use Artemis::MCP::Child;
 
 
-use Test::More tests => 17;
+use Test::More tests => 20;
+
+sub msg_send
+{
+        my ($file, $port) = @_;
+        open my $fh,"<",$file or return "Can't open $file:$!";
+        while (my $line = <$fh>) {
+                my $remote = IO::Socket::INET->new(PeerHost => 'localhost',
+                                                   PeerPort => $port) or return "Can't connect to server:$!";
+                print $remote $line;
+                close $remote;
+        }
+        close $fh;
+}
+        
 
 BEGIN { use_ok('Artemis::MCP::Child'); }
 
@@ -138,7 +153,6 @@ is_deeply($prc_state, [{start=>0, end=>0, error => 1, msg => "Host: Testing not 
 is($to_start, 0, 'Second test for recalculate number of guests to start after timeout');
 is($to_stop, 0, 'Second test for recalculate number of guests to start after timeout');
 
-
 #
 # wait_for_systeminstaller
 # 
@@ -154,6 +168,36 @@ alarm(0);
 print STDERR $@ if $@;
 is($retval, 0, 'Waiting for successful installation');
 $mock_child->unmock('net_read');
+
+
+
+#
+# reboot test
+#
+$mcp_info={timeouts => [{start=> 0, end=> 100}], max_reboot => 2 };
+my $pid=fork();
+if ($pid==0) {
+        sleep(2); #bad and ugly to prevent race condition
+        
+        msg_send('t/command_files/reboot_success.txt', 1337);
+        exit 0;
+
+} else {
+        my $server = IO::Socket::INET->new(Listen    => 5,
+                                           LocalPort => 1337);
+        ok($server, 'Create socket');
+
+        my @content;
+        eval{
+                $SIG{ALRM}=sub{die("timeout of 5 seconds reached while waiting for file upload test.");};
+                alarm(5);
+                $retval = $child->wait_for_testrun($server, $mcp_info);
+        };
+        is($@, '', 'Get reboot messages in time');
+        waitpid($pid,0);
+
+        is($retval->[0]->{msg},"Rebooted 2 times", 'Successful reboot test handling');
+}
 
 #
 # wait_for_testrun
@@ -299,3 +343,5 @@ is_deeply($report, [{error => 1,
                      msg => "tried to execute /opt/artemis/testsuite/system/bin/artemis_testsuite_system.sh ".
                             "which is not an execuable or does not exist at all"},
                     {msg => "Test on guest 2"}], 'Test with two PRCs and one error');
+
+
