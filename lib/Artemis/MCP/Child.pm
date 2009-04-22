@@ -177,8 +177,8 @@ sub get_message
 
         # prc_number:0,reboot:1,2
         my ($count, $max_reboot);
-        return {state => "reboot", count => $count, max_reboot => $max_reboot} 
-          if ($state, $count, $max_reboot) = $msg =~ m/prc_number:(\d+),reboot:(\d+),(\d+)/;
+        return {state => "reboot", count => $count, max_reboot => $max_reboot, prc_number => $number} 
+          if ($number, $count, $max_reboot) = $msg =~ m/prc_number:(\d+),reboot:(\d+),(\d+)/;
 
         return qq(Can't parse message "$msg" received from system installer);
 }
@@ -334,8 +334,22 @@ sub update_prc_state
                 $to_start--;
         } elsif ($msg->{state} eq 'end-test') {
                 $prc_state->[$number]->{end} = 0;
-                $prc_state->[$number]->{msg} = "Test in guest $number finished" if $number != 0;;
-                $prc_state->[$number]->{msg} = "Test in PRC 0 finished" if $number == 0;
+                if ($prc_state->[$number]->{max_reboot}) {
+                        if ($prc_state->[$number]->{max_reboot} eq $prc_state->[$number]->{count}) {
+                                $prc_state->[$number]->{msg} = "Rebooted $prc_state->[$number]->{count} times";
+                        } else {
+                                $prc_state->[$number]->{error} = 1;
+                                $prc_state->[$number]->{msg}   = 
+                                  "You planned more reboots than actually ran:\n".
+                                    "   ---\n".
+                                      "   expected:$prc_state->[$number]->{max_reboot}\n".
+                                        "   got:$prc_state->[$number]->{count}\n".
+                                          "...";
+                        }
+                } else {
+                        $prc_state->[$number]->{msg} = "Test in PRC 0 finished" if $number == 0;
+                        $prc_state->[$number]->{msg} = "Test in guest $number finished" if $number != 0;
+                }
                 $to_stop--;
         } elsif ($msg->{state} eq 'error-test') {
                 $prc_state->[$number]->{end} = 0;
@@ -350,7 +364,6 @@ sub update_prc_state
                                             "new value is $msg->{max_reboot}. I continue with new value");
                         $prc_state->[$number]->{max_reboot} = $msg->{max_reboot};
                 }
-                $to_stop-- if $msg->{count} eq $prc_state->[$number]->{max_reboot};
         } else {
                 $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
         }
