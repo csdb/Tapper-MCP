@@ -114,6 +114,7 @@ since it would make it to complex.
 @param string - name of the system to be rebooted
 
 @return success - 0
+@return error   - error string
 
 =cut
 
@@ -159,7 +160,8 @@ sub reboot_system
                 $self->log->info("Try reboot via reset switch");
                 my $cmd = $self->cfg->{osrc_rst}." -f $host";
                 $self->log->info("trying $cmd");
-                `$cmd`;
+                my ($error, $retval) = $self->log_and_exec($cmd);
+                return $retval if $error;
         }
 
 	return 0;
