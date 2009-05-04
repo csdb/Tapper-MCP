@@ -436,14 +436,15 @@ sub install
         my ($self, $hostname, $fh) = @_;
         my $retval;
      
-        my $remote                 = new Artemis::MCP::Net;
+        my $remote = new Artemis::MCP::Net;
         $self->log->debug("Write grub file for $hostname");
-        $retval                    = $remote->write_grub_file($hostname);
+        $retval    = $remote->write_grub_file($hostname);
         return $retval if $retval;
 
 
         $self->log->debug("rebooting $hostname");
-        $remote->reboot_system($hostname);
+        $retval = $remote->reboot_system($hostname);
+        return $retval if $retval;
         return 0;
 
 
