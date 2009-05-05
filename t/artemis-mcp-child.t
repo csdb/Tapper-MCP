@@ -10,6 +10,7 @@ use MRO::Compat;
 use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
 use Test::MockModule;
+use YAML::Syck;
 
 use Artemis::Model 'model';
 use Artemis::Schema::TestTools;
@@ -19,21 +20,26 @@ use Artemis::Config;
 use Artemis::MCP::Child;
 
 
-use Test::More tests => 20;
+use Test::More tests => 21;
 
 sub msg_send
 {
-        my ($file, $port) = @_;
-        open my $fh,"<",$file or return "Can't open $file:$!";
-        while (my $line = <$fh>) {
-                my $remote = IO::Socket::INET->new(PeerHost => 'localhost',
-                                                   PeerPort => $port) or return "Can't connect to server:$!";
-                print $remote $line;
-                close $remote;
-        }
-        close $fh;
+        my ($yaml, $port) = @_;
+        my $remote = IO::Socket::INET->new(PeerHost => 'localhost',
+                                           PeerPort => $port) or return "Can't connect to server:$!";
+        print $remote $yaml;
+        close $remote;
 }
         
+sub closure
+{
+        my ($file) = @_;
+        my $i=0;
+        my @data = LoadFile($file);
+        return sub{my ($self, $file) = @_; return $data[$i++]};
+}
+
+
 
 BEGIN { use_ok('Artemis::MCP::Child'); }
 
@@ -99,11 +105,18 @@ eval {
         $retval = $child->get_message($pipe, 2);
 };
 alarm(0);
-print STDERR $@  if $@;
-is($retval->{timeout}, 2, 'Timeout handling in get_message');
+is($@,'', 'Received message in time');
+if (ref($retval) eq 'HASH' ) {
+        is($retval->{timeout}, 2, 'Timeout handling in get_message');
+} else {
+        is($retval, '','Expected a hash reference but got an error string, printing this string for your convenience');
+}
 
 
 open $fh, "<","t/command_files/install-error.txt" or die "Can't open commands file installation with error:$!";
+my $closure = closure($fh);
+$mock_child->mock('net_read', $closure);
+
 # use eval to prevent waiting forever when test fails
 eval {
         local $SIG{ALRM}=sub{die 'Parsing error in get_message did not return in time';};
@@ -156,8 +169,10 @@ is($to_stop, 0, 'Second test for recalculate number of guests to start after tim
 #
 # wait_for_systeminstaller
 # 
-$mock_child->mock('net_read',sub{my ($self, $file) = @_; my $msg = <$file>; return $msg});
 open $fh, "<","t/command_files/install-success.txt" or die "Can't open commands file installation with error:$!";
+$closure = closure($fh);
+
+$mock_child->mock('net_read', $closure);
 # use eval to prevent waiting forever when test fails
 eval {
         local $SIG{ALRM}=sub{die 'Parsing error in get_message did not return in time';};
@@ -178,8 +193,13 @@ $mcp_info={timeouts => [{start=> 0, end=> 100}], max_reboot => 2 };
 my $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
+        open $fh, "<","t/command_files/reboot_success.txt" or die "Can't open commands file reboot test:$!";
         
-        msg_send('t/command_files/reboot_success.txt', 1337);
+        # get yaml and dump it instead of reading from file directly allows to have multiple messages in the file without need to parse seperators
+        $closure = closure($fh);
+        while (my $yaml = &$closure()) {
+                msg_send(Dump($yaml), 1337);
+        }
         exit 0;
 
 } else {
