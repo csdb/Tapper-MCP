@@ -8,6 +8,7 @@ use IO::Socket::INET;
 use List::Util qw(min max);
 use Moose;
 use UNIVERSAL qw (can);
+use YAML::Syck;
 
 use Artemis::MCP::Net;
 use Artemis::MCP::Config;
@@ -110,10 +111,7 @@ testing allowing messages to come from a file during tests.
 @param file handle - read from this socket
 @param int         - timeout in seconds
 
-@return success - message string read from remote)
-@return error   - undef (check $!)
-@return timeout - 0
-
+@return hash reference
 
 =cut
 
@@ -130,14 +128,15 @@ sub net_read
                         $sock = $fh->accept();
                 };
                 alarm(0);
-                return 0 if $@=~m/Timeout/;
+                return {timeout => $timeout, error => 1} if $@=~m/Timeout/;
                 $msg = $self->net_read_do($sock, $timeout);
         }
         else {
                 $msg = $self->net_read_do($fh, $timeout);
         }
-        chomp $msg if $msg;
-        return $msg;
+        return {timeout => $timeout, error => 1} if not $msg;
+        my $yaml = Load($msg);
+        return $yaml;
 
 }
 
@@ -160,27 +159,9 @@ sub get_message
 {
         my ($self, $fh, $timeout) = @_;
         my $msg = $self->net_read($fh, $timeout);
-        if (not $msg) {
-                return "$!" if not defined($msg);
-                return {timeout => $timeout};
-        }
+        return "Invalid status message format received from remote" if not ref $msg eq 'HASH';
 
-        my ($number, $state, $error);
-        return {state => "$state-install", error => $error} 
-          if ($state, undef, $error) = $msg =~ m/(start|end|error)-install(:(.+))?/;
-
-        # prc_number:0,end-testprogram,prc_count:1
-        return {state   => "$state-test",
-                error   => $error,
-                prc_number => $number} if 
-                  ($number, $state, undef, $error) = $msg =~ m/prc_number:(\d+),(start|end|error)-testprogram(:(.+))?/ ;
-
-        # prc_number:0,reboot:1,2
-        my ($count, $max_reboot);
-        return {state => "reboot", count => $count, max_reboot => $max_reboot, prc_number => $number} 
-          if ($number, $count, $max_reboot) = $msg =~ m/prc_number:(\d+),reboot:(\d+),(\d+)/;
-
-        return qq(Can't parse message "$msg" received from system installer);
+        return $msg;
 }
 
 =head2 set_prc_state
@@ -327,12 +308,12 @@ sub update_prc_state
         my ($self, $msg, $prc_state, $to_start, $to_stop) = @_;
         my $number = $msg->{prc_number}; # just to make the code shorter
         
-        if ($msg->{state} eq 'start-test') {
+        if ($msg->{state} eq 'start-testing') {
                 $prc_state->[$number]->{start} = 0;
                 $prc_state->[$number]->{msg} = "Test in guest $number started" if $number != 0;;
                 $prc_state->[$number]->{msg} = "Test in PRC 0 started" if $number == 0;
                 $to_start--;
-        } elsif ($msg->{state} eq 'end-test') {
+        } elsif ($msg->{state} eq 'end-testing') {
                 $prc_state->[$number]->{end} = 0;
                 if ($prc_state->[$number]->{max_reboot}) {
                         if ($prc_state->[$number]->{max_reboot} eq $prc_state->[$number]->{count}) {
