@@ -1,2 +1,4 @@
-start-install
-end-install
+---
+state: start-install
+---
+state: end-install
