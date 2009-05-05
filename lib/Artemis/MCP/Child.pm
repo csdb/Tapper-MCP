@@ -332,7 +332,7 @@ sub update_prc_state
                         $prc_state->[$number]->{msg} = "Test in guest $number finished" if $number != 0;
                 }
                 $to_stop--;
-        } elsif ($msg->{state} eq 'error-test') {
+        } elsif ($msg->{state} eq 'error-testprogram') {
                 $prc_state->[$number]->{end} = 0;
                 $prc_state->[$number]->{error} = $msg->{error};
                 $prc_state->[$number]->{msg} = "Error in guest $number: $msg->{error}" if $number != 0;;
