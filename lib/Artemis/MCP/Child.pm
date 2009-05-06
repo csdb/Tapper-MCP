@@ -345,6 +345,8 @@ sub update_prc_state
                                             "new value is $msg->{max_reboot}. I continue with new value");
                         $prc_state->[$number]->{max_reboot} = $msg->{max_reboot};
                 }
+        } elsif ($msg->{state} eq 'end-testprogram') {
+                $self->log->debug('Received end testprogram which is not yet implemented');
         } else {
                 $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
         }
