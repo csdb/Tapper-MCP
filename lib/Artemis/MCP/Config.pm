@@ -75,9 +75,10 @@ sub parse_virt_preconditions
         # Not all guests need to have a test program and thus a PRC
         # running. Count those which do to allow proxy to report number of
         # missing guests. Note that guest 0 is actually HOST
-        my $guest_number=0;
-
-        foreach my $guest(@{$virt->{guests}}) {
+        my $guest_number ;
+        for (my $i=0; $i<=$#{$virt->{guests}}; $i++ ) {
+                my $guest = $virt->{guests}->[$i];
+                $guest_number = $i+1;
                 my $mountfile      = $guest->{root}->{mountfile};
                 my $mountpartition = $guest->{root}->{mountpartition};
 
@@ -120,7 +121,7 @@ sub parse_virt_preconditions
                         $prc_config->{config}->{test_program}= $guest->{testprogram}->{execname};
                         $prc_config->{config}->{parameters} = $guest->{testprogram}->{parameters} 
                           if $guest->{testprogram}->{parameters};
-                        $prc_config->{config}->{guest_number} = ++$guest_number;
+                        $prc_config->{config}->{guest_number} = $guest_number;
                         $prc_config->{config}->{runtime} = $self->cfg->{times}{test_runtime_default};
                         $prc_config->{config}->{runtime} = $guest->{testprogram}->{runtime} ||
                           $self->cfg->{times}{test_runtime_default};
