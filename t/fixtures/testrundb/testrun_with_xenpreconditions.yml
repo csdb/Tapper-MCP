@@ -51,6 +51,15 @@
     topic_name: Software
 
 
+- schema: Testrun
+  name: Reboot
+  data:
+    id: 3
+    owner_user_id: 12
+    shortname: reboot
+    topic_name: Misc
+
+
 # -------------------- preconditions
 
 - schema: Precondition
@@ -102,6 +111,23 @@
     precondition: |
       precondition_type: installer_stop
 
+- schema: Precondition
+  name: reboot
+  data:
+    id: 11
+    precondition: |
+      precondition_type: reboot
+      count: 2
+
+- schema: Precondition
+  name: simple_image
+  data:
+    id: 12
+    precondition: |
+      precondition_type: image
+      arch: linux64
+      mount: /
+      partition: testing
 
 
 # -------------------- "KVM" <== "KVMtest"
@@ -119,6 +145,24 @@
   data:
     testrun_id: 2
     precondition_id: 10
+    succession: 2
+
+
+# -------------------- "Reboot" <== "Reboot"
+
+- schema: TestrunPrecondition
+  name: 1st precondition for Reboot
+  data:
+    testrun_id: 3
+    precondition_id: 11
+    succession: 1
+
+
+- schema: TestrunPrecondition
+  name: 2nd precondition for reboot
+  data:
+    testrun_id: 3
+    precondition_id: 12
     succession: 2
 
 
