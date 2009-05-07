@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 BEGIN { use_ok( 'Artemis::MCP::Info' ); }
 
@@ -23,3 +23,4 @@ $info->add_testprogram(3, 5);
 $info->add_testprogram(3, 30);
 my @received_list = $info->get_testprogram_timeouts(3);
 is_deeply(\@received_list, [20, 10, 5, 30], 'Setting and getting testprogram timeouts');
+is($info->get_prc_count(), 3, 'Get PRC count');
