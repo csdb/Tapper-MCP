@@ -8,7 +8,7 @@ use YAML;
 
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 7; 
+use Test::More tests => 9; 
 
 BEGIN { use_ok('Artemis::MCP::Config'); }
 
@@ -33,3 +33,7 @@ is($config->{preconditions}->[8]->{artemis_package}, "artemisutils/opt-artemis64
 is($config->{installer_stop}, 1, 'installer_stop');
 
 
+my $info = $producer->get_mcp_info();
+isa_ok($info, 'Artemis::MCP::Info', 'mcp_info');
+my @timeout = $info->get_testprogram_timeouts(1);
+is_deeply(\@timeout,[15],'Timeout for testprogram in PRC 1');
