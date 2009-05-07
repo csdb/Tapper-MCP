@@ -8,7 +8,7 @@ use YAML;
 
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 9; 
+use Test::More tests => 11;
 
 BEGIN { use_ok('Artemis::MCP::Config'); }
 
@@ -37,3 +37,8 @@ my $info = $producer->get_mcp_info();
 isa_ok($info, 'Artemis::MCP::Info', 'mcp_info');
 my @timeout = $info->get_testprogram_timeouts(1);
 is_deeply(\@timeout,[15],'Timeout for testprogram in PRC 1');
+
+$producer = Artemis::MCP::Config->new(3);
+$config = $producer->create_config();
+is(ref($config),'HASH', 'Config created');
+is($config->{max_reboot}, 2, 'Reboot test');
