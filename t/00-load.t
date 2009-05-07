@@ -3,6 +3,11 @@
 use strict;
 use warnings;
 
+
+# get rid of warnings
+use Class::C3;
+use MRO::Compat;
+
 use Test::More;
 
 my @modules = ('Artemis::MCP', 
