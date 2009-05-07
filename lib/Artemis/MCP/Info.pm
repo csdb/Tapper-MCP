@@ -113,7 +113,24 @@ sub get_testprogram_timeouts
 {
         
         my ($self, $prc_number) = @_;
+        return unless defined $self->mcp_info->[$prc_number]->{timeouts}->{programs};
         return @{$self->mcp_info->[$prc_number]->{timeouts}->{programs}};
+}
+
+
+=head2 get_prc_count
+
+Get the number of PRCs in this object.
+
+@return number of last PRC
+
+=cut
+
+sub get_prc_count
+{
+        
+        my ($self) = @_;
+        return $#{$self->mcp_info};
 }
 
 
