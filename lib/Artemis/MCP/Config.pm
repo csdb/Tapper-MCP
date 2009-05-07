@@ -10,13 +10,20 @@ use YAML;
 
 use Artemis::Model 'model';
 use Artemis::Config;
+use Artemis::MCP::Info;
 
 extends 'Artemis::MCP::Control';
 
 has mcp_info => (is  => 'rw',
-                 isa => 'HashRef',
                  default => sub {{}},
                 );
+
+sub BUILD
+{
+        my ($self) = @_;
+        $self->{mcp_info} = Artemis::MCP::Info->new();
+}
+
 
 our $MODIFIER = 3; # timeout = $MODIFIER * runtime; XXX find better way 
 
@@ -31,6 +38,59 @@ Artemis::MCP::Config - Generate config for a certain test run
 =head1 FUNCTIONS
 
 =cut
+
+=head2 add_guest_testprogram
+
+Add a testprogram for a given guest to the config.
+
+@param hash ref - config
+@param hash ref - guest
+
+@return success - new config (hash ref)
+@return error   - error string
+
+=cut
+
+sub add_guest_testprogram
+{
+        
+        my ($self, $config, $guest, $guest_number) = @_;
+        my $prc_config->{precondition_type} = 'prc';
+        
+        $prc_config->{artemis_package} = $self->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
+        return "can't detect architecture of one guest number $guest->{guest_number} so I can't install PRC" if not $prc_config->{artemis_package};
+
+        # put guest test program in guest prc config
+        $prc_config->{mountpartition}         = $guest->{mountpartition};
+        $prc_config->{mountfile}              = $guest->{mountfile} if $guest->{mountfile};
+        $prc_config->{config}->{test_program} = $guest->{testprogram}->{execname};
+        $prc_config->{config}->{parameters}   = $guest->{testprogram}->{parameters} 
+          if $guest->{testprogram}->{parameters};
+        $prc_config->{config}->{guest_number} = $guest_number;
+        $prc_config->{config}->{runtime}      = $self->cfg->{times}{test_runtime_default};
+        $prc_config->{config}->{runtime}      = $guest->{testprogram}->{runtime} ||
+          $self->cfg->{times}{test_runtime_default};
+
+        my $timeout;
+        if ($guest->{testprogram}->{timeout_testprogram}) {
+                $timeout = $guest->{testprogram}->{timeout_testprogram};
+                $prc_config->{config}->{timeout_testprogram} = $guest->{testprogram}->{timeout_testprogram};
+        } else {
+                $timeout = $self->cfg->{times}{test_runtime_default} * $MODIFIER;
+        }
+        my $retval = $self->mcp_info->add_prc($guest_number,$timeout );
+        return $retval if $retval;
+
+
+        push @{$config->{preconditions}}, $prc_config;
+
+        # put guest test program in precondition list
+        $guest->{testprogram}->{mountpartition} = $guest->{mountpartition};
+        $guest->{testprogram}->{mountfile}      = $guest->{mountfile} if $guest->{mountfile};
+        push @{$config->{preconditions}}, $guest->{testprogram};
+        return $config;
+}
+
 
 =head2 parse_virt_preconditions
 
@@ -49,51 +109,53 @@ sub parse_virt_preconditions
 {
         
         my ($self, $config, $virt) = @_;
+        my $retval;
+        my $main_prc_config;
+
+        # make sure host image is always first precondition
         unshift @{$config->{preconditions}}, $virt->{host}->{root};
         push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}} if $virt->{host}->{preconditions};
-        return "can't detect architecture of one guest, so I can't install PRC" 
-          if not $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
+        return "can't detect architecture of host so I can't install PRC"   if not $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
         push @{$config->{preconditions}}, {precondition_type => 'package', 
                                            filename => $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}},
                                           };
         
-        my $main_prc_config;
-        
         # install host testprogram
         if ($virt->{host}->{testprogram}) {
                 push @{$config->{preconditions}}, $virt->{host}->{testprogram};
-                $main_prc_config->{test_program}              = $virt->{host}->{testprogram}->{execname};
-                $main_prc_config->{parameters}                = $virt->{host}->{testprogram}->{parameters}                if $virt->{host}->{testprogram}->{parameters};
+                $main_prc_config->{test_program}        = $virt->{host}->{testprogram}->{execname};
+                $main_prc_config->{parameters}          = $virt->{host}->{testprogram}->{parameters}          if $virt->{host}->{testprogram}->{parameters};
                 $main_prc_config->{timeout_testprogram} = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
-                $self->{mcp_info}->{timeouts}->[0]->{end}     = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
+                $self->mcp_info->add_testprogram(0,{timeout => $self->{mcp_info}->{timeouts}->[0]->{end}})    if $virt->{host}->{testprogram}->{timeout_testprogram};
                 
         }
         push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_testprogram}; # always have a value for host, undef if no tests there
         
 
         
-        # Not all guests need to have a test program and thus a PRC
-        # running. Count those which do to allow proxy to report number of
-        # missing guests. Note that guest 0 is actually HOST
-        my $guest_number ;
+        my $guest_number;
         for (my $i=0; $i<=$#{$virt->{guests}}; $i++ ) {
                 my $guest = $virt->{guests}->[$i];
                 $guest_number = $i+1;
-                my $mountfile      = $guest->{root}->{mountfile};
-                my $mountpartition = $guest->{root}->{mountpartition};
+                $guest->{mountfile} = $guest->{root}->{mountfile};
+                $guest->{mountpartition} = $guest->{root}->{mountpartition};
+                delete $guest->{root}->{mountpartition};
+                delete $guest->{root}->{mountfile} if $guest->{root}->{mountfile};
+
+
+                $retval = $self->mcp_info->add_prc($guest_number, $self->cfg->{times}{boot_timeout});
+                return $retval if $retval;
 
                 # if we have a qcow image, we need a raw image to copy PRC stuff to
                 if ($guest->{root}{mounttype} eq 'raw') {
                         my $raw_image = {
                                          precondition_type => 'rawimage',
-                                         name              => basename($mountfile),
-                                         path              => dirname($mountfile)
+                                         name              => basename($guest->{mountfile}),
+                                         path              => dirname($guest->{mountfile})
                                         };
                         push @{$config->{preconditions}}, $raw_image;
                 }
 
-                delete $guest->{root}->{mountpartition};
-                delete $guest->{root}->{mountfile} if $guest->{root}->{mountfile};
                 
                 push @{$config->{preconditions}}, $guest->{root} if $guest->{root}->{precondition_type};
                 push @{$config->{preconditions}}, $guest->{config};
@@ -105,51 +167,13 @@ sub parse_virt_preconditions
                         push @{$main_prc_config->{guests}}, {exec=>$guest->{config}->{exec}};
                 }
 
-
-            
-
-                
-                if ($guest->{testprogram}) {
-                        my $prc_config->{precondition_type} = 'prc';
-
-                        $prc_config->{artemis_package} = $self->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
-                        return "can't detect architecture of one guest, so I can't install PRC" if not $prc_config->{artemis_package};
-
-                        # put guest test program in guest prc config
-                        $prc_config->{mountpartition} = $mountpartition;
-                        $prc_config->{mountfile} = $mountfile if $mountfile;
-                        $prc_config->{config}->{test_program}= $guest->{testprogram}->{execname};
-                        $prc_config->{config}->{parameters} = $guest->{testprogram}->{parameters} 
-                          if $guest->{testprogram}->{parameters};
-                        $prc_config->{config}->{guest_number} = $guest_number;
-                        $prc_config->{config}->{runtime} = $self->cfg->{times}{test_runtime_default};
-                        $prc_config->{config}->{runtime} = $guest->{testprogram}->{runtime} ||
-                          $self->cfg->{times}{test_runtime_default};
-
-                        if ($guest->{testprogram}->{timeout_testprogram}) {
-                                $prc_config->{config}->{timeout_testprogram}=$guest->{testprogram}->{timeout_testprogram} ;
-                                push @{$main_prc_config->{timeouts}}, $guest->{testprogram}->{timeout_testprogram};
-                        } else {
-                                push @{$main_prc_config->{timeouts}}, $self->cfg->{times}{test_runtime_default} * $MODIFIER;
-                        }
-                        # push onto mcp_info timeout list, whatever the above if-cascade descided to use as timeout for this PRC
-                        push @{$self->{mcp_info}->{timeouts}},{start => $self->cfg->{times}{boot_timeout}, 
-                                                               end   => $main_prc_config->{timeouts}->[$#{$main_prc_config->{timeouts}}]};
-
-
-                        push @{$config->{preconditions}}, $prc_config;
-
-                        # put guest test program in precondition list
-                        $guest->{testprogram}->{mountpartition} = $mountpartition;
-                        $guest->{testprogram}->{mountfile}      = $mountfile if $mountfile;
-                        push @{$config->{preconditions}}, $guest->{testprogram};
-                        
-                }
+                $retval = $self->add_guest_testprogram($config, $guest, $guest_number) if $guest->{testprogram};
+                return $retval if $retval;
                 
                 # put guest preconditions into precondition list
                 foreach my $guest_precondition(@{$guest->{preconditions}}) {
-                        $guest_precondition->{mountpartition} = $mountpartition;
-                        $guest_precondition->{mountfile} = $mountfile if $mountfile;
+                        $guest_precondition->{mountpartition} = $guest->{mountpartition};
+                        $guest_precondition->{mountfile} = $guest->{mountfile} if $guest->{mountfile};
                         push @{$config->{preconditions}}, $guest_precondition;
                 }
 
@@ -200,8 +224,9 @@ sub get_install_config
 {
         my ($self, $config) = @_;
 
-        my $search=model('TestrunDB')->resultset('Testrun')->search({id => $self->{testrun},})->first();
-        $self->mcp_info->{timeouts}=[{start=> $self->cfg->{times}{boot_timeout}, end => 0}];
+        my $search = model('TestrunDB')->resultset('Testrun')->search({id => $self->{testrun},})->first();
+        my $retval = $self->mcp_info->add_prc(0, start=> $self->cfg->{times}{boot_timeout});
+        return $retval if $retval;
 
         foreach my $precondition ($search->ordered_preconditions) {
                 # make sure installing the root partition is always the first precondition
@@ -226,7 +251,7 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'reboot') {
                         $config->{max_reboot} = $precondition->precondition_as_hash->{count} || 1; # reboot at least once
-                        $self->mcp_info->{max_reboot} = $config->{max_reboot};
+                        $self->mcp_info->set_max_reboot($config->{max_reboot});
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
