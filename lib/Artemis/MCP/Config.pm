@@ -78,7 +78,7 @@ sub add_guest_testprogram
         } else {
                 $timeout = $self->cfg->{times}{test_runtime_default} * $MODIFIER;
         }
-        my $retval = $self->mcp_info->add_prc($guest_number,$timeout );
+        my $retval = $self->mcp_info->add_testprogram($guest_number, $timeout );
         return $retval if $retval;
 
 
@@ -304,7 +304,7 @@ Returns mcp_info attribute, no matter if its already set.
 sub get_mcp_info
 {
         my ($self) = @_;
-        return $self->{mcp_info};
+        return $self->mcp_info;
 }
 
 
