@@ -1,5 +1,6 @@
 package Artemis::MCP::Child;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -18,11 +19,7 @@ use constant BUFLEN => 1024;
 
 extends 'Artemis::MCP::Control';
 
-
-has mcp_info => (is  => 'rw',
-                 isa => 'HashRef',
-                 default => sub {{}},
-                );
+our $ONE_MINUTE=60;
 
 =head1 NAME
 
@@ -36,28 +33,6 @@ Artemis::MCP::Child - Control one specific testrun on MCP side
 
 
 =head1 FUNCTIONS
-
-
-
-=head2 gettimeout
-
-Determine timeout for tests in testrun with given id.
-
-@param int - test run id
-
-@return success - timeout
-@return error   - undef
-
-=cut
-
-sub gettimeout
-{
-        my ($self) = @_;
-        my $run = model->resultset('Testrun')->search({id=>$self->testrun})->first();
-        return 0 if not $run;
-        $self->log->debug(qq(Timeout is "$run->{wait_after_tests}"'));
-        return $run->wait_after_tests || 0;
-}
 
 
 =head2 net_read_do
@@ -176,7 +151,16 @@ Set timeouts in prc state array.
 sub set_prc_state
 {
         my ($self, $mcp_info) = @_;
-        return $mcp_info->{timeouts};
+        my $prc_count = $mcp_info->get_prc_count();
+        my $prc_state;
+        for (my $i=0; $i<=$prc_count; $i++) {
+                my $max_reboot = $mcp_info->get_max_reboot($i);
+                $prc_state->[$i]->{max_reboot} = $max_reboot if $max_reboot;
+                $prc_state->[$i]->{start} = $mcp_info->get_boot_timeout($i);
+                push @{$prc_state->[$i]->{timeouts}}, $mcp_info->get_testprogram_timeouts($i);
+                $prc_state->[$i]->{end} =  $ONE_MINUTE;   # give one minute for PRC to settle (i.e. time between sending start and end without any test)
+        }
+        return $prc_state;
 }
 
 =head2 wait_for_systeminstaller
@@ -247,20 +231,23 @@ sub time_reduce
 
  PRC:
         for (my $i=0; $i<=$#{$prc_state}; $i++) {
+                my $result;
                 if ($prc_state->[$i]->{start} != 0) {
                         if (($prc_state->[$i]->{start} - $elapsed) <= 0) {
                                 $prc_state->[$i]->{start} = 0;
+                                delete $prc_state->[$i]->{timeouts};
                                 $prc_state->[$i]->{end}   = 0;
-                                $prc_state->[$i]->{error} = 1;
+                                $result->{error} = 1;
                                 if ($prc_state->[$i]->{max_reboot}) {
-                                        $prc_state->[$i]->{msg} = "reboot-test-summary\n   ---\n   got:";
-                                        $prc_state->[$i]->{msg}.= $prc_state->[$i]->{count} || "0";
-                                        $prc_state->[$i]->{msg}.= "\n   expected:$prc_state->[$i]->{max_reboot}\n   ...";
+                                        $result->{msg} = "reboot-test-summary\n   ---\n   got:";
+                                        $result->{msg}.= $prc_state->[$i]->{count} || "0";
+                                        $result->{msg}.= "\n   expected:$prc_state->[$i]->{max_reboot}\n   ...";
                                 } else {
-                                        $prc_state->[$i]->{msg}   = "Guest $i: booting not finished in time, timeout reached";
+                                        $result->{msg} = "Guest $i: booting not finished in time, timeout reached";
                                 }
                                 $to_start--;
                                 $to_stop--;
+                                push @{$prc_state->[$i]->{results}}, $result;
                                 next PRC;
                         } else {
                                 $prc_state->[$i]->{start}= $prc_state->[$i]->{start} - $elapsed;
@@ -268,21 +255,39 @@ sub time_reduce
                         $boot_timeout = $prc_state->[$i]->{start} if not defined($boot_timeout);
                         $boot_timeout = min($boot_timeout, $prc_state->[$i]->{start});
 
+                } elsif ($prc_state->[$i]->{timeouts}->[0]) {
+                        if (($prc_state->[$i]->{timeouts}->[0] - $elapsed) <= 0) {
+                                pop @{$prc_state->[$i]->{timeouts}};
+                                $result->{error} = 1;
+                                $result->{msg}   = "Host: Testing not finished in time, timeout reached";
+                                # avoid another if/then/else, simply overwrite error for guests
+                                $result->{msg}   = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;
+                                push @{$prc_state->[$i]->{results}}, $result;
+                                next PRC;
+                        } else {
+                                $prc_state->[$i]->{timeouts}->[0] -= $elapsed;
+                        }
                 } elsif ($prc_state->[$i]->{end} != 0) {
                         if (($prc_state->[$i]->{end} - $elapsed) <= 0) {
-                                $prc_state->[$i]->{end}   = 0;
-                                $prc_state->[$i]->{error} = 1;
-                                $prc_state->[$i]->{msg}   = "Host: Testing not finished in time, timeout reached";
-                                $prc_state->[$i]->{msg}   = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;  # avoid another if/then/else, simply overwrite error for guests
+                                $prc_state->[$i]->{end} = 0;
+                                delete $prc_state->[$i]->{timeouts};
+                                $result->{error} = 1;
+                                $result->{msg}   = "Host: Testing not finished in time, timeout reached";
+                                # avoid another if/then/else, simply overwrite error for guests
+                                $result->{msg}   = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;
+                                push @{$prc_state->[$i]->{results}}, $result;
                                 $to_stop--;
                                 next PRC;
                         } else {
-                                $prc_state->[$i]->{end}= $prc_state->[$i]->{end} - $elapsed;
+                                $prc_state->[$i]->{end} -= $elapsed;
                         }
-                        
-                        $test_timeout = $prc_state->[$i]->{end} if not defined($test_timeout);
-                        $test_timeout = min($test_timeout, $prc_state->[$i]->{end})
+
                 }
+                
+                my $newtimeout = $prc_state->[$i]->{end};
+                $newtimeout    = $prc_state->[$i]->{timeouts}->[0] if $prc_state->[$i]->{timeouts}->[0];
+                $test_timeout  = $newtimeout if not defined($test_timeout);
+                $test_timeout  = min($test_timeout, $newtimeout)
         }
         return ($boot_timeout, $prc_state, $to_start, $to_stop) if $boot_timeout;
         no warnings 'uninitialized'; # if all loop cycles lead to timeouts, $test_timeout might be uninitialized
@@ -307,48 +312,63 @@ sub update_prc_state
 {
         my ($self, $msg, $prc_state, $to_start, $to_stop) = @_;
         my $number = $msg->{prc_number}; # just to make the code shorter
-        
-        if ($msg->{state} eq 'start-testing') {
-                $prc_state->[$number]->{start} = 0;
-                $prc_state->[$number]->{msg} = "Test in guest $number started" if $number != 0;;
-                $prc_state->[$number]->{msg} = "Test in PRC 0 started" if $number == 0;
-                $to_start--;
-        } elsif ($msg->{state} eq 'end-testing') {
-                $prc_state->[$number]->{end} = 0;
-                if ($prc_state->[$number]->{max_reboot}) {
-                        if ($prc_state->[$number]->{max_reboot} eq $prc_state->[$number]->{count}) {
-                                $prc_state->[$number]->{msg} = "Rebooted $prc_state->[$number]->{count} times";
-                        } else {
-                                $prc_state->[$number]->{error} = 1;
-                                $prc_state->[$number]->{msg}   = 
-                                  "You planned more reboots than actually ran:\n".
-                                    "   ---\n".
-                                      "   expected:$prc_state->[$number]->{max_reboot}\n".
-                                        "   got:$prc_state->[$number]->{count}\n".
-                                          "...";
+        my $result;
+        $result->{error} = 0;
+
+        given($msg->{state}){
+                when ('start-testing') {
+                        $prc_state->[$number]->{start} = 0;
+                        $result->{msg} = "Test in guest $number started" if $number != 0;
+                        $result->{msg} = "Test in PRC 0 started" if $number == 0;
+                        $to_start--;
+                        push (@{$prc_state->[$number]->{results}}, $result);
+                } 
+                when ('end-testing') {
+                        $prc_state->[$number]->{end} = 0;
+                        if ($prc_state->[$number]->{max_reboot}) {
+                                if ($prc_state->[$number]->{max_reboot} > $prc_state->[$number]->{count}) {
+                                        for (my $i = $prc_state->[$number]->{count}+1; $i <= $prc_state->[$number]->{max_reboot}; $i++) {
+                                                my $local_result;
+                                                $local_result->{error} = 1;
+                                                $local_result->{msg}   = "Reboot $i";
+                                                push (@{$prc_state->[$number]->{results}}, $local_result);
+                                        }
+                                }
                         }
-                } else {
-                        $prc_state->[$number]->{msg} = "Test in PRC 0 finished" if $number == 0;
-                        $prc_state->[$number]->{msg} = "Test in guest $number finished" if $number != 0;
+                        $result->{msg} = "Test in PRC 0 finished" if $number == 0;
+                        $result->{msg} = "Test in guest $number finished" if $number != 0;
+                        push (@{$prc_state->[$number]->{results}}, $result);
+                        $to_stop--;
                 }
-                $to_stop--;
-        } elsif ($msg->{state} eq 'error-testprogram') {
-                $prc_state->[$number]->{end} = 0;
-                $prc_state->[$number]->{error} = $msg->{error};
-                $prc_state->[$number]->{msg} = "Error in guest $number: $msg->{error}" if $number != 0;;
-                $prc_state->[$number]->{msg} = "Error in PRC 0: $msg->{error}" if $number == 0;
-                $to_stop--;
-        } elsif ($msg->{state} eq 'reboot') {
-                $prc_state->[$number]->{count} = $msg->{count};
-                if (not $msg->{max_reboot} eq $prc_state->[$number]->{max_reboot}) {
-                        $self->log->warning("Got a new max_reboot count for PRC $number. Old value was $prc_state->[$number]->{max_reboot} ",
-                                            "new value is $msg->{max_reboot}. I continue with new value");
-                        $prc_state->[$number]->{max_reboot} = $msg->{max_reboot};
+                when ('error-testprogram') {
+                        pop @{$prc_state->[$number]->{timeouts}};
+                        $result->{error}             = $msg->{error};
+                        $result->{msg}               = "Error in guest $number: $msg->{error}" if $number != 0;;
+                        $result->{msg}               = "Error in PRC 0: $msg->{error}" if $number == 0;
+                        $to_stop--;
+                        push (@{$prc_state->[$number]->{results}}, $result);
+
                 }
-        } elsif ($msg->{state} eq 'end-testprogram') {
-                $self->log->debug('Received end testprogram which is not yet implemented');
-        } else {
-                $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
+                when ('end-testprogram') {
+                        shift @{$prc_state->[$number]->{testprograms}};
+                        $result->{msg} = "Testprogram $msg->{program} in guest $number" if $number != 0;
+                        $result->{msg} = "Testprogram $msg->{program} in PRC 0" if $number == 0;
+                        push (@{$prc_state->[$number]->{results}}, $result);
+                }
+                when ('reboot') {
+                        $prc_state->[$number]->{count} = $msg->{count};
+                        if (not $msg->{max_reboot} eq $prc_state->[$number]->{max_reboot}) {
+                                $self->log->warning("Got a new max_reboot count for PRC $number. Old value was $prc_state->[$number]->{max_reboot} ",
+                                                    "new value is $msg->{max_reboot}. I continue with new value");
+                                $prc_state->[$number]->{max_reboot} = $msg->{max_reboot};
+                        }
+                        $result->{msg} = "Reboot $msg->{count}";
+                        push (@{$prc_state->[$number]->{results}}, $result);
+
+                }
+                default {
+                        $self->log->error("Unknown state $msg->{state} for PRC $msg->{prc_number}");
+                }
         }
         return ($prc_state, $to_start, $to_stop);
 }
