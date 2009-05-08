@@ -168,7 +168,6 @@ sub parse_virt_preconditions
                 }
 
                 $retval = $self->add_guest_testprogram($config, $guest, $guest_number) if $guest->{testprogram};
-                return $retval if $retval;
                 
                 # put guest preconditions into precondition list
                 foreach my $guest_precondition(@{$guest->{preconditions}}) {
