@@ -92,7 +92,7 @@
            name: /bin/true
            precondition_type: copyfile
            protocol: local
-           execconf: /usr/share/artemis/packages/mhentsc3/startkvm.pl
+           exec: /usr/share/artemis/packages/mhentsc3/startkvm.pl
          root:
            dest: /kvm/images
            mountfile: /kvm/images/raw.img
