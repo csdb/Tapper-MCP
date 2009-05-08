@@ -418,7 +418,11 @@ sub wait_for_testrun
                 last MESSAGE if $to_stop <= 0;
                 ($timeout, $prc_state, $to_start, $to_stop) = $self->time_reduce(time() - $lastrun, $prc_state, $to_start, $to_stop)
         }
-        return $prc_state;
+        my @report_array;
+        for (my $i = 0; $i <= $#{$prc_state}; $i++) {
+                push @report_array, @{$prc_state->[$i]->{results}};
+        }
+        return \@report_array;
 }
 
 
