@@ -225,12 +225,11 @@ if ($pid==0) {
         };
         is($@, '', 'Get reboot messages in time');
         waitpid($pid,0);
-        
-        is_deeply($retval->[0]->{results},[{'msg' => 'Test in PRC 0 started', 'error' => 0 }, 
-                                           {'msg' => 'Reboot 0', 'error' => 0 },
-                                           {'msg' => 'Reboot 1', 'error' => 0 }, 
-                                           {'msg' => 'Reboot 2', 'error' => 0 }, 
-                                           {'msg' => 'Test in PRC 0 finished', 'error' => 0 } ], 'Successful reboot test handling');}
+        is_deeply($retval, [{'msg' => 'Test in PRC 0 started', 'error' => 0 }, 
+                            {'msg' => 'Reboot 0', 'error' => 0 },
+                            {'msg' => 'Reboot 1', 'error' => 0 }, 
+                            {'msg' => 'Reboot 2', 'error' => 0 }, 
+                            {'msg' => 'Test in PRC 0 finished', 'error' => 0 } ], 'Successful reboot test handling');}
 
 #
 # wait_for_testrun
