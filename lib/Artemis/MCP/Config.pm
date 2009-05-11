@@ -112,6 +112,10 @@ sub parse_virt_preconditions
         my $retval;
         my $main_prc_config;
 
+        if ($config->{prcs}) {
+                $main_prc_config = $config->{prcs}->[0];
+        }
+
         # make sure host image is always first precondition
         unshift @{$config->{preconditions}}, $virt->{host}->{root};
         push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}} if $virt->{host}->{preconditions};
@@ -179,9 +183,7 @@ sub parse_virt_preconditions
         }
         # put host PRC config in precondition list
         $main_prc_config->{guest_count} = $guest_number;  # main prc needs to know number of guests
-        push @{$config->{preconditions}}, {precondition_type => 'prc', config => $main_prc_config};
-   
-        
+        $config->{prcs}->[0] = {precondition_type => 'prc', config => $main_prc_config};
         return $config;
 }
 
@@ -207,6 +209,34 @@ sub  parse_grub
         $config->{grub}=$grub->{config};
         return $config;
 }
+
+
+
+=head2 parse_reboot
+
+Handle precondition grub. Even though a preconfigured grub config is provided
+as precondition, it needs to get a special place in the Yaml file. Otherwise
+it would be hard to find for the installer process generating the grub config
+file.
+
+@param hash reference - config to change
+@param hash ref       - precondition as hash
+
+@return success - config hash
+@return error   - error string
+
+=cut
+
+sub  parse_reboot
+{
+        my ($self, $config, $reboot) = @_;
+        $self->mcp_info->set_max_reboot(0, $reboot->{count});
+        $config->{prcs}->[0]->{config}->{max_reboot} = $reboot->{count};
+        return $config;
+}
+
+
+
 
 =head2 get_install_config
 
@@ -249,12 +279,15 @@ sub get_install_config
                         $config->{installer_stop} = 1;
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'reboot') {
-                        $config->{max_reboot} = $precondition->precondition_as_hash->{count} || 1; # reboot at least once
-                        $self->mcp_info->set_max_reboot(0, $config->{max_reboot});
+                        $config = $self->parse_reboot($config, $precondition->precondition_as_hash);
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
                 }
+        }
+        while (my $prc_precondition = shift(@{$config->{prcs}})){
+                $prc_precondition->{precondition_type} = "prc";
+                push(@{$config->{preconditions}}, $prc_precondition);
         }
         return $config;
 }
