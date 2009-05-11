@@ -9,6 +9,7 @@ use YAML;
 use Artemis::Schema::TestTools;
 
 use Test::More tests => 12;
+use Test::Deep;
 
 BEGIN { use_ok('Artemis::MCP::Config'); }
 
@@ -24,11 +25,14 @@ isa_ok($producer, "Artemis::MCP::Config", 'Producer object created');
 my $config = $producer->create_config();
 is(ref($config),'HASH', 'Config created');
 
+
 is($config->{preconditions}->[0]->{image}, "suse/suse_sles10_64b_smp_raw.tar.gz", 'first precondition is root image');
 is($config->{preconditions}->[4]->{filename}, "artemisutils/opt-artemis64.tar.gz", 'setting opt-artemis package for Dom0');
 is($config->{preconditions}->[8]->{artemis_package}, "artemisutils/opt-artemis64.tar.gz", 'setting opt-artemis package for guest');
 is($config->{preconditions}->[10]->{config}->{guests}->[0]->{exec}, "/usr/share/artemis/packages/mhentsc3/startkvm.pl", 'Setting guest start script in main PRC');
+
 is($config->{installer_stop}, 1, 'installer_stop');
+
 
 
 my $info = $producer->get_mcp_info();
@@ -39,4 +43,4 @@ is_deeply(\@timeout,[15],'Timeout for testprogram in PRC 1');
 $producer = Artemis::MCP::Config->new(3);
 $config = $producer->create_config();
 is(ref($config),'HASH', 'Config created');
-is($config->{max_reboot}, 2, 'Reboot test');
+is($config->{preconditions}->[1]->{config}->{max_reboot}, 2, 'Reboot test');
