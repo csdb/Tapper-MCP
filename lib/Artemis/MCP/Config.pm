@@ -254,7 +254,7 @@ sub get_install_config
         my ($self, $config) = @_;
 
         my $search = model('TestrunDB')->resultset('Testrun')->search({id => $self->{testrun},})->first();
-        my $retval = $self->mcp_info->add_prc(0, start=> $self->cfg->{times}{boot_timeout});
+        my $retval = $self->mcp_info->add_prc(0, $self->cfg->{times}{boot_timeout});
         return $retval if $retval;
 
         foreach my $precondition ($search->ordered_preconditions) {
