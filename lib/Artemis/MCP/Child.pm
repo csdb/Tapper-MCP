@@ -14,12 +14,12 @@ use YAML::Syck;
 use Artemis::MCP::Net;
 use Artemis::MCP::Config;
 
-use constant BUFLEN => 1024;
+use constant BUFLEN     => 1024;
+use constant ONE_MINUTE => 60;
 
 
 extends 'Artemis::MCP::Control';
 
-our $ONE_MINUTE=60;
 
 =head1 NAME
 
@@ -155,10 +155,13 @@ sub set_prc_state
         my $prc_state;
         for (my $i=0; $i<=$prc_count; $i++) {
                 my $max_reboot = $mcp_info->get_max_reboot($i);
-                $prc_state->[$i]->{max_reboot} = $max_reboot if $max_reboot;
+                if ($max_reboot) {
+                        $prc_state->[$i]->{max_reboot} = $max_reboot;
+                        $prc_state->[$i]->{reboot}     = $mcp_info->get_boot_timeout($i);
+                }
                 $prc_state->[$i]->{start} = $mcp_info->get_boot_timeout($i);
                 push @{$prc_state->[$i]->{timeouts}}, $mcp_info->get_testprogram_timeouts($i);
-                $prc_state->[$i]->{end} =  $ONE_MINUTE;   # give one minute for PRC to settle (i.e. time between sending start and end without any test)
+                $prc_state->[$i]->{end} =  ONE_MINUTE;   # give one minute for PRC to settle (i.e. time between sending start and end without any test)
         }
         return $prc_state;
 }
@@ -239,9 +242,11 @@ sub time_reduce
                                 $prc_state->[$i]->{end}   = 0;
                                 $result->{error} = 1;
                                 if ($prc_state->[$i]->{max_reboot}) {
-                                        $result->{msg} = "reboot-test-summary\n   ---\n   got:";
-                                        $result->{msg}.= $prc_state->[$i]->{count} || "0";
-                                        $result->{msg}.= "\n   expected:$prc_state->[$i]->{max_reboot}\n   ...";
+                                        $result->{msg} = "reboot-test-summary\n";
+                                        $result->{msg}.= "   ---\n";
+                                        $result->{msg}.= "   got:".($prc_state->[$i]->{count} || "0")."\n";
+                                        $result->{msg}.= "   expected:$prc_state->[$i]->{max_reboot}\n";
+                                        $result->{msg}.= "   ...\n";
                                 } else {
                                         $result->{msg} = "Guest $i: booting not finished in time, timeout reached";
                                 }
@@ -257,7 +262,7 @@ sub time_reduce
 
                 } elsif ($prc_state->[$i]->{timeouts}->[0]) {
                         if (($prc_state->[$i]->{timeouts}->[0] - $elapsed) <= 0) {
-                                pop @{$prc_state->[$i]->{timeouts}};
+                                shift @{$prc_state->[$i]->{timeouts}};
                                 $result->{error} = 1;
                                 $result->{msg}   = "Host: Testing not finished in time, timeout reached";
                                 # avoid another if/then/else, simply overwrite error for guests
@@ -266,6 +271,23 @@ sub time_reduce
                                 next PRC;
                         } else {
                                 $prc_state->[$i]->{timeouts}->[0] -= $elapsed;
+                        }
+                } elsif ($prc_state->[$i]->{reboot}){
+                        if (($prc_state->[$i]->{reboot} - $elapsed) <= 0) {
+                                delete $prc_state->[$i]->{timeouts};
+                                $prc_state->[$i]->{end}   = 0;
+                                $result->{error} = 1;
+                                $result->{msg} = "reboot-test-summary\n";
+                                $result->{msg}.= "   ---\n";
+                                $result->{msg}.= "   got:".($prc_state->[$i]->{count} || "0")."\n";
+                                $result->{msg}.= "   expected:$prc_state->[$i]->{max_reboot}\n";
+                                $result->{msg}.= "   catched_timeout: 1\n";
+                                $result->{msg}.= "   ...\n";
+                                $to_stop--;
+                                push @{$prc_state->[$i]->{results}}, $result;
+                                next PRC;
+                        } else {
+                                $prc_state->[$i]->{reboot}= $prc_state->[$i]->{reboot} - $elapsed;
                         }
                 } elsif ($prc_state->[$i]->{end} != 0) {
                         if (($prc_state->[$i]->{end} - $elapsed) <= 0) {
@@ -286,6 +308,7 @@ sub time_reduce
                 
                 my $newtimeout = $prc_state->[$i]->{end};
                 $newtimeout    = $prc_state->[$i]->{timeouts}->[0] if $prc_state->[$i]->{timeouts}->[0];
+                $newtimeout    = $prc_state->[$i]->{reboot} if ($prc_state->[$i]->{reboot} and not $newtimeout);
                 $test_timeout  = $newtimeout if not defined($test_timeout);
                 $test_timeout  = min($test_timeout, $newtimeout)
         }
@@ -362,6 +385,9 @@ sub update_prc_state
                                                     "new value is $msg->{max_reboot}. I continue with new value");
                                 $prc_state->[$number]->{max_reboot} = $msg->{max_reboot};
                         }
+                        if ($msg->{count} == $prc_state->[$number]->{max_reboot}) {
+                                delete($prc_state->[$number]->{reboot});
+                        }
                         $result->{msg} = "Reboot $msg->{count}";
                         push (@{$prc_state->[$number]->{results}}, $result);
 
@@ -396,9 +422,6 @@ sub wait_for_testrun
         my $to_stop    = $to_start;
 
         my $timeout = $self->cfg->{times}{boot_timeout};
-
-        # currently reboot not for virt guests
-        $prc_state->[0]->{max_reboot} = $mcp_info->{max_reboot} if $mcp_info->{max_reboot};
 
         my $msg     = $self->get_message($fh, $timeout);
         return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
