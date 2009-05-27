@@ -374,8 +374,8 @@ sub update_prc_state
                 }
                 when ('end-testprogram') {
                         shift @{$prc_state->[$number]->{testprograms}};
-                        $result->{msg} = "Testprogram $msg->{program} in guest $number" if $number != 0;
-                        $result->{msg} = "Testprogram $msg->{program} in PRC 0" if $number == 0;
+                        $result->{msg} = "Testprogram $msg->{testprogram} in guest $number" if $number != 0;
+                        $result->{msg} = "Testprogram $msg->{testprogram} in PRC 0" if $number == 0;
                         push (@{$prc_state->[$number]->{results}}, $result);
                 }
                 when ('reboot') {
