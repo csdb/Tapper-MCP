@@ -6,6 +6,7 @@ use warnings;
 use File::Basename;
 use Moose;
 use Socket;
+use Sys::Hostname;
 use YAML;
 
 use Artemis::Model 'model';
@@ -313,7 +314,7 @@ sub get_common_config
         $config->{paths}                     = $self->cfg->{paths};
         $config->{times}                     = $self->cfg->{times};
         $config->{files}                     = $self->cfg->{files};
-        $config->{mcp_host}                  = $self->cfg->{mcp_host};
+        $config->{mcp_host}                  = Sys::Hostname::hostname() || $self->cfg->{mcp_host};
         $config->{mcp_port}                  = $self->cfg->{mcp_port};
         $config->{report_server}             = $self->cfg->{report_server};
         $config->{report_port}               = $self->cfg->{report_port};
