@@ -20,7 +20,8 @@ Version 0.01
 =head1 FUNCTIONS
 
 =cut
-        
+
+}        
 
 {
         # just for CPAN
