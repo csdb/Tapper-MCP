@@ -1,14 +1,14 @@
 use Test::Deep;
-use Test::More tests => 5;
+use Test::More tests => 2;
 use Artemis::MCP::Scheduler::Algorithm::WFQ;
-use Scheduler::Client;
+use Artemis::MCP::Scheduler::Queue;
 
 my $scheduler = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
 isa_ok($scheduler, 'Artemis::MCP::Scheduler::Algorithm::WFQ');
 
-$scheduler->add_client(Scheduler::Client->new('A'), 300);
-$scheduler->add_client(Scheduler::Client->new('B'), 200);
-$scheduler->add_client(Scheduler::Client->new('C'), 100);
+$scheduler->add_client(Artemis::MCP::Scheduler::Client->new('A'), 300);
+$scheduler->add_client(Artemis::MCP::Scheduler::Client->new('B'), 200);
+$scheduler->add_client(Artemis::MCP::Scheduler::Client->new('C'), 100);
 
 my $hostname = 'bullock';
 

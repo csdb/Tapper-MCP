@@ -1,13 +1,13 @@
 use MooseX::Declare;
 
-    
+
 class Artemis::MCP::Scheduler::Algorithm::WFQ {
-        use Scheduler::Exception;
-        use Scheduler::Client;
+        use Artemis::Exception;
+        use Artemis::MCP::Scheduler::Queue;
         use TryCatch;
 
 =head1 NAME
-        
+
   WFQ - Weighted Fair Queueing!
 
 =head1 VERSION
@@ -45,7 +45,7 @@ Return the virtual finishing time of a given client
 
         method get_virtual_finishing_time(Str $name)
         {
-                die Exception::Param->new(qq("$name" is not a valid client name)) if not $self->clients->{$name};
+                die Artemis::Exception::Param->new(qq("$name" is not a valid client name)) if not $self->clients->{$name};
                 return ($self->clients->{$name}->{runcount} + 1.0) / $self->clients->{$name}->{share};
         }
 
@@ -87,7 +87,7 @@ Remove a client from scheduling
 
         method remove_client(Str $name)
         {
-                die Exception::Param->new(qq("$name" is not in the client list)) if not $self->clients->{$name};
+                die Artemis::Exception::Param->new(qq("$name" is not in the client list)) if not $self->clients->{$name};
                 delete $self->clients->{$name};
                 return 0;
         }
@@ -104,7 +104,7 @@ Update the time entry of the given client
 
         method update_client(Str $name)
         {
-                die Exception::Param->new(qq("$name" is not a valid client name)) if not $self->clients->{$name};
+                die Artemis::Exception::Param->new(qq("$name" is not a valid client name)) if not $self->clients->{$name};
                 $self->clients->{$name}->{runcount} += 1;
                 return 0;
         }
