@@ -38,7 +38,6 @@ List of features offered by a host. Can be used to decide whether a certain host
 
         has features => (is => 'rw', isa => 'ArrayRef');
 
-}
 
 =head1 SYNOPSIS
 
