@@ -3,9 +3,11 @@ use MooseX::Declare;
 use 5.010;
 
 class Artemis::MCP::Scheduler::Algorithm::WFQ extends Artemis::MCP::Scheduler::Algorithm {
+
         use Artemis::Exception;
         use Artemis::MCP::Scheduler::Queue;
         use TryCatch;
+        use Data::Dumper;
 
 =head1 NAME
 
@@ -58,7 +60,6 @@ Evaluate which client has to be scheduled next.
                 my $queue;
                 foreach (@{$self->queues})
                 {
-                        say STDERR "Queue name: ".$_->name;
                         my $this_vft;
 
                         try {
