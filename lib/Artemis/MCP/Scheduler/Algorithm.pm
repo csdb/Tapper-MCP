@@ -5,7 +5,6 @@ use 5.010;
 class Artemis::MCP::Scheduler::Algorithm {
 
         use Artemis::MCP::Scheduler::Queue;
-        use Data::Dumper;
 
         has queues => (
                        is         => 'rw',
@@ -16,8 +15,8 @@ class Artemis::MCP::Scheduler::Algorithm {
 
         #
         method add_queue(Artemis::MCP::Scheduler::Queue $queue) {
-                say STDERR "queues: ", Dumper($self->queues);
                 $_->runcount( 0 ) foreach @{$self->queues || []};
+                push @{$self->{queues}}, $queue;
         }
 
         #

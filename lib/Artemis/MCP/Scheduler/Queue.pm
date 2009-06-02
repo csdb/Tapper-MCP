@@ -9,17 +9,6 @@ class Artemis::MCP::Scheduler::Queue {
         has object   => (is => 'rw'); # not in Algorithm, but in MCP-Scheduler
         has runcount => (is => 'rw', default => 0); # WFQ specific
 
-        sub BUILDARGS {
-                my $class = shift;
-
-                if ( @_ >= 1 and not ref $_[0] ) {
-                        return { name => $_[0] };
-                }
-                else {
-                        return $class->SUPER::BUILDARGS(@_);
-                }
-        }
-
 =head2 produce
 
 Call the producer method associated with this object.
