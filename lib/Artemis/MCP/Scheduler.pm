@@ -55,12 +55,17 @@ Get next test runs to handle.
 
 sub get_next_testrun
 {
-        my ($self) = @_;
+        my ($self, $free_hosts) = @_;
         my %ids;
         my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
         foreach my $testrun($testruns->all) {
                 my $hostname = $self->get_hostname_from_refreshed_testrun($testrun);
                 $ids{$hostname}=$testrun->id if $hostname and not $ids{$hostname};
+                delete $free_hosts->{$hostname} if $free_hosts->{$hostname};
+        }
+
+        foreach my $hostname (keys %$free_hosts) {
+                $ids{$hostname} = $self->schedule($hostname);
         }
         return %ids;
 }
