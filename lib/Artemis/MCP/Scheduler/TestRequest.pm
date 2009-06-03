@@ -40,8 +40,7 @@ Name of the queue this test request goes into. Default is 'Adhoc'
 
 =cut 
 
-has hostnames => (is => 'rw', default => 'Adhoc');
-
+has queue => (is => 'rw', default => 'Adhoc');
 
 
 =head1 FUNCTIONS
