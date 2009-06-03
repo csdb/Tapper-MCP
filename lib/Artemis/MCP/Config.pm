@@ -12,6 +12,7 @@ use YAML;
 use Artemis::Model 'model';
 use Artemis::Config;
 use Artemis::MCP::Info;
+use Sys::Hostname;
 
 extends 'Artemis::MCP::Control';
 
