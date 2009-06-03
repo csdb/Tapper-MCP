@@ -1,11 +1,12 @@
 package Artemis::MCP::Scheduler;
 
+use 5.010;
 use strict;
 use warnings;
 
 use Moose;
-
 use Artemis::Model 'model';
+use Data::Dumper;
 
 extends 'Artemis::MCP';
 
@@ -38,7 +39,15 @@ system for the given testrun and return the found hostname.
 sub get_hostname_from_refreshed_testrun
 {
         my ($self, $testrun) = @_;
-        my $hostname = model('HardwareDB')->resultset('Systems')->search({lid => $testrun->hardwaredb_systems_id})->first->systemname;
+        if (not $testrun->hardwaredb_systems_id)
+        {
+                #say STDERR "testrun: ", $testrun->to_string;
+                #say STDERR "No hardwaredb_systems_id available for testrun ", $testrun->id;
+                return undef;
+        }
+
+        my $system = model('HardwareDB')->resultset('Systems')->search({ lid => $testrun->hardwaredb_systems_id })->first;
+        my $hostname = $system->systemname;
         my $lid = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1})->first->lid;
         $testrun->hardwaredb_systems_id($lid);
         $testrun->update();
@@ -58,10 +67,12 @@ sub get_next_testrun
         my ($self) = @_;
         my %ids;
         my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
-        foreach my $testrun($testruns->all) {
-                my $hostname = $self->get_hostname_from_refreshed_testrun($testrun);
-                $ids{$hostname}=$testrun->id if $hostname and not $ids{$hostname};
+        foreach my $testrun ($testruns->all)
+        {
+                my $hostname    = $self->get_hostname_from_refreshed_testrun( $testrun );
+                $ids{$hostname} = $testrun->id if $hostname and not $ids{$hostname};
         }
+        say STDERR "Next testruns: ", Dumper(\%ids);
         return %ids;
 }
 

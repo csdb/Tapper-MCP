@@ -210,6 +210,7 @@ sub consolelogfrom
         my $retval  = sysread($handle, $buffer, $maxread);
         return "Can't read from console:$!" if not defined $retval;
         my $file    = $self->consolefiles->[$handle->fileno()];
+        return "Can't get console file:$!" if not defined $file;
         $retval     = syswrite($file, $buffer, $retval);
         return "Can't write console data to file :$!" if not defined $retval;
         return 0;
@@ -312,7 +313,7 @@ sub runloop
 {
         my ($self, $lastrun) = @_;
         my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
-                
+
         my @ready;
         # if readset is empty, can_read immediately returns with an empty
         # array; this makes runloop a CPU burn loop
@@ -321,16 +322,13 @@ sub runloop
         } else {
                 sleep $timeout;
         }
-        
-        
         $self->handle_dead_children() if $self->dead_child;
-               
+
         foreach my $handle (@ready) {
                 my $retval = $self->consolelogfrom($handle);
                 $self->log->error($retval) if $retval;
         }
-                
-                
+
         if (not @ready) {
                 # run_due_tests needs the hostname, so we let get_next_test search it
                 my $scheduler = Artemis::MCP::Scheduler->new();
@@ -338,8 +336,6 @@ sub runloop
                 $self->run_due_tests(\%due_tests);
         }
 }
-        
-
 
 
 =head2 prepare_server
