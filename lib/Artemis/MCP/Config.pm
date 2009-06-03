@@ -60,7 +60,7 @@ sub add_guest_testprogram
         my $prc_config->{precondition_type} = 'prc';
         
         $prc_config->{artemis_package} = $self->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
-        return "can't detect architecture of one guest number $guest->{guest_number} so I can't install PRC" if not $prc_config->{artemis_package};
+#        return "can't detect architecture of one guest number $guest->{guest_number} so I can't install PRC" if not $prc_config->{artemis_package};
 
         # put guest test program in guest prc config
         $prc_config->{mountpartition}         = $guest->{mountpartition};
@@ -121,10 +121,10 @@ sub parse_virt_preconditions
         # make sure host image is always first precondition
         unshift @{$config->{preconditions}}, $virt->{host}->{root};
         push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}} if $virt->{host}->{preconditions};
-        return "can't detect architecture of host so I can't install PRC"   if not $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
-        push @{$config->{preconditions}}, {precondition_type => 'package', 
+        push @{$config->{preconditions}}, {precondition_type => 'package',
                                            filename => $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}},
-                                          };
+                                          } if  $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
+;
         
         # install host testprogram
         if ($virt->{host}->{testprogram}) {
@@ -237,7 +237,41 @@ sub  parse_reboot
         return $config;
 }
 
+=head2 parse_image_precondition
 
+Handle precondition image. Make sure the appropriate opt-artemis package is
+installed if needed. Care for the root image being installed first.
+
+@param hash reference - config to change
+@param hash ref       - precondition as hash
+
+@return success - config hash
+@return error   - error string
+
+=cut 
+
+sub parse_image_precondition
+{
+        my ($self, $config, $precondition) = @_;
+        my $opt_pkg;
+
+        if ($precondition->{arch}) {
+                $opt_pkg = {precondition_type => 'package',
+                            filename => $self->cfg->{files}->{artemis_package}{$precondition->{arch}},
+                           };
+                $opt_pkg->{mountfile} = $precondition->{mountfile} if $precondition->{mountfile};
+                $opt_pkg->{mountpartition} = $precondition->{mountpartition} if $precondition->{mountpartition};
+                delete $precondition->{arch};
+        }
+        
+        if ($precondition->{mount} eq '/') {
+                unshift @{$config->{preconditions}}, $precondition;
+        } else {
+                push @{$config->{preconditions}}, $precondition;
+        }
+        push @{$config->{preconditions}}, $opt_pkg if $opt_pkg;
+        return $config;
+}
 
 
 =head2 get_install_config
@@ -261,10 +295,8 @@ sub get_install_config
 
         foreach my $precondition ($search->ordered_preconditions) {
                 # make sure installing the root partition is always the first precondition
-                if ($precondition->precondition_as_hash->{precondition_type} eq 'image' and 
-                    $precondition->precondition_as_hash->{mount} eq '/'
-                   ) {
-                        unshift @{$config->{preconditions}}, $precondition->precondition_as_hash;
+                if ($precondition->precondition_as_hash->{precondition_type} eq 'image' ) {
+                        $config = $self->parse_image_precondition($config, $precondition->precondition_as_hash);
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'virt' ) {
                         $config=$self->parse_virt_preconditions($config, $precondition->precondition_as_hash);
