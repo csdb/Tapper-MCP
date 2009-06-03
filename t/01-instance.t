@@ -16,7 +16,17 @@ my @modules = ('Artemis::MCP',
                'Artemis::MCP::Scheduler',
                'Artemis::MCP::Master',
                'Artemis::MCP::Net',
-               'Artemis::MCP::Startup', 
+               'Artemis::MCP::Startup',
+
+               'Artemis::MCP::Scheduler',
+               'Artemis::MCP::Scheduler::Algorithm',
+               'Artemis::MCP::Scheduler::Algorithm::WFQ',
+               'Artemis::MCP::Scheduler::Builder',
+               'Artemis::MCP::Scheduler::Host',
+               'Artemis::MCP::Scheduler::Job',
+               'Artemis::MCP::Scheduler::Producer',
+               'Artemis::MCP::Scheduler::Queue',
+               'Artemis::MCP::Scheduler::TestRequest',
               );
 plan tests => $#modules+1;
 
