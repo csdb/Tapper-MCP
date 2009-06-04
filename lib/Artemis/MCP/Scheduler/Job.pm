@@ -15,9 +15,14 @@ Version 0.01
 
 =head1 SYNOPSIS
 
+=head1 Attributes
 
+=cut 
+        
+        has testrunid => (is => 'rw');
 
 =head1 FUNCTIONS
+
 
 
 =cut
@@ -45,4 +50,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of WFQ
+1;

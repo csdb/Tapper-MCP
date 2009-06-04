@@ -93,20 +93,20 @@ Set interrupt handlers for important signals. No parameters, no return values.
         {
                 my ($self) = @_;
                 $SIG{CHLD} = sub {
-                                  $self->dead_child($self->dead_child + 1);
-                                 }
-                ;
+                        $self->dead_child($self->dead_child + 1);
+                }
+                  ;
 
                 # give me a stack trace when ^C
                 $SIG{INT} = sub {
-                                 $SIG{INT}='ignore'; # not reentrant, don't handle signal twice
-                                 my $backtrace = Devel::Backtrace->new(-start=>2, -format => '%I. %s');
+                        $SIG{INT}='ignore'; # not reentrant, don't handle signal twice
+                        my $backtrace = Devel::Backtrace->new(-start=>2, -format => '%I. %s');
                 
-                                 print $backtrace;
+                        print $backtrace;
 
-                                 exit -1;
-                                }
-                ;
+                        exit -1;
+                }
+                  ;
                 return 0;
         }
 
@@ -385,7 +385,7 @@ Set up all needed data structures then wait for new tests.
 
         }
 
-        method get_job {
+        method get_job() {
                 my $grace_period = 1;
                 my $job = $self->scheduler->get_job;
                 sleep $grace_period if not $job;
@@ -396,13 +396,13 @@ Set up all needed data structures then wait for new tests.
                 return unless $job;
         }
 
-        method execute_next_job {
+        method execute_next_job() {
                 $self->execute_job ($self->get_job);
         }
 
-        method mix {
-                    $self->execute_next_job while 1;
-                   }
+        method main() {
+                $self->execute_next_job while 1;
+        }
 }
 
 
