@@ -22,9 +22,7 @@ Version 0.01
 =cut
 
 
-        method get_job {
-                my $job = $self->scheduler->get_job;
-                sleep $grace_period if not $job;
+        method get_job() {
         }
 }
 
