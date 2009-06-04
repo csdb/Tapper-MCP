@@ -76,7 +76,6 @@ sub get_next_testrun
         foreach my $hostname (keys %$free_hosts) {
                 $ids{$hostname} = $self->schedule($hostname);
         }
-        say STDERR "Next testruns: ", Dumper(\%ids);
         return %ids;
 }
 
