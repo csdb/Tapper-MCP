@@ -164,7 +164,7 @@ Close a given console connection.
         {
                 my ($self, $console) = @_;
                 close $self->consolefiles->[$console->fileno()] 
-                  or return "Can't close console file:$!";
+                    or return "Can't close console file:$!";
                 $self->consolefiles->[$console->fileno()] = undef;
                 $self->readset->remove($console);
                 my $net = Artemis::MCP::Net->new();
@@ -211,19 +211,19 @@ Read console log from a handle and write it to the appropriate file.
 
 =cut
 
-sub consolelogfrom
-{
-        my ($self, $handle) = @_;
-        my $buffer;
-        my $maxread = 1024; # XXX configure
-        my $retval  = sysread($handle, $buffer, $maxread);
-        return "Can't read from console:$!" if not defined $retval;
-        my $file    = $self->consolefiles->[$handle->fileno()];
-        return "Can't get console file:$!" if not defined $file;
-        $retval     = syswrite($file, $buffer, $retval);
-        return "Can't write console data to file :$!" if not defined $retval;
-        return 0;
-}
+        sub consolelogfrom
+        {
+                my ($self, $handle) = @_;
+                my $buffer;
+                my $maxread = 1024; # XXX configure
+                my $retval  = sysread($handle, $buffer, $maxread);
+                return "Can't read from console:$!" if not defined $retval;
+                my $file    = $self->consolefiles->[$handle->fileno()];
+                return "Can't get console file:$!" if not defined $file;
+                $retval     = syswrite($file, $buffer, $retval);
+                return "Can't write console data to file :$!" if not defined $retval;
+                return 0;
+        }
 
 
 =head2 run_due_tests
@@ -310,33 +310,33 @@ itself is put outside of function to allow testing.
 
 =cut
 
-sub runloop
-{
-        my ($self, $lastrun) = @_;
-        my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
+        sub runloop
+        {
+                my ($self, $lastrun) = @_;
+                my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
 
-        my @ready;
-        # if readset is empty, can_read immediately returns with an empty
-        # array; this makes runloop a CPU burn loop
-        if ($self->readset->count) {
-                @ready = $self->readset->can_read( $timeout );
-        } else {
-                sleep $timeout;
-        }
-        $self->handle_dead_children() if $self->dead_child;
+                my @ready;
+                # if readset is empty, can_read immediately returns with an empty
+                # array; this makes runloop a CPU burn loop
+                if ($self->readset->count) {
+                        @ready = $self->readset->can_read( $timeout );
+                } else {
+                        sleep $timeout;
+                }
+                $self->handle_dead_children() if $self->dead_child;
 
-        foreach my $handle (@ready) {
-                my $retval = $self->consolelogfrom($handle);
-                $self->log->error($retval) if $retval;
-        }
+                foreach my $handle (@ready) {
+                        my $retval = $self->consolelogfrom($handle);
+                        $self->log->error($retval) if $retval;
+                }
 
-        if (not @ready) {
-                # run_due_tests needs the hostname, so we let get_next_test search it
-                my $scheduler = Artemis::MCP::Scheduler->new();
-                my %due_tests = $scheduler->get_next_testrun();
-                $self->run_due_tests(\%due_tests);
+                if (not @ready) {
+                        # run_due_tests needs the hostname, so we let get_next_test search it
+                        my $scheduler = Artemis::MCP::Scheduler->new();
+                        my %due_tests = $scheduler->get_next_testrun();
+                        $self->run_due_tests(\%due_tests);
+                }
         }
-}
 
 
 =head2 prepare_server
@@ -357,7 +357,7 @@ Create communication data structures used in MCP.
                 $self->readset ($select);
                 $self->scheduler(Artemis::MCP::Scheduler->new());
                 return "Can't create select object:$!" if not $select;
-        
+
                 my $allhosts = model('HardwareDB')->resultset('Systems')->search({active => 1, current_owner => {like => '%artemis%'}});
                 while (my $thishost = $allhosts->next) {
                         push(@{$self->hosts}, $thishost->systemname);
@@ -384,15 +384,13 @@ Set up all needed data structures then wait for new tests.
                 }
 
         }
-        
-        
+
         method get_job {
                 my $grace_period = 1;
                 my $job = $self->scheduler->get_job;
                 sleep $grace_period if not $job;
                 return $job;
         }
-
 
         method execute_job($job) {
                 return unless $job;
@@ -402,11 +400,11 @@ Set up all needed data structures then wait for new tests.
                 $self->execute_job ($self->get_job);
         }
 
-        method  mix {
-                     $self->execute_next_job while 1;
-                    }
+        method mix {
+                    $self->execute_next_job while 1;
+                   }
 }
-                                           
+
 
 1;
 
