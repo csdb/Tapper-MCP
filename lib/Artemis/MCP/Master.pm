@@ -386,25 +386,25 @@ Set up all needed data structures then wait for new tests.
         }
         
         
-        method get_job {
+        method get_job() {
                 my $grace_period = 1;
                 my $job = $self->scheduler->get_job;
                 sleep $grace_period if not $job;
                 return $job;
         }
 
-
+          
         method execute_job($job) {
                 return unless $job;
         }
 
-        method execute_next_job {
+        method execute_next_job() {
                 $self->execute_job ($self->get_job);
         }
-
-        method  mix {
-                     $self->execute_next_job while 1;
-                    }
+        
+        method main() {
+                $self->execute_next_job while 1;
+        }
 }
                                            
 
