@@ -21,8 +21,12 @@ Version 0.01
 
 =cut
 
-
-        method get_job() {
+        
+        method get_next_job() {
+                my $job = $self->get_priority_job();
+                return $job if $job;
+                $job = $self->algorithm->get_next_job();
+                return $job;
         }
 }
 

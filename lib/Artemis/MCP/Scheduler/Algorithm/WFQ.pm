@@ -54,7 +54,7 @@ Evaluate which client has to be scheduled next.
 
 =cut
 
-        method schedule(Str $hostname)
+        method get_next_job(Str $hostname)
         {
                 my $vft;
                 my $queue;
