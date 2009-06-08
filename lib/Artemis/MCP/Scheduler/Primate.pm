@@ -26,9 +26,13 @@ Version 0.01
 
 =head1 FUNCTIONS
 
-=head2
+=head2 get_test_request
 
 =cut
+
+        method get_test_request() {
+                return Artemis::MCP::Scheduler::TestRequest->new();
+        }
 
         
         method get_next_job() {
