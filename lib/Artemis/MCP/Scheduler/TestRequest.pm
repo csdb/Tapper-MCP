@@ -23,7 +23,7 @@ List of features that a possible host for this test request should have. May be 
 
 =cut 
 
-has features => (is => 'rw', isa => 'ArrayRef');
+        has featureset => (is => 'rw', isa => 'HashRef');
 
 
 =head2 
@@ -32,7 +32,7 @@ List of possible hosts for this test request. May be empty.
 
 =cut 
 
-has hostnames => (is => 'rw', isa => 'ArrayRef');
+        has hostnames => (is => 'rw', isa => 'ArrayRef');
 
 =head2 
 
@@ -40,7 +40,7 @@ Name of the queue this test request goes into. Default is 'Adhoc'
 
 =cut 
 
-has queue => (is => 'rw', default => 'Adhoc');
+        has queue => (is => 'rw', default => 'Adhoc');
 
 
 =head1 FUNCTIONS
