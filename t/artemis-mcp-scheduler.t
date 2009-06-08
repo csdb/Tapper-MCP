@@ -13,7 +13,7 @@ use Artemis::MCP::Scheduler::TestRequest;
 use Artemis::MCP::Scheduler::Algorithm::WFQ;
 use Artemis::MCP::Scheduler::Producer;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 my @hostlist;
 my $host = Artemis::MCP::Scheduler::Host->new();
@@ -58,4 +58,5 @@ $request->queue('kvm');
 
 my $job = $primat->get_next_job();
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
+isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
 is($job->host->name, 'bullock', 'Evaluation of feature list in a testrequest');
