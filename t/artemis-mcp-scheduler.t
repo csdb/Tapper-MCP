@@ -10,6 +10,7 @@ use MRO::Compat;
 use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Primate;
 use Artemis::MCP::Scheduler::TestRequest;
+use Artemis::MCP::Scheduler::Algorithm::WFQ;
 
 use Test::More tests => 2;
 
@@ -26,7 +27,27 @@ $host->features({mem => 4096, cpu => {Vendor => 'AMD', Family => 15, Model => 67
 $host->state('free');
 push @hostlist, $host;
 
+
+my $wfq = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
+my $queue = Artemis::MCP::Scheduler::Queue->new();
+$queue->name('Xen');
+$queue->share(300);
+$wfq->add_queue($queue);
+
+$queue = Artemis::MCP::Scheduler::Queue->new();
+$queue->name('KVM');
+$queue->share(200);
+$wfq->add_queue($queue);
+
+$queue = Artemis::MCP::Scheduler::Queue->new();
+$queue->name('Kernel');
+$queue->share(100);
+$wfq->add_queue($queue);
+
+
+
 my $primat =  Artemis::MCP::Scheduler::Primate->new();
+$primat->algorithm();
 $primat->hostlist(\@hostlist);
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
@@ -35,4 +56,4 @@ $request->queue('kvm');
 
 my $job = $primat->get_next_job();
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
-is($job->hostname, 'bullock', 'Evaluation of feature list in a testrequest');
+is($job->name, 'bullock', 'Evaluation of feature list in a testrequest');
