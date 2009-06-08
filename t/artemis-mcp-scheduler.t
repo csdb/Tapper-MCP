@@ -58,4 +58,4 @@ $request->queue('kvm');
 
 my $job = $primat->get_next_job();
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
-is($job->name, 'bullock', 'Evaluation of feature list in a testrequest');
+is($job->host->name, 'bullock', 'Evaluation of feature list in a testrequest');
