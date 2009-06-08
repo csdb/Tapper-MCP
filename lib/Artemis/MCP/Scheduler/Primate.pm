@@ -41,8 +41,8 @@ Version 0.01
                 $job = $self->algorithm->get_next_job();
                 return $job;
         }
+        
 }
-
 {
     # just for CPAN
     package Artemis::MCP::Scheduler::Primate;
