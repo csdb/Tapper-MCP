@@ -20,7 +20,7 @@ Version 0.01
 =cut 
         
         has testrunid => (is => 'rw');
-        has host      => (is => 'rw', isa => Artemis::MCP::Scheduler::Host);
+        has host      => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Host');
 
 =head1 FUNCTIONS
 
