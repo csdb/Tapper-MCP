@@ -34,6 +34,28 @@ Version 0.01
                 return Artemis::MCP::Scheduler::TestRequest->new();
         }
 
+=head2 get_prioritiy_job
+
+Check priority queue for a new job and return it.
+
+@return    job available - ad hoc queue object
+@return no job available - 0
+
+=cut
+
+        method get_priority_job() {
+                #                my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
+                my $testruns;
+                # do_someting in case the testrun exists;
+                if ($testruns) {
+                        my $queue = Artemis::MCP::Scheduler::Queue->new(name => 'AdHoc');
+                        return $queue;
+                }
+                return 0;
+        }
+=head2 get_next_job
+
+=cut
         
         method get_next_job() {
                 my $job = $self->get_priority_job();
