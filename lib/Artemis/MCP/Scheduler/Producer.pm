@@ -2,6 +2,8 @@ use MooseX::Declare;
 
     
 class Artemis::MCP::Scheduler::Producer {
+        use Artemis::MCP::Scheduler::Job;
+
 
 =head1 NAME
         
@@ -30,9 +32,10 @@ Create files needed for a testrun and put it into db.
 
 =cut
         
-        method produce(Str $hostname) {
+        method produce(Artemis::MCP::Scheduler::Host $host) {
                 print "We are we are: The youth of the nation";
-                return 0;
+                my $job = Artemis::MCP::Scheduler::Job->new();
+                return $job;
         }
 }
 
