@@ -11,6 +11,7 @@ use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Primate;
 use Artemis::MCP::Scheduler::TestRequest;
 use Artemis::MCP::Scheduler::Algorithm::WFQ;
+use Artemis::MCP::Scheduler::Producer;
 
 use Test::More tests => 2;
 
@@ -32,6 +33,7 @@ my $wfq = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
 $queue->share(300);
+$queue->producer(Artemis::MCP::Scheduler::Producer->new);
 $wfq->add_queue($queue);
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
@@ -47,7 +49,7 @@ $wfq->add_queue($queue);
 
 
 my $primat =  Artemis::MCP::Scheduler::Primate->new();
-$primat->algorithm();
+$primat->algorithm($wfq);
 $primat->hostlist(\@hostlist);
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
