@@ -15,12 +15,13 @@ my $hostname = 'bullock';
 
 my @order;
 
-push @order, $scheduler->schedule($hostname);
-push @order, $scheduler->schedule($hostname);
-push @order, $scheduler->schedule($hostname);
-push @order, $scheduler->schedule($hostname);
-push @order, $scheduler->schedule($hostname);
-push @order, $scheduler->schedule($hostname);
+push @order
+    , $scheduler->schedule($hostname)
+    , $scheduler->schedule($hostname)
+    , $scheduler->schedule($hostname)
+    , $scheduler->schedule($hostname)
+    , $scheduler->schedule($hostname)
+    , $scheduler->schedule($hostname);
 
 my $right_order=['A','B','A','A','B','C'];
 cmp_bag(\@order, $right_order, 'Scheduling');
