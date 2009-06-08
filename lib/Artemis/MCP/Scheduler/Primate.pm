@@ -2,6 +2,9 @@ use MooseX::Declare;
 
     
 class Artemis::MCP::Scheduler::Primate {
+        use Artemis::Model 'model';
+        use Artemis::MCP::Scheduler::Queue;
+        use Artemis::MCP::Scheduler::TestRequest;
 
 =head1 NAME
         
@@ -15,17 +18,65 @@ Version 0.01
 
 =head1 SYNOPSIS
 
+=cut 
+
+        has hostlist  => (is => 'rw', isa => 'ArrayRef');
+        has algorithm => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Algorithm');
+
+
 =head1 FUNCTIONS
 
-=head2
+=head2 get_test_request
 
 =cut
 
-
-        method get_job() {
+        method get_test_request() {
+                return Artemis::MCP::Scheduler::TestRequest->new();
         }
-}
 
+=head2 get_prioritiy_job
+
+Check priority queue for a new job and return it.
+
+@return    job available - ad hoc queue object
+@return no job available - 0
+
+=cut
+
+        method get_priority_job() {
+                #                my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
+                my $testruns;
+                # do_someting in case the testrun exists;
+                if ($testruns) {
+                        my $queue = Artemis::MCP::Scheduler::Queue->new(name => 'AdHoc');
+                        return $queue;
+                }
+                return 0;
+        }
+
+=head2 choose_host
+
+=cut
+
+        method choose_host($queue) {
+                my $host = Artemis::MCP::Scheduler::Host->new();
+                return $host;
+        }
+
+
+=head2 get_next_job
+
+=cut
+        
+        method get_next_job() {
+                my $queue = $self->get_priority_job();
+                $queue    = $self->algorithm->get_next_job() if not $queue;
+                my $host  = $self->choose_host($queue);
+                my $job   = $queue->produce($host);
+                return $job;
+        }
+        
+}
 {
     # just for CPAN
     package Artemis::MCP::Scheduler::Primate;

@@ -48,13 +48,11 @@ Return the virtual finishing time of a given client
 
 Evaluate which client has to be scheduled next.
 
-@param string - get a testrun for this host
-
 @return success - client name;
 
 =cut
 
-        method schedule(Str $hostname)
+        method get_next_job()
         {
                 my $vft;
                 my $queue;
@@ -79,7 +77,7 @@ Evaluate which client has to be scheduled next.
                         }
                 }
                 $self->update_client($queue);
-                return $queue->name;
+                return $queue;
         }
 }
 

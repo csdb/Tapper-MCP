@@ -1,11 +1,11 @@
 use MooseX::Declare;
 
     
-class Artemis::MCP::Scheduler::Host {
+class Artemis::MCP::Scheduler::Queue::AdHoc extends Artemis::MCP::Scheduler::Queue {
 
 =head1 NAME
         
-  Host - Implements a host object used for scheduling
+   Artemis::MCP::Scheduler::Queue::AdHoc - AdHoc queue
 
 =head1 VERSION
 
@@ -13,45 +13,33 @@ Version 0.01
 
 =cut
 
-=head2 name
-
-Hostname. Has to be unique.
-
-=cut
-
-        has name => (is => 'rw');
-
-=head2 state
-
-A host can have a certain state. Since it is not clear yet how to use this attribute possible values are also unknown yet.
-
-=cut
-
-        has state => (is => 'rw');
-
-=head2 features
-
-List of features offered by a host. Can be used to decide whether a certain host fits the requirement list of a test request.
-
-=cut
-
-
-        has features => (is => 'rw', isa => 'HashRef');
-
-
 =head1 SYNOPSIS
 
-
+=cut 
 
 =head1 FUNCTIONS
 
+=head2 produce
+
+Call the producer method associated with this object.
+
+@param string - hostname
+
+@return success - test run id
+@return error   - exception
+
 =cut
+        
+        method produce(Artemis::MCP::Scheduler::Host $host) {
+                my $job = Artemis::MCP::Scheduler::Job->new;
+                return $job;
+        }
 
+        
 }
-
 {
     # just for CPAN
-    package Host;
+    package Artemis::MCP::Scheduler::Queue::AdHoc;
     our $VERSION = '0.01';
 }
 
@@ -77,4 +65,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of WFQ
+1; # End of Artemis::MCP::Scheduler::Primate

@@ -385,9 +385,9 @@ Set up all needed data structures then wait for new tests.
 
         }
 
-        method get_job() {
+        method get_next_job() {
                 my $grace_period = 1;
-                my $job = $self->scheduler->get_job;
+                my $job = $self->scheduler->get_next_job;
                 sleep $grace_period if not $job;
                 return $job;
         }
@@ -397,7 +397,7 @@ Set up all needed data structures then wait for new tests.
         }
 
         method execute_next_job() {
-                $self->execute_job ($self->get_job);
+                $self->execute_job ($self->get_next_job);
         }
 
         method main() {

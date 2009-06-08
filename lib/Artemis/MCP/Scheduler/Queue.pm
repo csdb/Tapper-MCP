@@ -1,6 +1,7 @@
 use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::Queue {
+        use Artemis::Exception::Param;
 
         has name     => (is => 'rw', default => '');
         has producer => (is => 'rw');
@@ -19,9 +20,9 @@ Call the producer method associated with this object.
 
 =cut
 
-        method produce(Str $hostname) {
-                die Artemis::Exception::Param("Client ".$self->name."does not have an associated producer")
+        method produce(Artemis::MCP::Scheduler::Host $host) {
+                die Artemis::Exception::Param->new("Client ".$self->name."does not have an associated producer")
                     if not $self->producer ;
-                return $self->producer->produce($hostname);
+                return $self->producer->produce($host);
         }
 }
