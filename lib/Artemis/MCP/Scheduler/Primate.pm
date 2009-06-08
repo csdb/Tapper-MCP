@@ -72,7 +72,7 @@ Check priority queue for a new job and return it.
                 my $queue = $self->get_priority_job();
                 $queue    = $self->algorithm->get_next_job() if not $queue;
                 my $host  = $self->choose_host($queue);
-                my $job   = $queue->producer($host);
+                my $job   = $queue->produce($host);
                 return $job;
         }
         
