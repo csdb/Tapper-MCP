@@ -2,6 +2,9 @@ use MooseX::Declare;
 
     
 class Artemis::MCP::Scheduler::Primate {
+        use Artemis::Model 'model';
+        use Artemis::MCP::Scheduler::Queue;
+        use Artemis::MCP::Scheduler::TestRequest;
 
 =head1 NAME
         
@@ -14,6 +17,12 @@ Version 0.01
 =cut
 
 =head1 SYNOPSIS
+
+=cut 
+
+        has hostlist  => (is => 'rw', isa => 'ArrayRef');
+        has algorithm => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Algorithm');
+
 
 =head1 FUNCTIONS
 
