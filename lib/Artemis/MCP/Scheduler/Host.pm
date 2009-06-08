@@ -36,7 +36,7 @@ List of features offered by a host. Can be used to decide whether a certain host
 =cut
 
 
-        has features => (is => 'rw', isa => 'ArrayRef');
+        has features => (is => 'rw', isa => 'HashRef');
 
 
 =head1 SYNOPSIS
@@ -46,6 +46,7 @@ List of features offered by a host. Can be used to decide whether a certain host
 =head1 FUNCTIONS
 
 =cut
+
 }
 
 {
