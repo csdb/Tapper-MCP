@@ -53,6 +53,17 @@ Check priority queue for a new job and return it.
                 }
                 return 0;
         }
+
+=head2 choose_host
+
+=cut
+
+        method choose_host($queue) {
+                my $host = Artemis::MCP::Scheduler::Host->new();
+                return $host;
+        }
+
+
 =head2 get_next_job
 
 =cut
