@@ -69,9 +69,10 @@ Check priority queue for a new job and return it.
 =cut
         
         method get_next_job() {
-                my $job = $self->get_priority_job();
-                return $job if $job;
-                $job = $self->algorithm->get_next_job();
+                my $queue = $self->get_priority_job();
+                $queue    = $self->algorithm->get_next_job() if not $queue;
+                my $host  = $self->choose_host($queue);
+                my $job   = $queue->producer($host);
                 return $job;
         }
         
