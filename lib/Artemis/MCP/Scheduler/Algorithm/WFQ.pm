@@ -77,7 +77,7 @@ Evaluate which client has to be scheduled next.
                         }
                 }
                 $self->update_client($queue);
-                return $queue->name;
+                return $queue;
         }
 }
 
