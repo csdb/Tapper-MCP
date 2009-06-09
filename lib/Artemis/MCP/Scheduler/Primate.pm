@@ -26,13 +26,6 @@ Version 0.01
 
 =head1 FUNCTIONS
 
-=head2 get_test_request
-
-=cut
-
-        method get_test_request() {
-                return Artemis::MCP::Scheduler::TestRequest->new();
-        }
 
 =head2 get_prioritiy_job
 
@@ -54,26 +47,16 @@ Check priority queue for a new job and return it.
                 return 0;
         }
 
-=head2 choose_host
-
-=cut
-
-        method choose_host($queue) {
-                my $host = Artemis::MCP::Scheduler::Host->new();
-                return $host;
-        }
-
-
 =head2 get_next_job
 
 =cut
         
-        method get_next_job() {
-                my $queue = $self->get_priority_job();
-                $queue    = $self->algorithm->get_next_job() if not $queue;
-                my $host  = $self->choose_host($queue);
-                my $job   = $queue->produce($host);
-                return $job;
+        method get_next_job($free_hosts) {
+                my $queue       = $self->get_priority_job();
+                $queue          = $self->algorithm->get_next_queue() if not $queue;
+                my $testrequest = $queue->get_test_request($free_hosts); # contains host decision
+                my $job         = $queue->produce($testrequest->host);
+                return $job;                                 # MCP maintains list of free hosts
         }
         
 }
