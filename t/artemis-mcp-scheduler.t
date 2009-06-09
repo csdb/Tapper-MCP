@@ -18,13 +18,13 @@ use Test::More tests => 3;
 my @hostlist;
 my $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('bullock');
-$host->features({mem => 8192, cpu => {Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, 	l2_Cache => 1024, l3_Cache => 0}});
+$host->available_features({mem => 8192, cpu => {Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, l2_Cache => 1024, l3_Cache => 0}});
 $host->state('free');
 push @hostlist, $host;
 
 $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('dickstone');
-$host->features({mem => 4096, cpu => {Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, 	l2_Cache => 1024, l3_Cache => 0}});
+$host->available_features({mem => 4096, cpu => {Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, l2_Cache => 1024, l3_Cache => 0}});
 $host->state('free');
 push @hostlist, $host;
 
@@ -53,7 +53,8 @@ $primat->algorithm($wfq);
 $primat->hostlist(\@hostlist);
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
-$request->featureset({mem => 8000});
+my $value = 'mem >= 8000';
+$request->requested_features([$value]);
 $request->queue('kvm');
 
 my $job = $primat->get_next_job();
