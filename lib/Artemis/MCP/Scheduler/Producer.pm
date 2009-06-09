@@ -34,6 +34,7 @@ Create files needed for a testrun and put it into db.
         
         method produce(Artemis::MCP::Scheduler::Host $host) {
                 my $job = Artemis::MCP::Scheduler::Job->new();
+                $job->host($host);
                 return $job;
         }
 }
