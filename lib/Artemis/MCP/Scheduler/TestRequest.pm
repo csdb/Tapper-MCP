@@ -15,6 +15,8 @@ Version 0.01
 
 =head1 SYNOPSIS
 
+  artemist-testrun new --request-feature='mem =< 8000'
+
 =cut
 
 =head2 features
@@ -23,7 +25,7 @@ List of features that a possible host for this test request should have. May be 
 
 =cut 
 
-        has featureset => (is => 'rw', isa => 'HashRef');
+        has requested_features => (is => 'rw', isa => 'ArrayRef');
 
 
 =head2 
@@ -47,11 +49,10 @@ Name of the queue this test request goes into. Default is 'Adhoc'
 
 =cut
 
-}        
-
+}
 {
         # just for CPAN
-        package Artemis::MCP::Scheduler::Builder;
+        package Artemis::MCP::Scheduler::TestRequest;
         our $VERSION = '0.01';
 }
 
@@ -70,4 +71,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of WFQ
+1;
