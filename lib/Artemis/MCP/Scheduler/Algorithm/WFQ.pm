@@ -44,7 +44,7 @@ Return the virtual finishing time of a given client
                 return ($queue->{runcount} + 1.0) / $queue->{share};
         }
 
-=head2 schedule
+=head2 get_next_queue
 
 Evaluate which client has to be scheduled next.
 
@@ -52,7 +52,7 @@ Evaluate which client has to be scheduled next.
 
 =cut
 
-        method get_next_job()
+        method get_next_queue()
         {
                 my $vft;
                 my $queue;
