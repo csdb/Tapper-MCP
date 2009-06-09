@@ -28,7 +28,41 @@ Version 0.01
 
 =cut
 
+
+#         method mem() {
+#                 $host{mem};
+#         }
+        
+        method compare_feature($feature) {
+                my $tr = Artemis::MCP::Scheduler::TestRequest->new();
+                $tr->hostnames(['bullock']);
+                return $tr;
+#                 # $feature = 'mem >= 8000';
+#                 $host = $_;
+#                 eval $feature;
+        }        
+
+
+=head2 get_test_request
+
+Get a testrequest for one of the free hosts provided as parameter.
+
+@param array ref - list of hostnames
+
+@return success               - TestRequest
+@return no fitting tr found   - 0
+
+=cut
+
+        method get_test_request(ArrayRef $free_hosts) {
+                foreach my $host (@$free_hosts) {
+                        my $testrequest = $self->compare_feature($host);
+                        return $testrequest if $testrequest;
+                }
+        }
+
 =head2 produce
+
 
 Call the producer method associated with this object.
 
@@ -44,6 +78,9 @@ Call the producer method associated with this object.
                     if not $self->producer ;
                 return $self->producer->produce($host);
         }
+
+
+
 }
 
 {
