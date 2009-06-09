@@ -3,11 +3,30 @@ use MooseX::Declare;
 class Artemis::MCP::Scheduler::Queue {
         use Artemis::Exception::Param;
 
-        has name     => (is => 'rw', default => '');
-        has producer => (is => 'rw');
-        has share    => (is => 'rw', isa => 'Num');
+=head1 NAME
+        
+   Artemis::MCP::Scheduler::Queue - Object for test queue abstraction
 
-        has runcount => (is => 'rw', default => 0); # WFQ specific
+=head1 VERSION
+
+Version 0.01
+
+=cut
+
+=head1 SYNOPSIS
+
+=cut
+        
+
+        has name         => (is => 'rw', default => '');
+        has producer     => (is => 'rw');
+        has share        => (is => 'rw', isa => 'Num');
+        has testrequests => (is => 'rw', isa => 'ArrayRef');
+        has runcount     => (is => 'rw', default => 0); # WFQ specific
+
+=head1 FUNCTIONS
+
+=cut
 
 =head2 produce
 
@@ -26,3 +45,29 @@ Call the producer method associated with this object.
                 return $self->producer->produce($host);
         }
 }
+
+{
+        # just for CPAN
+        package Artemis::MCP::Scheduler::Queue;
+        our $VERSION = '0.01';
+}
+
+
+=head1 AUTHOR
+
+Maik Hentsche, C<< <maik.hentsche at amd.com> >>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Maik Hentsche, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+
+=cut
+
+# Idea: provide functions that map to feature has
+
+1;
+
