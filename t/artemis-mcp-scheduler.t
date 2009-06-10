@@ -28,22 +28,35 @@ $host->available_features({mem => 4096, cpu => {Vendor => 'AMD', Family => 15, M
 $host->state('free');
 push @hostlist, $host;
 
+my $request = Artemis::MCP::Scheduler::TestRequest->new();
+my $value = 'mem >= 8000';
+$request->requested_features([$value]);
+$request->queue('Xen');
+
 
 my $wfq = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
 $queue->share(300);
 $queue->producer(Artemis::MCP::Scheduler::Producer->new);
+$queue->testrequests([$request]);
 $wfq->add_queue($queue);
+
+
+$request = Artemis::MCP::Scheduler::TestRequest->new();
+$value = 'mem <= 8000';
+$request->requested_features([$value]);
+$request->queue('kvm');
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('KVM');
 $queue->share(200);
+$queue->testrequests([$request]);
 $wfq->add_queue($queue);
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Kernel');
-$queue->share(100);
+$queue->share(10);
 $wfq->add_queue($queue);
 
 
@@ -51,10 +64,6 @@ $wfq->add_queue($queue);
 my $primat =  Artemis::MCP::Scheduler::Primate->new();
 $primat->algorithm($wfq);
 
-my $request = Artemis::MCP::Scheduler::TestRequest->new();
-my $value = 'mem >= 8000';
-$request->requested_features([$value]);
-$request->queue('kvm');
 
 my $job = $primat->get_next_job(\@hostlist);
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
