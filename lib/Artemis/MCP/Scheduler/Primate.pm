@@ -49,12 +49,25 @@ Check priority queue for a new job and return it.
 
 =head2 get_next_job
 
+Pick a testrequest and prepare it for execution. Returns 0 if not testrequest
+fits any of the free hosts.
+
+@param ArrayRef - array of host objects associated to hosts with no current test
+
+@return success   - job object
+@return no job    - 0
+
 =cut
         
         method get_next_job(ArrayRef $free_hosts) {
-                my $queue       = $self->get_priority_job();
-                $queue          = $self->algorithm->get_next_queue() if not $queue;
-                my $testrequest = $queue->get_test_request($free_hosts); # contains host decision
+                my ($queue, $testrequest);
+
+                do {
+                        $queue       = $self->get_priority_job();
+                        $queue          = $self->algorithm->get_next_queue() if not $queue;
+                        $testrequest = $queue->get_test_request($free_hosts); # contains host decision
+                } while (not $testrequest);
+
                 my $job         = $queue->produce($testrequest->on_host);
                 return $job;                                 # MCP maintains list of free hosts
         }
