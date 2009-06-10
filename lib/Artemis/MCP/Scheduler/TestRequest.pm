@@ -2,6 +2,7 @@ use MooseX::Declare;
 
     
 class Artemis::MCP::Scheduler::TestRequest {
+        use Artemis::MCP::Scheduler::Host;
 
 =head1 NAME
         
@@ -68,7 +69,7 @@ hosts.
 =cut
 
         method fits(ArrayRef $free_hosts) {
-                $self->on_host($free_hosts->[0];
+                $self->on_host($free_hosts->[0]);
                 return $self;
         }
 
