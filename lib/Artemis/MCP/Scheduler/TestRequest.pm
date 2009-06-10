@@ -41,7 +41,7 @@ List of possible hosts for this test request. May be empty.
 
 Name of the queue this test request goes into. Default is 'Adhoc'
 
-=cut 
+=cut
 
         has queue => (is => 'rw', default => 'Adhoc');
 
@@ -54,7 +54,71 @@ is evaluated.
 
         has on_host => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Host');
 
+
 =head1 FUNCTIONS
+
+=cut 
+
+=head2 match_host
+
+Check whether any of the hosts requested by name matched any free host.
+
+@param ArrayRef  - list free hosts
+
+@return success  - host object
+@return no match - 0
+
+=cut
+
+        method match_host (ArrayRef $free_hosts) {
+                return 0 if not $self->hostnames;
+                foreach my $hostname(@{$self->hostnames}) {
+                        my ($host) = map {$_->{name} eq $hostname} @$free_hosts;
+                        return $host if $host;
+                }
+                return 0;
+        }
+
+=head2
+
+Return associated feature of host object to use it in eval compare.
+
+=cut
+
+        sub Mem() {
+                return $_->available_features->{Mem};
+        }
+        sub Vendor() {
+                return $_->available_features->{Vendor};
+        }
+        sub Family() {
+                return $_->available_features->{Family};
+        }
+        sub Model() {
+                return $_->available_features->{Model};
+        }
+        sub Stepping() {
+                return $_->available_features->{Stepping};
+        }
+        sub Revision() {
+                return $_->available_features->{Revision};
+        }
+        sub Socket() {
+                return $_->available_features->{Socket};
+        }
+        sub Number_of_cores() {
+                return $_->available_features->{Number_of_cores};
+        }
+        sub Clock() {
+                return $_->available_features->{Clock};
+        }
+        sub L2_Cache() {
+                return $_->available_features->{L2_Cache};
+        }
+        sub L3_Cache() {
+                return $_->available_features->{L3_Cache};
+        }
+
 
 =head2 fits
 
@@ -69,10 +133,26 @@ hosts.
 =cut
 
         method fits(ArrayRef $free_hosts) {
-                $self->on_host($free_hosts->[0]);
-                return $self;
-        }
+                return 0 if not $free_hosts;
 
+                my $host = $self->match_host($free_hosts);
+                if ($host) {
+                        $self->on_host($host);
+                        return $self;
+                }
+
+                return 0 if not $self->requested_features;
+        HOST:
+                foreach $host(@$free_hosts) {
+                        $_ = $host;
+                        foreach my $this_feature(@{$self->requested_features}) {
+                                eval $this_feature or next HOST;
+                        }
+                        $self->on_host($host);
+                        return $self;
+                }
+                return 0;
+        }
 }
 {
         # just for CPAN
