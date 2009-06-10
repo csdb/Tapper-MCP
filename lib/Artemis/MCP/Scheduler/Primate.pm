@@ -51,11 +51,11 @@ Check priority queue for a new job and return it.
 
 =cut
         
-        method get_next_job($free_hosts) {
+        method get_next_job(ArrayRef $free_hosts) {
                 my $queue       = $self->get_priority_job();
                 $queue          = $self->algorithm->get_next_queue() if not $queue;
                 my $testrequest = $queue->get_test_request($free_hosts); # contains host decision
-                my $job         = $queue->produce($testrequest->host);
+                my $job         = $queue->produce($testrequest->hostnames->[0]);
                 return $job;                                 # MCP maintains list of free hosts
         }
         
