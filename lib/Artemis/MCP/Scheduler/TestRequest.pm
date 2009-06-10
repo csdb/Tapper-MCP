@@ -36,7 +36,7 @@ List of possible hosts for this test request. May be empty.
 
         has hostnames => (is => 'rw', isa => 'ArrayRef');
 
-=head2 
+=head2
 
 Name of the queue this test request goes into. Default is 'Adhoc'
 
@@ -44,10 +44,33 @@ Name of the queue this test request goes into. Default is 'Adhoc'
 
         has queue => (is => 'rw', default => 'Adhoc');
 
+=head2
+
+Use this host for the test request. Will be set when the feature and host list
+is evaluated.
+
+=cut
+
+        has on_host => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Host');
 
 =head1 FUNCTIONS
 
+=head2 fits
+
+Checks whether this testrequests host or feature list fits any of the free
+hosts.
+
+@param ArrayRef - list of free hosts
+
+@return success - this object with only the fitting host in the hostnames list
+@return no fit  - 0
+
 =cut
+
+        method fits(ArrayRef $free_hosts) {
+                $self->on_host($free_hosts->[0];
+                return $self;
+        }
 
 }
 {

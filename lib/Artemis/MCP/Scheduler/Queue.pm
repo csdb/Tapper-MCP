@@ -29,20 +29,6 @@ Version 0.01
 =cut
 
 
-#         method mem() {
-#                 $host{mem};
-#         }
-        
-        method compare_feature(Artemis::MCP::Scheduler::Host $host) {
-                my $tr = Artemis::MCP::Scheduler::TestRequest->new();
-                $tr->hostnames([$host]);
-                return $tr;
-#                 # $feature = 'mem >= 8000';
-#                 $host = $_;
-#                 eval $feature;
-        }        
-
-
 =head2 get_test_request
 
 Get a testrequest for one of the free hosts provided as parameter.
@@ -55,10 +41,10 @@ Get a testrequest for one of the free hosts provided as parameter.
 =cut
 
         method get_test_request(ArrayRef $free_hosts) {
-                foreach my $host (@$free_hosts) {
-                        my $testrequest = $self->compare_feature($host);
-                        return $testrequest if $testrequest;
+                foreach my $testrequest(@{$self->testrequests}) {
+                        return $testrequest if $testrequest->fits($free_hosts);
                 }
+                return 0;
         }
 
 =head2 produce
