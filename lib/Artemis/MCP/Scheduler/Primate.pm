@@ -64,7 +64,7 @@ fits any of the free hosts.
 
                 do {
                         $queue       = $self->get_priority_job();
-                        $queue          = $self->algorithm->get_next_queue() if not $queue;
+                        $queue       = $self->algorithm->get_next_queue() if not $queue;
                         $testrequest = $queue->get_test_request($free_hosts); # contains host decision
                 } while (not $testrequest);
 
