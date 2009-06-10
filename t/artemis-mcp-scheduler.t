@@ -18,18 +18,18 @@ use Test::More tests => 3;
 my @hostlist;
 my $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('bullock');
-$host->available_features({mem => 8192, cpu => {Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, l2_Cache => 1024, l3_Cache => 0}});
+$host->available_features({Mem => 8192, Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, L2_Cache => 1024, L3_Cache => 0});
 $host->state('free');
 push @hostlist, $host;
 
 $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('dickstone');
-$host->available_features({mem => 4096, cpu => {Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, l2_Cache => 1024, l3_Cache => 0}});
+$host->available_features({Mem => 4096, Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, L2_Cache => 1024, L3_Cache => 0});
 $host->state('free');
 push @hostlist, $host;
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
-my $value = 'mem <= 8000';
+my $value = 'Mem <= 8000';
 $request->requested_features([$value]);
 $request->queue('Xen');
 
@@ -44,7 +44,7 @@ $wfq->add_queue($queue);
 
 
 $request = Artemis::MCP::Scheduler::TestRequest->new();
-$value = 'mem <= 8000';
+$value = 'Mem <= 8000';
 $request->requested_features([$value]);
 $request->queue('kvm');
 
@@ -68,7 +68,4 @@ $primat->algorithm($wfq);
 my $job = $primat->get_next_job(\@hostlist);
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
 isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
-TODO: {
-        local $TODO = 'Finish feature compare';
-        is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
-}
+is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
