@@ -33,9 +33,9 @@ Version 0.01
 #                 $host{mem};
 #         }
         
-        method compare_feature($feature) {
+        method compare_feature(Artemis::MCP::Scheduler::Host $host) {
                 my $tr = Artemis::MCP::Scheduler::TestRequest->new();
-                $tr->hostnames(['bullock']);
+                $tr->hostnames([$host]);
                 return $tr;
 #                 # $feature = 'mem >= 8000';
 #                 $host = $_;
