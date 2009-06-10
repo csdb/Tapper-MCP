@@ -50,14 +50,13 @@ $wfq->add_queue($queue);
 
 my $primat =  Artemis::MCP::Scheduler::Primate->new();
 $primat->algorithm($wfq);
-$primat->hostlist(\@hostlist);
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
 my $value = 'mem >= 8000';
 $request->requested_features([$value]);
 $request->queue('kvm');
 
-my $job = $primat->get_next_job();
+my $job = $primat->get_next_job(\@hostlist);
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
 isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
 is($job->host->name, 'bullock', 'Evaluation of feature list in a testrequest');
