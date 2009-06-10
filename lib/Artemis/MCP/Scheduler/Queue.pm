@@ -2,6 +2,7 @@ use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::Queue {
         use Artemis::Exception::Param;
+        use Artemis::MCP::Scheduler::Host;
 
 =head1 NAME
         
@@ -41,6 +42,7 @@ Get a testrequest for one of the free hosts provided as parameter.
 =cut
 
         method get_test_request(ArrayRef $free_hosts) {
+                return 0 if not $self->testrequests and ref $self->testrequests eq 'ARRAY';
                 foreach my $testrequest(@{$self->testrequests}) {
                         return $testrequest if $testrequest->fits($free_hosts);
                 }
