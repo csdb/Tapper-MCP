@@ -55,7 +55,7 @@ Check priority queue for a new job and return it.
                 my $queue       = $self->get_priority_job();
                 $queue          = $self->algorithm->get_next_queue() if not $queue;
                 my $testrequest = $queue->get_test_request($free_hosts); # contains host decision
-                my $job         = $queue->produce($testrequest->hostnames->[0]);
+                my $job         = $queue->produce($testrequest->on_host);
                 return $job;                                 # MCP maintains list of free hosts
         }
         
