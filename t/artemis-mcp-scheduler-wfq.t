@@ -15,12 +15,13 @@ my $hostname = 'bullock';
 
 my @order;
 
-push @order, $scheduler->get_next_job($hostname);
-push @order, $scheduler->get_next_job($hostname);
-push @order, $scheduler->get_next_job($hostname);
-push @order, $scheduler->get_next_job($hostname);
-push @order, $scheduler->get_next_job($hostname);
-push @order, $scheduler->get_next_job($hostname);
+push @order, $scheduler->get_next_queue();
+push @order, $scheduler->get_next_queue();
+push @order, $scheduler->get_next_queue();
+push @order, $scheduler->get_next_queue();
+push @order, $scheduler->get_next_queue();
+push @order, $scheduler->get_next_queue();
 
 my $right_order=['A','B','A','A','B','C'];
-cmp_bag(\@order, $right_order, 'Scheduling');
+my @order_names = map { $_->name } @order;
+cmp_bag(\@order_names, $right_order, 'Scheduling');
