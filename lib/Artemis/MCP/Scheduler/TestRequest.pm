@@ -73,7 +73,7 @@ Check whether any of the hosts requested by name matched any free host.
         method match_host (ArrayRef $free_hosts) {
                 return 0 if not $self->hostnames;
                 foreach my $hostname(@{$self->hostnames}) {
-                        my ($host) = map {$_->{name} eq $hostname} @$free_hosts;
+                        my ($host) = grep {$_->{name} eq $hostname} @$free_hosts;
                         return $host if $host;
                 }
                 return 0;
