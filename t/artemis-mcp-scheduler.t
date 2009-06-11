@@ -11,9 +11,10 @@ use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Primate;
 use Artemis::MCP::Scheduler::TestRequest;
 use Artemis::MCP::Scheduler::Algorithm::WFQ;
+use Artemis::MCP::Scheduler::Algorithm::Dummy;
 use Artemis::MCP::Scheduler::Producer;
 
-use Test::More tests => 3;
+use Test::More tests => 6;
 
 my @hostlist;
 my $host = Artemis::MCP::Scheduler::Host->new();
@@ -34,13 +35,13 @@ $request->requested_features([$value]);
 $request->queue('Xen');
 
 
-my $wfq = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
+my $algorithm = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
 $queue->share(300);
 $queue->producer(Artemis::MCP::Scheduler::Producer->new);
 $queue->testrequests([$request]);
-$wfq->add_queue($queue);
+$algorithm->add_queue($queue);
 
 
 $request = Artemis::MCP::Scheduler::TestRequest->new();
@@ -52,20 +53,54 @@ $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('KVM');
 $queue->share(200);
 $queue->testrequests([$request]);
-$wfq->add_queue($queue);
+$algorithm->add_queue($queue);
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Kernel');
 $queue->share(10);
-$wfq->add_queue($queue);
+$algorithm->add_queue($queue);
 
 
 
 my $primat =  Artemis::MCP::Scheduler::Primate->new();
-$primat->algorithm($wfq);
+$primat->algorithm($algorithm);
 
 
 my $job = $primat->get_next_job(\@hostlist);
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
 isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
 is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
+
+$host = Artemis::MCP::Scheduler::Host->new();
+$host->name('featureless');
+$host->state('free');
+push @hostlist, $host;
+
+
+$algorithm = Artemis::MCP::Scheduler::Algorithm::Dummy->new();
+
+
+$queue = Artemis::MCP::Scheduler::Queue->new();
+$queue->name('Xen');
+$queue->share(300);
+$queue->producer(Artemis::MCP::Scheduler::Producer->new);
+
+$request = Artemis::MCP::Scheduler::TestRequest->new();
+$value = 'Mem <= 8000';
+$request->requested_features([$value]);
+$request->queue('Xen');
+$queue->testrequests([$request]);
+
+$request = Artemis::MCP::Scheduler::TestRequest->new();
+$request->hostnames(['featureless']);
+$request->queue('Xen');
+unshift @{$queue->testrequests}, $request;
+
+$algorithm->add_queue($queue);
+
+$primat->algorithm($algorithm);
+
+$job = $primat->get_next_job(\@hostlist);
+isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
+isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
+is($job->host->name, 'featureless', 'Evaluation of feature list in a testrequest');
