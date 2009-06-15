@@ -3,6 +3,7 @@ use MooseX::Declare;
 class Artemis::MCP::Scheduler::Queue {
         use Artemis::Exception::Param;
         use Artemis::MCP::Scheduler::Host;
+        use Artemis::MCP::Scheduler::TestRequest;
 
 =head1 NAME
         
@@ -61,10 +62,10 @@ Call the producer method associated with this object.
 
 =cut
 
-        method produce(Artemis::MCP::Scheduler::Host $host) {
+        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
                 die Artemis::Exception::Param->new("Client ".$self->name."does not have an associated producer")
                     if not $self->producer ;
-                return $self->producer->produce($host);
+                return $self->producer->produce($request);
         }
 
 
