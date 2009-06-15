@@ -68,7 +68,7 @@ fits any of the free hosts.
                         $testrequest = $queue->get_test_request($free_hosts); # contains host decision
                 } while (not $testrequest);
 
-                my $job         = $queue->produce($testrequest->on_host);
+                my $job         = $queue->produce($testrequest);
                 return $job;                                 # MCP maintains list of free hosts
         }
         
