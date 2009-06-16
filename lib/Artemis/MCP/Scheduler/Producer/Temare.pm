@@ -23,33 +23,6 @@ Version 0.01
 
 =cut 
 
-        our $execpath="$artemispath/bin";
-
-        sub younger
-        {
-                my $st_a = stat($a);
-                my $st_b = stat($b);
-                return $st_a->mtime() <=> $st_b->mtime();
-        }
-
-        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
-        {
-                my $host = $request->on_host->name;
-                my @kernelfiles     =  sort younger <$kernel_path/x86_64/*>;
-                my $kernelbuild     =  pop @kernelfiles;
-                
-                my $kernel_version;
-                open FH,"tar -tzf $kernelbuild|" or die "Can't look into kernelbuild:$!";
-        TARFILES:
-                while (my $line = <FH>){
-                        if ($line =~ m/vmlinuz-(.+)$/) {
-                                $kernel_version = $1;
-                                last TARFILES ;
-                        }
-                }
-                my $id = qx($execpath/artemis-testrun new --macroprecond=/data/bancroft/artemis/live/repository/macropreconditions/kernel/kernel_boot.mpc --hostname=$host -Dkernel_version=$kernel_version -Dkernelpkg=$kernelbuild --owner=mhentsc3 --topic=Kernel);
-                return $request;
-        }
 }
 {
         # just for CPAN
