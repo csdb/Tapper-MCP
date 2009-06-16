@@ -66,10 +66,10 @@ my $primat =  Artemis::MCP::Scheduler::Primate->new();
 $primat->algorithm($algorithm);
 
 
-my $ret_request = $primat->get_next_job(\@hostlist);
-isa_ok($ret_request, 'Artemis::MCP::Scheduler::TestRequest', 'Primate returns a testrequest');
-isa_ok($ret_request->on_host, 'Artemis::MCP::Scheduler::Host', 'Returned Testrequest has a host');
-is($ret_request->on_host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
+my $job = $primat->get_next_job(\@hostlist);
+isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
+isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
+is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
 
 $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('featureless');
@@ -100,7 +100,7 @@ $algorithm->add_queue($queue);
 
 $primat->algorithm($algorithm);
 
-$ret_request = $primat->get_next_job(\@hostlist);
-isa_ok($ret_request, 'Artemis::MCP::Scheduler::TestRequest', 'Primate returns a TestRequest');
-isa_ok($ret_request->on_host, 'Artemis::MCP::Scheduler::Host', 'Returned Request has a host');
-is($ret_request->on_host->name, 'featureless', 'Evaluation of feature list in a testrequest');
+$job = $primat->get_next_job(\@hostlist);
+isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
+isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
+is($job->host->name, 'featureless', 'Evaluation of feature list in a testrequest');
