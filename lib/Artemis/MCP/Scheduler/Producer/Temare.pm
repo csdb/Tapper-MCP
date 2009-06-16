@@ -22,6 +22,11 @@ Version 0.01
 
 =cut 
 
+        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
+                return $request;
+        }
+
+
 }
 {
         # just for CPAN
