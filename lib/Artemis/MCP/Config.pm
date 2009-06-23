@@ -99,7 +99,7 @@ sub add_guest_testprogram
 Unpack a precondition virt entry into images, packages and files to be
 installed for this virt package to work.
 
-@param hash ref - config has to which virt precondition should be added
+@param hash ref - config hash to which virt precondition should be added
 @param hash ref - precondition as hash
 
 @return success - hash reference containing the new config
