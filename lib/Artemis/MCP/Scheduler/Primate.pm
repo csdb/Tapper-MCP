@@ -26,6 +26,12 @@ Version 0.01
 
 =head1 FUNCTIONS
 
+=cut 
+
+        method init() {
+                
+        }
+
 
 =head2 get_prioritiy_job
 
@@ -60,15 +66,14 @@ fits any of the free hosts.
 =cut
         
         method get_next_job(ArrayRef $free_hosts) {
-                my ($queue, $testrequest);
+                my ($queue, $job);
 
                 do {
-                        $queue       = $self->get_priority_job();
-                        $queue       = $self->algorithm->get_next_queue() if not $queue;
-                        $testrequest = $queue->get_test_request($free_hosts); # contains host decision
-                } while (not $testrequest);
+                        $queue = $self->get_priority_job();
+                        $queue = $self->algorithm->get_next_queue() if not $queue;
+                        $job   = $queue->get_test_request($free_hosts); # contains host decision
+                } while (not $job);
 
-                my $job         = $queue->produce($testrequest);
                 return $job;                                 # MCP maintains list of free hosts
         }
         
