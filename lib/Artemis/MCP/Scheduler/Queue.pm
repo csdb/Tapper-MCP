@@ -37,7 +37,7 @@ Get a testrequest for one of the free hosts provided as parameter.
 
 @param array ref - list of hostnames
 
-@return success               - TestRequest
+@return success               - Job
 @return no fitting tr found   - 0
 
 =cut
@@ -45,7 +45,10 @@ Get a testrequest for one of the free hosts provided as parameter.
         method get_test_request(ArrayRef $free_hosts) {
                 return 0 if not $self->testrequests and ref $self->testrequests eq 'ARRAY';
                 foreach my $testrequest(@{$self->testrequests}) {
-                        return $testrequest if $testrequest->fits($free_hosts);
+                        if ($testrequest->fits($free_hosts)) {
+                                my $job = $self->produce($testrequest);
+                                return $job;
+                        }
                 }
                 return 0;
         }
