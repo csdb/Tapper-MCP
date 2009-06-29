@@ -55,7 +55,7 @@ sub net_read_do
         my $timeout_calc = $timeout;
         my $select = IO::Select->new() or return undef;
         $select->add($fh);
-        
+
  NETREAD:
         while (1) {
                 my $time   = time();
@@ -78,7 +78,7 @@ sub net_read_do
 
 =head2 net_read
 
-Reads new message from network socket. 
+Reads new message from network socket.
 
 This function can be mocked when
 testing allowing messages to come from a file during tests.
@@ -128,7 +128,7 @@ Read a message from socket.
 
 
 
-=cut 
+=cut
 
 sub get_message
 {
@@ -179,18 +179,18 @@ widely thus no timeout for installation is applied.
 @return success - 0
 @return error   - error string
 
-=cut 
+=cut
 
 sub wait_for_systeminstaller
 {
         my ($self,$fh) = @_;
 
         my $timeout = $self->cfg->{times}{boot_timeout} || 0;
-        
+
         my $msg = $self->get_message($fh, $timeout);
         return $msg if not ref($msg) eq 'HASH';
         return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
-        
+
         if (not $msg->{state} eq "start-install") {
                 return qq(MCP expected state start-install but remote system is in state $msg->{state});
         }
@@ -305,7 +305,7 @@ sub time_reduce
                         }
 
                 }
-                
+
                 my $newtimeout = $prc_state->[$i]->{end};
                 $newtimeout    = $prc_state->[$i]->{timeouts}->[0] if $prc_state->[$i]->{timeouts}->[0];
                 $newtimeout    = $prc_state->[$i]->{reboot} if ($prc_state->[$i]->{reboot} and not $newtimeout);
@@ -318,7 +318,7 @@ sub time_reduce
 
 }
 
-=head2 
+=head2
 
 Update PRC state array based on the received message.
 
@@ -345,7 +345,7 @@ sub update_prc_state
                         $result->{msg} = "Test in PRC 0 started" if $number == 0;
                         $to_start--;
                         push (@{$prc_state->[$number]->{results}}, $result);
-                } 
+                }
                 when ('end-testing') {
                         $prc_state->[$number]->{end} = 0;
                         if ($prc_state->[$number]->{max_reboot}) {
@@ -416,9 +416,9 @@ for easier testing.
 sub wait_for_testrun
 {
         my ($self, $fh, $mcp_info) = @_;
-      
+
         my $prc_state = $self->set_prc_state($mcp_info);
-        my $to_start   = scalar @$prc_state;  
+        my $to_start   = scalar @$prc_state;
         my $to_stop    = $to_start;
 
         my $timeout = $self->cfg->{times}{boot_timeout};
@@ -433,7 +433,7 @@ sub wait_for_testrun
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
-                
+
                 if (not $msg->{timeout}) {
                         $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
                         ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
@@ -465,7 +465,7 @@ sub runtest_handling
 
         my  ($self, $system) = @_;
         my $retval;
-        
+
         my $srv=IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
 
@@ -499,14 +499,14 @@ sub runtest_handling
 
 
         $retval = $self->wait_for_systeminstaller($srv);
-        
+
         my ($report_id, $error);
         if ($retval) {
                 ($error, $report_id) = $net->tap_report_send($self->testrun, [{error => 1, msg => $retval}]);
                 $net->upload_files($report_id, $self->testrun);
                 return $retval;
         }
-        
+
         $self->log->debug('waiting for test to finish');
         $retval              = $self->wait_for_testrun($srv, $mcp_info);
         ($error, $report_id) = $net->tap_report_send($self->testrun, $retval);
@@ -515,7 +515,7 @@ sub runtest_handling
         $retval = $net->upload_files($report_id, $self->testrun);
         return $retval if $retval;
         return 0;
-        
+
 }
 
 1;
