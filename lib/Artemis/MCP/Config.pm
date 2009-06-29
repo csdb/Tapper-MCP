@@ -27,7 +27,7 @@ sub BUILD
 }
 
 
-our $MODIFIER = 3; # timeout = $MODIFIER * runtime; XXX find better way 
+our $MODIFIER = 3; # timeout = $MODIFIER * runtime; XXX find better way
 
 =head1 NAME
 
@@ -55,10 +55,10 @@ Add a testprogram for a given guest to the config.
 
 sub add_guest_testprogram
 {
-        
+
         my ($self, $config, $guest, $guest_number) = @_;
         my $prc_config->{precondition_type} = 'prc';
-        
+
         $prc_config->{artemis_package} = $self->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
 #        return "can't detect architecture of one guest number $guest->{guest_number} so I can't install PRC" if not $prc_config->{artemis_package};
 
@@ -66,7 +66,7 @@ sub add_guest_testprogram
         $prc_config->{mountpartition}         = $guest->{mountpartition};
         $prc_config->{mountfile}              = $guest->{mountfile} if $guest->{mountfile};
         $prc_config->{config}->{test_program} = $guest->{testprogram}->{execname};
-        $prc_config->{config}->{parameters}   = $guest->{testprogram}->{parameters} 
+        $prc_config->{config}->{parameters}   = $guest->{testprogram}->{parameters}
           if $guest->{testprogram}->{parameters};
         $prc_config->{config}->{guest_number} = $guest_number;
         $prc_config->{config}->{runtime}      = $self->cfg->{times}{test_runtime_default};
@@ -105,11 +105,11 @@ installed for this virt package to work.
 @return success - hash reference containing the new config
 @return error   - error string
 
-=cut 
+=cut
 
 sub parse_virt_preconditions
 {
-        
+
         my ($self, $config, $virt) = @_;
         my $retval;
         my $main_prc_config;
@@ -125,7 +125,7 @@ sub parse_virt_preconditions
                                            filename => $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}},
                                           } if  $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
 ;
-        
+
         # install host testprogram
         if ($virt->{host}->{testprogram}) {
                 push @{$config->{preconditions}}, $virt->{host}->{testprogram};
@@ -133,12 +133,12 @@ sub parse_virt_preconditions
                 $main_prc_config->{parameters}          = $virt->{host}->{testprogram}->{parameters}          if $virt->{host}->{testprogram}->{parameters};
                 $main_prc_config->{timeout_testprogram} = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
                 $self->mcp_info->add_testprogram(0,{timeout => $self->{mcp_info}->{timeouts}->[0]->{end}})    if $virt->{host}->{testprogram}->{timeout_testprogram};
-                
+
         }
         push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_testprogram}; # always have a value for host, undef if no tests there
-        
 
-        
+
+
         my $guest_number;
         for (my $i=0; $i<=$#{$virt->{guests}}; $i++ ) {
                 my $guest = $virt->{guests}->[$i];
@@ -162,7 +162,7 @@ sub parse_virt_preconditions
                         push @{$config->{preconditions}}, $raw_image;
                 }
 
-                
+
                 push @{$config->{preconditions}}, $guest->{root} if $guest->{root}->{precondition_type};
                 push @{$config->{preconditions}}, $guest->{config};
                 if ($guest->{config}->{svm}) {
@@ -174,7 +174,7 @@ sub parse_virt_preconditions
                 }
 
                 $retval = $self->add_guest_testprogram($config, $guest, $guest_number) if $guest->{testprogram};
-                
+
                 # put guest preconditions into precondition list
                 foreach my $guest_precondition(@{$guest->{preconditions}}) {
                         $guest_precondition->{mountpartition} = $guest->{mountpartition};
@@ -248,7 +248,7 @@ installed if needed. Care for the root image being installed first.
 @return success - config hash
 @return error   - error string
 
-=cut 
+=cut
 
 sub parse_image_precondition
 {
@@ -263,7 +263,7 @@ sub parse_image_precondition
                 $opt_pkg->{mountpartition} = $precondition->{mountpartition} if $precondition->{mountpartition};
                 delete $precondition->{arch};
         }
-        
+
         if ($precondition->{mount} eq '/') {
                 unshift @{$config->{preconditions}}, $precondition;
         } else {
@@ -271,6 +271,26 @@ sub parse_image_precondition
         }
         push @{$config->{preconditions}}, $opt_pkg if $opt_pkg;
         return $config;
+}
+
+
+=head2 parse_autoinstall
+
+Parse precondition autoinstall and change config accordingly.
+
+@param hash reference - config to change
+@param hash ref       - precondition as hash
+
+@return success - config hash
+@return error   - error string
+
+=cut
+
+sub parse_autoinstall
+{
+        my ($self, $config, $grub) = @_;
+
+
 }
 
 
@@ -315,6 +335,9 @@ sub get_install_config
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'reboot') {
                         $config = $self->parse_reboot($config, $precondition->precondition_as_hash);
                 }
+                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'autoinstall') {
+                        $config = $self->parse_autoinstall($config, $precondition->precondition_as_hash);
+                }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
                 }
@@ -352,7 +375,7 @@ sub get_common_config
         $config->{report_server}             = $self->cfg->{report_server};
         $config->{report_port}               = $self->cfg->{report_port};
         $config->{report_api_port}           = $self->cfg->{report_api_port};
-        $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server} 
+        $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server}
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun;
         return ($config)
@@ -401,7 +424,7 @@ sub create_config
 Write the config created before into appropriate YAML file.
 
 @param string - config (hash reference)
-@param string - output file name, in absolut form or relative to configured localdata_path 
+@param string - output file name, in absolut form or relative to configured localdata_path
 
 @return success - 0
 @return error   - error string
