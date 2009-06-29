@@ -449,38 +449,6 @@ sub wait_for_testrun
 }
 
 
-=head2 install
-
-Install all packages and images for a given testrun. 
-
-@param string      - system name
-@param file handle - read from this file handle
-
-@return success - 0
-@return error   - error string
-
-=cut
-
-sub install
-{
-        my ($self, $hostname, $fh) = @_;
-        my $retval;
-     
-        my $remote = new Artemis::MCP::Net;
-        $self->log->debug("Write grub file for $hostname");
-        $retval    = $remote->write_grub_file($hostname);
-        return $retval if $retval;
-
-
-        $self->log->debug("rebooting $hostname");
-        $retval = $remote->reboot_system($hostname);
-        return $retval if $retval;
-        return 0;
-
-
-}
-
-
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -518,6 +486,18 @@ sub runtest_handling
         return $retval if $retval;
 
         $self->install($system, $srv);
+        my $remote = new Artemis::MCP::Net;
+
+        $self->log->debug("Write grub file for $hostname");
+        $retval    = $remote->write_grub_file($hostname);
+        return $retval if $retval;
+
+
+        $self->log->debug("rebooting $hostname");
+        $retval = $remote->reboot_system($hostname);
+        return $retval if $retval;
+
+
         $retval = $self->wait_for_systeminstaller($srv);
         
         my ($report_id, $error);
