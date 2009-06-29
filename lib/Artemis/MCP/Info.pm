@@ -152,6 +152,37 @@ sub get_boot_timeout
         return $self->mcp_info->[$prc_number]->{timeouts}->{boot};
 }
 
+=head set_installer_timeout
+
+Setter for installer timeout.
+
+@param int - Timeout value
+
+@return success - 0
+
+=cut
+
+sub set_installer_timeout
+{
+        my ($self, $timeout) = @_;
+        $self->mcp_info->{installer}{timeouts} = $timeout;
+        return 0;
+}
+
+=head get_installer_timeout
+
+Getter for installer timeout.
+
+@return success - Timeout value
+
+=cut
+
+sub get_installer_timeout
+{
+        my ($self) = @_;
+        return $self->mcp_info->{installer}{timeouts} || 0;
+}
+
 1;
 
 =head1 AUTHOR
