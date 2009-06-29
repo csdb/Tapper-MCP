@@ -288,9 +288,17 @@ Parse precondition autoinstall and change config accordingly.
 
 sub parse_autoinstall
 {
-        my ($self, $config, $grub) = @_;
-
-
+        my ($self, $config, $autoinstall) = @_;
+        my $file = $autoinstall->{file};
+        if (-e $file) {
+                $config->{installer_grub} = $file;
+        }elsif (-e $self->cfg->{files}->{autoinstall}{grubfiles}.$file) {
+                $config->{installer_grub} = $self->cfg->{files}->{autoinstall}{grubfiles}.$file;
+        } else {
+                return "Can't find autoinstaller for $file"; 
+        }
+        $self->mcp_info->set_installer_timeout($autoinstall->{timeout});
+        return $config;
 }
 
 
