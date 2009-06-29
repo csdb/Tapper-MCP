@@ -463,7 +463,7 @@ Start testrun and wait for completion.
 sub runtest_handling
 {
 
-        my  ($self, $system) = @_;
+        my  ($self, $hostname) = @_;
         my $retval;
 
         my $srv=IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
@@ -473,7 +473,7 @@ sub runtest_handling
         my $producer = Artemis::MCP::Config->new($self->testrun);
         my $net      = Artemis::MCP::Net->new();
 
-        $self->log->debug("Create install config for $system");
+        $self->log->debug("Create install config for $hostname");
         my $config                 = $producer->create_config();
         return $config if not ref($config) eq 'HASH';
         my $mcp_info = $producer->get_mcp_info();
@@ -482,14 +482,13 @@ sub runtest_handling
         # IO::Socket::INET is overwritten to read from a file
         $config->{mcp_port}        = 0;
         $config->{mcp_port}        = $srv->sockport if $srv->can('sockport');
-        $retval                    = $producer->write_config($config, "$system-install");
+        $retval                    = $producer->write_config($config, "$hostname-install");
         return $retval if $retval;
 
-        $self->install($system, $srv);
         my $remote = new Artemis::MCP::Net;
 
         $self->log->debug("Write grub file for $hostname");
-        $retval    = $remote->write_grub_file($hostname);
+        $retval    = $remote->write_grub_file($hostname, $config->{installer_grub});
         return $retval if $retval;
 
 
