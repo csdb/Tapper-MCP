@@ -17,7 +17,7 @@ use Artemis::Model 'model';
 =head2 conserver_connect
 
 This function opens a connection to the conserver. Conserver, port and user
-can be given as arguments, yet are optional. 
+can be given as arguments, yet are optional.
 @param string - system to open a console to
 @opt   string - Address or name of the console server
 @opt   int    - port number of the console server
@@ -35,11 +35,11 @@ sub conserver_connect
         $conserver      ||= $self->cfg->{conserver}{server};
         $conserver_port ||= $self->cfg->{conserver}{port};
         $conuser        ||= $self->cfg->{conserver}{user};
-	
+
         my $sock = IO::Socket::INET->new(PeerPort => $conserver_port,
                                          PeerAddr => $conserver,
                                          Proto    => 'tcp');
-        
+
         return ("Can't open connection:$!") unless $sock;
         my $data=<$sock>; return($data) unless $data=~/^ok/;
 
@@ -50,7 +50,7 @@ sub conserver_connect
         my $port=<$sock>;
         if ($port=~ /@(\w+)/) {
                 return $self->conserver_connect ($system,$1,$conserver_port,$conuser);
-        } else {	
+        } else {
                 return($port) unless $port=~/^\d+/;
         }
 
@@ -64,7 +64,7 @@ sub conserver_connect
                                       Proto    => 'tcp');
         return ("Can't open connection to $conserver:$!") unless $sock;
 
-			
+
         $data=<$sock>;return($data) unless $data=~/^ok/;
         print $sock "login $conuser\n";
         $data=<$sock>;return($data) unless $data=~/^ok/;
@@ -83,7 +83,7 @@ We first try to quit kindly but if this fails (by what reason ever)
 the filehandle is simply closed. Closing a socket can't fail, so the
 function always succeeds. Thus no return value is needed.
 
-@param  IO::Socket::INET - file handle connected to the conserver 
+@param  IO::Socket::INET - file handle connected to the conserver
 
 @return none
 
@@ -122,7 +122,7 @@ sub reboot_system
 {
         my ($self, $host) = @_;
 	$self->log->debug("Trying to reboot $host.");
-	
+
 	# ssh returns 0 in case of success
         $self->log->info("Try reboot via Net::SSH");  # usually for the nfsrooted system
 	if (not Net::SSH::ssh("root\@$host","reboot"))
@@ -169,10 +169,13 @@ sub reboot_system
 
 =head2 write_grub_file
 
-Write a grub file for the system given as parameter. The second parameter is a
-port number which is set as 
+Write a grub file for the system given as parameter. An optional second
+parameter containing the text to be put into the grub file can be used. If
+this parameter is not defined or empty a default value is used.
 
-@param string - name of the system 
+@param string - name of the system
+@param string - text to put into grub file; optional
+
 
 @return success - 0
 @return error   - error string
@@ -180,8 +183,8 @@ port number which is set as
 =cut
 
 sub write_grub_file
-{	
-        my ($self, $system) = @_;
+{
+        my ($self, $system, $text) = @_;
         my $artemis_host = Sys::Hostname::hostname();
         my $grub_file    = $self->cfg->{paths}{grubpath}."/$system.lst";
 
@@ -193,17 +196,19 @@ sub write_grub_file
         my $tftp_server = $self->cfg->{tftp_server_address};
         my $kernel = $self->cfg->{paths}{nfskernel_path}."/bzImage";
         my $nfsroot = $self->cfg->{paths}{nfsroot};
-	my $text= <<END;
+	if (not $text) {
+                $text = <<END;
 serial --unit=0 --speed=115200
 terminal serial
 
 default 0
 timeout 2
-	
-title Test 
+
+title Test
      tftpserver $tftp_server
      kernel $kernel console=ttyS0,115200 noapic acpi=off root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host
 END
+        }
 	print GRUBFILE $text;
 	close GRUBFILE or return "Can't save grub file for $system:$!";
 	return(0);
@@ -219,14 +224,14 @@ Upload files written in one stage of the testrun to report framework.
 @return success - 0
 @return error   - error string
 
-=cut 
+=cut
 
 sub upload_files
 {
         my ($self, $reportid, $testrunid) = @_;
         my $host = $self->cfg->{report_server};
         my $port = $self->cfg->{report_api_port};
-        
+
         my $path = $self->cfg->{paths}{output_dir};
         $path .= "/$testrunid/";
         my @files=`find $path -type f`;
@@ -260,7 +265,7 @@ sub upload_files
 =head2 tap_report_send
 
 Send information of current test run status to report framework using TAP
-protocol. 
+protocol.
 
 @param int   - test run id
 @param array -  report array
@@ -276,7 +281,7 @@ sub tap_report_send
         my $tap = $self->tap_report_create($testrun, $report);
         my $reportid;
         $self->log->debug($tap);
-        
+
         if (my $sock = IO::Socket::INET->new(PeerAddr => $self->cfg->{report_server},
 					     PeerPort => $self->cfg->{report_port},
 					     Proto    => 'tcp')){
@@ -295,7 +300,7 @@ sub tap_report_send
 	}
         return (0,$reportid);
 }
-  
+
 
 =head2 tap_report_create
 
