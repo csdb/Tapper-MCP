@@ -10,13 +10,16 @@ use IO::Socket::INET;
 use Log::Log4perl;
 use POSIX ":sys_wait_h";
 use Test::Fixture::DBIC::Schema;
+use String::Diff;
+use Sys::Hostname;
 use YAML::Syck;
+use Cwd;
 
 use Artemis::MCP::Net;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 6;
-
+use Test::More tests => 9;
+use Test::Deep;
 
 BEGIN { use_ok('Artemis::MCP::Net'); }
 
@@ -33,7 +36,7 @@ log4perl.appender.root                            = Log::Log4perl::Appender::Scr
 log4perl.appender.root.layout                     = SimpleLayout";
 Log::Log4perl->init(\$string);
 
-
+my $retval;
 my $srv = new Artemis::MCP::Net;
 
 my $report_string = $srv->tap_report_create(4, [{msg => "Test on guest 1"},{error => 1, msg => "error"}]);
@@ -53,7 +56,7 @@ is($report_string, $expect_string, 'TAP report creation');
 my $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
-        my $retval = $srv->upload_files(23, 4, "install");
+        $retval = $srv->upload_files(23, 4, "install");
         
         # Can't make this a test since the test counter istn't handled correctly after fork
         die $retval if $retval;
@@ -85,4 +88,36 @@ SKIP:{
         isa_ok($console, 'IO::Socket::INET','Console connected');
         $srv->conserver_disconnect($console);
 }
+
+#######################################
+#
+#        Test grub file handling
+#
+######################################
+my $cwd = cwd();
+$retval = $srv->copy_grub_file('bullock', $cwd.'/t/misc_files/source_grub.lst');
+is($retval, 0, 'copy grub file');
+
+my ($target, $source);
+{
+        open(SOURCE, "<","$cwd/t/misc_files/source_grub.lst") or die "Can't open $cwd/t/misc_files/source_grub.lst: $!";
+        local $/;
+        $source = <SOURCE>;
+        close SOURCE;
+}
+{
+        open(TARGET, "<",$srv->cfg->{paths}{grubpath}."bullock.lst") or die "Can't open ".$srv->cfg->{paths}{grubpath}."bullock.lst".": $!";
+        local $/;
+        $target = <TARGET>;
+        close TARGET;
+}
+
+my ($old_string ,$new_string) = String::Diff::diff($source, $target, remove_open => '<del>',
+             remove_close => '</del>',
+             append_open => '<ins>',
+             append_close => '</ins>', );
+unlike($old_string, qr/<del>/, 'Nothing taken away from grub file while copy');
+my $artemis_host = Sys::Hostname::hostname();
+like($new_string, qr/<ins> artemis_host=$artemis_host<\/ins>/, 'Artemis host added to grub file while copy');
+
 
