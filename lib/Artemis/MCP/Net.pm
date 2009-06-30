@@ -167,6 +167,51 @@ sub reboot_system
 	return 0;
 }
 
+
+=head2 copy_grub_file
+
+Use a given grub file instead of creating it from scratch. The file name can
+be given as absolut path or relative to
+$self->cfg->{files}->{autoinstall}{grubfiles}.
+
+@param string - name of the system
+@param string - source file name
+
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+
+sub copy_grub_file
+{
+        my ($self, $system, $source) = @_;
+        my $artemis_host = Sys::Hostname::hostname();
+
+        if (-e $source) {
+                open(GRUBFILE, "<", $source) or
+                  return "Can open $source for reading: $!";
+        }elsif (-e $self->cfg->{path}->{autoinstall}{grubfiles}.$source) {
+                open(GRUBFILE, "<", $self->cfg->{path}->{autoinstall}{grubfiles}.$source) or
+                  return "Can open ".$self->cfg->{path}->{autoinstall}{grubfiles}.$source." for reading: $!";
+        } else {
+                return "Can't find autoinstaller for $source";
+        }
+
+        my $text;
+        while (my $line = <GRUBFILE>) {
+                if ($line =~ m/^\s*kernel/) {
+                        $line .= " artemis_host=$artemis_host";
+                }
+                $text .= $line;
+
+        }
+	return($self->write_grub_file($system, $text));
+
+}
+
+
 =head2 write_grub_file
 
 Write a grub file for the system given as parameter. An optional second
