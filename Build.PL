@@ -26,6 +26,8 @@ my $builder = $build_class->new
                         'Test::MockModule'            => 0,
                         'Test::More'                  => 0,
                         'Artemis::Test'               => '2.010005',
+                        'Cwd'                         => 0,
+                        'String::Diff'                => 0,
                        },
      requires => {
                   'perl'                       => '5.010',
