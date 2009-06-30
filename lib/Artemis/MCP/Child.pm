@@ -488,7 +488,11 @@ sub runtest_handling
         my $remote = new Artemis::MCP::Net;
 
         $self->log->debug("Write grub file for $hostname");
-        $retval    = $remote->write_grub_file($hostname, $config->{installer_grub});
+        if ($config->{installer_grub}) {
+                $retval    = $remote->copy_grub_file($hostname, $config->{installer_grub});
+        } else {
+                $retval    = $remote->write_grub_file($hostname);
+        }
         return $retval if $retval;
 
 
