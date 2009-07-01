@@ -80,7 +80,13 @@ sub add_prc
 
 =head2 add_testprogram
 
-Add a testprogram for a given PRC.
+Add a testprogram for a given PRC. The given config has should have the
+following elements:
+name    - string          - full path of the test program
+timeout - int             - timeout value for the test program
+argv    - array of string - parameter array as given to exec
+
+
 
 @param int      - PRC number
 @param hash ref - config options for program
@@ -92,10 +98,12 @@ Add a testprogram for a given PRC.
 
 sub add_testprogram
 {
-        
-        my ($self, $prc_number, $timeout) = @_;
+
+        my ($self, $prc_number, $program) = @_;
         return "prc_number not given to add_testprogram" if not defined $prc_number;
-        push(@{$self->mcp_info->[$prc_number]->{timeouts}->{programs}}, $timeout);
+        $program->{timeout} = 0 if not $program->{timeout};
+        push(@{$self->mcp_info->[$prc_number]->{programs}}, $program);
+        push(@{$self->mcp_info->[$prc_number]->{timeouts}->{programs}}, $program->{timeout});
         return 0;
 }
 
@@ -103,19 +111,43 @@ sub add_testprogram
 
 Get all testprogram timeouts for a given PRC.
 
+@param int          - PRC number
+
+@returnlist success - array of ints
+
+=cut
+
+# This function exists forconvenience in timeout handling. The same could be
+# achieved with get_testprogam and reading timeout values of every element
+# returned. (This comment is not part of pod to prevent it from becoming part
+# of the external documentation.
+sub get_testprogram_timeouts
+{
+
+
+        my ($self, $prc_number) = @_;
+        return unless defined $self->mcp_info->[$prc_number]->{timeouts}->{programs};
+        return @{$self->mcp_info->[$prc_number]->{timeouts}->{programs}};
+}
+
+=head2 get_testprograms
+
+Get all testprograms  for a given PRC.
+
 @param int      - PRC number
 
 @returnlist success - 0
 
 =cut
 
-sub get_testprogram_timeouts
+sub get_testprograms
 {
-        
+
         my ($self, $prc_number) = @_;
-        return unless defined $self->mcp_info->[$prc_number]->{timeouts}->{programs};
-        return @{$self->mcp_info->[$prc_number]->{timeouts}->{programs}};
+        return unless defined $self->mcp_info->[$prc_number]->{programs};
+        return @{$self->mcp_info->[$prc_number]->{programs}};
 }
+
 
 
 =head2 get_prc_count
@@ -128,7 +160,7 @@ Get the number of PRCs in this object.
 
 sub get_prc_count
 {
-        
+
         my ($self) = @_;
         return $#{$self->mcp_info};
 }
