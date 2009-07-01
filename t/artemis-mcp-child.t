@@ -137,8 +137,8 @@ is(ref $retval, 'HASH', 'Timeout handling in get_message');
 my $mcp_info=Artemis::MCP::Info->new();
 $mcp_info->add_prc(0, 5);
 $mcp_info->add_prc(1, 5);
-$mcp_info->add_testprogram(1,  5);
-$mcp_info->add_testprogram(1, 15);
+$mcp_info->add_testprogram(1, {timeout =>  5, name => "foo", argv => ['--bar']});
+$mcp_info->add_testprogram(1, {timeout => 15, name => "foo", argv => ['--bar']});
 $retval = $child->set_prc_state($mcp_info);
 is_deeply($retval, [{start => 5, end => 60, timeouts => []},{start => 5, end => 60, timeouts => [ 5, 15]}] ,'Setting PRC state array');
 
@@ -197,7 +197,7 @@ $mock_child->unmock('net_read');
 #
 $mcp_info=Artemis::MCP::Info->new();
 $mcp_info->add_prc(0, 5);
-$mcp_info->add_testprogram(0, 15);
+$mcp_info->add_testprogram(0, {timeout => 15, name => "foo", argv => ['--bar']});
 $mcp_info->set_max_reboot(0, 2);
 
 my $pid=fork();
