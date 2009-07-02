@@ -7,6 +7,7 @@ our $VERSION = '2.000025';
 
 
 use Artemis::Config;
+use Artemis::Exception;
 use Moose;
 
 with 'MooseX::Log::Log4perl';
