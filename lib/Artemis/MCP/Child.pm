@@ -474,7 +474,7 @@ sub runtest_handling
         my $net      = Artemis::MCP::Net->new();
 
         $self->log->debug("Create install config for $hostname");
-        my $config                 = $producer->create_config();
+        my $config   = $producer->create_config();
         return $config if not ref($config) eq 'HASH';
         my $mcp_info = $producer->get_mcp_info();
 
@@ -484,6 +484,15 @@ sub runtest_handling
         $config->{mcp_port}        = $srv->sockport if $srv->can('sockport');
         $retval                    = $producer->write_config($config, "$hostname-install");
         return $retval if $retval;
+
+        if ($config->{create_testconfig}) {
+                my $testconfigs = $producer->get_test_config();
+                return $testconfigs if not ref $testconfigs eq 'ARRAY';
+                for (my $i=0; $i<= $#{$testconfigs}; $i++ ){
+                        $retval = $producer->write_config($testconfigs->[$i], "$hostname-test-prc$i");
+                }
+        }
+
 
         my $remote = new Artemis::MCP::Net;
 
