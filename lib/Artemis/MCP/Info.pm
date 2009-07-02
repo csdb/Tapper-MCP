@@ -2,7 +2,7 @@ package Artemis::MCP::Info;
 
 use Moose;
 
-extends 'Artemis::MCP::Control';
+extends 'Artemis::MCP';
 
 has mcp_info => (is  => 'rw',
                  isa => 'ArrayRef',
