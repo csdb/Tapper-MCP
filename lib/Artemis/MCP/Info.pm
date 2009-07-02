@@ -82,9 +82,9 @@ sub add_prc
 
 Add a testprogram for a given PRC. The given config has should have the
 following elements:
-name    - string          - full path of the test program
-timeout - int             - timeout value for the test program
-argv    - array of string - parameter array as given to exec
+program    - string          - full path of the test program
+timeout    - int             - timeout value for the test program
+parameters - array of string - parameter array as given to exec
 
 
 
