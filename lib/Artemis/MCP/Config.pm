@@ -201,8 +201,8 @@ as precondition, it needs to get a special place in the Yaml file. Otherwise
 it would be hard to find for the installer process generating the grub config
 file.
 
-@param hash reference - config to change
-@param hash ref       - precondition as hash
+@param hash ref - config to change
+@param hash ref - precondition as hash
 
 @return success - config hash
 @return error   - error string
@@ -225,8 +225,8 @@ as precondition, it needs to get a special place in the Yaml file. Otherwise
 it would be hard to find for the installer process generating the grub config
 file.
 
-@param hash reference - config to change
-@param hash ref       - precondition as hash
+@param hash ref - config to change
+@param hash ref - precondition as hash
 
 @return success - config hash
 @return error   - error string
@@ -246,8 +246,8 @@ sub  parse_reboot
 Handle precondition image. Make sure the appropriate opt-artemis package is
 installed if needed. Care for the root image being installed first.
 
-@param hash reference - config to change
-@param hash ref       - precondition as hash
+@param hash ref - config to change
+@param hash ref - precondition as hash
 
 @return success - config hash
 @return error   - error string
@@ -282,8 +282,8 @@ sub parse_image_precondition
 
 Parse precondition autoinstall and change config accordingly.
 
-@param hash reference - config to change
-@param hash ref       - precondition as hash
+@param hash ref - config to change
+@param hash ref - precondition as hash
 
 @return success - config hash
 @return error   - error string
