@@ -519,7 +519,7 @@ sub runtest_handling
 
         $self->log->debug("Write grub file for $hostname");
         if ($config->{installer_grub}) {
-                $retval    = $remote->copy_grub_file($hostname, $config->{installer_grub});
+                $retval    = $remote->copy_grub_file($hostname, $config->{installer_grub}, $port);
         } else {
                 $retval    = $remote->write_grub_file($hostname);
         }
