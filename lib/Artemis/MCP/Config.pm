@@ -277,6 +277,32 @@ sub parse_image_precondition
         return $config;
 }
 
+=head2 parse_testprogram
+
+Handle precondition testprogram. Make sure testprogram is correctly to config
+and internal information set.
+
+@param hash ref - config to change
+@param hash ref - precondition as hash
+
+@return success - config hash
+@return error   - error string
+
+=cut
+
+sub parse_testprogram
+{
+        my ($self, $config, $testprogram) = @_;
+        my $prc_config;
+        $prc_config = $config->{prcs}->[0] if $config->{prcs};
+        no warnings 'uninitialized';
+        push @{$config->{prcs}->[0]->{config}->{testprogram_list}}, $testprogram;
+        $self->mcp_info->add_testprogram(0, $testprogram);
+        use warnings;
+        return $config;
+
+}
+
 
 =head2 parse_autoinstall
 
@@ -351,6 +377,9 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'autoinstall') {
                         $config = $self->parse_autoinstall($config, $precondition->precondition_as_hash);
+                }
+                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'testprogram') {
+                        $config = $self->parse_testprogram($config, $precondition->precondition_as_hash);
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
