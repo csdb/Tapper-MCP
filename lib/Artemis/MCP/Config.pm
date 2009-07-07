@@ -322,12 +322,13 @@ sub parse_autoinstall
         my $file = $autoinstall->{filename} or die Artemis::Exception::Param->new(msg => qq(autoinstall does not have a value for filename));
         if (-e $file) {
                 $config->{installer_grub} = $file;
-        }elsif (-e $self->cfg->{files}->{autoinstall}{grubfiles}.$file) {
-                $config->{installer_grub} = $self->cfg->{files}->{autoinstall}{grubfiles}.$file;
+        }elsif (-e $self->cfg->{paths}->{autoinstall}{grubfiles}.$file) {
+                $config->{installer_grub} = $self->cfg->{paths}->{autoinstall}{grubfiles}.$file;
         } else {
                 return "Can't find autoinstaller for $file";
         }
 
+        $config->{create_testconfig} = 1;
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
         return $config;
