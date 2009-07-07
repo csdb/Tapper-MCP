@@ -361,11 +361,6 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'virt' ) {
                         $config=$self->parse_virt_preconditions($config, $precondition->precondition_as_hash);
-                        # was not able to parse virtualisation precondition and thus
-                        # return received error string
-                        if (not ref($config) eq 'HASH' ) {
-                                return $config;
-                        }
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'grub') {
                         $config = $self->parse_grub($config, $precondition->precondition_as_hash);
@@ -384,6 +379,12 @@ sub get_install_config
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
+                }
+
+                # was not able to parse precondition and thus
+                # return received error string
+                if (not ref($config) eq 'HASH' ) {
+                        return $config;
                 }
         }
         while (my $prc_precondition = shift(@{$config->{prcs}})){
