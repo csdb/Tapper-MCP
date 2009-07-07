@@ -293,7 +293,7 @@ Parse precondition autoinstall and change config accordingly.
 sub parse_autoinstall
 {
         my ($self, $config, $autoinstall) = @_;
-        my $file = $autoinstall->{file};
+        my $file = $autoinstall->{filename} or die Artemis::Exception::Param->new(msg => qq(autoinstall does not have a value for filename));
         if (-e $file) {
                 $config->{installer_grub} = $file;
         }elsif (-e $self->cfg->{files}->{autoinstall}{grubfiles}.$file) {
