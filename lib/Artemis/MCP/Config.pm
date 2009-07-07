@@ -438,10 +438,31 @@ Returns mcp_info attribute, no matter if its already set.
 sub get_mcp_info
 {
         my ($self) = @_;
+
         return $self->mcp_info;
 }
 
 
+=head2 get_test_config
+
+Returns a an array of configs for all PRCs of a given test. All information
+are taken from the MCP::Info attribute of the object so its only save to call
+this function after create_config which configures this attribute.
+
+@return success - config array (array ref)
+@return error   - error string
+
+=cut
+
+sub get_test_config
+{
+        my ($self) = @_;
+        my $retval;
+        for (my $i=0; $i<=$self->mcp_info->get_prc_count(); $i++) {
+                push @$retval, $self->mcp_info->get_testprograms($i);
+        }
+        return $retval;
+}
 
 
 =head2 create_config
