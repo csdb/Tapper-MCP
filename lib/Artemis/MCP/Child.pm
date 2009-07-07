@@ -450,6 +450,43 @@ sub wait_for_testrun
 }
 
 
+=head2 generate_configs
+
+@param string   - hostname
+@param int      - port number of server
+
+@return success - config hash
+@return error   - string
+
+=cut
+
+sub generate_configs
+{
+
+        my ($self, $hostname, $port ) = @_;
+        my $retval;
+
+        my $producer = Artemis::MCP::Config->new($self->testrun);
+
+        $self->log->debug("Create install config for $hostname");
+        my $config   = $producer->create_config();
+        return $config if not ref($config) eq 'HASH';
+
+        $config->{mcp_port}        = $port;
+        $retval                    = $producer->write_config($config, "$hostname-install");
+        return $retval if $retval;
+
+        if ($config->{create_testconfig}) {
+                my $testconfigs = $producer->get_test_config();
+                return $testconfigs if not ref $testconfigs eq 'ARRAY';
+                for (my $i=0; $i<= $#{$testconfigs}; $i++ ){
+                        $retval = $producer->write_config($testconfigs->[$i], "$hostname-test-prc$i");
+                }
+        }
+        return $config;
+}
+
+
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -469,33 +506,16 @@ sub runtest_handling
 
         my $srv=IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
-
-
-        my $producer = Artemis::MCP::Config->new($self->testrun);
-        my $net      = Artemis::MCP::Net->new();
-
-        $self->log->debug("Create install config for $hostname");
-        my $config   = $producer->create_config();
-        return $config if not ref($config) eq 'HASH';
-        my $mcp_info = $producer->get_mcp_info();
+        my $remote = new Artemis::MCP::Net;
+        my $net    = Artemis::MCP::Net->new();
 
         # check if $srv really knows sockport(), because in case of a test
         # IO::Socket::INET is overwritten to read from a file
-        $config->{mcp_port}        = 0;
-        $config->{mcp_port}        = $srv->sockport if $srv->can('sockport');
-        $retval                    = $producer->write_config($config, "$hostname-install");
-        return $retval if $retval;
+        my $port = 0;
+        $port = $srv->sockport if $srv->can('sockport');
 
-        if ($config->{create_testconfig}) {
-                my $testconfigs = $producer->get_test_config();
-                return $testconfigs if not ref $testconfigs eq 'ARRAY';
-                for (my $i=0; $i<= $#{$testconfigs}; $i++ ){
-                        $retval = $producer->write_config($testconfigs->[$i], "$hostname-test-prc$i");
-                }
-        }
-
-
-        my $remote = new Artemis::MCP::Net;
+        my $config = $self->generate_configs($hostname, $port);
+        return $config if ref $config ne 'HASH';
 
         $self->log->debug("Write grub file for $hostname");
         if ($config->{installer_grub}) {
@@ -504,6 +524,7 @@ sub runtest_handling
                 $retval    = $remote->write_grub_file($hostname);
         }
         return $retval if $retval;
+
 
 
         $self->log->debug("rebooting $hostname");
