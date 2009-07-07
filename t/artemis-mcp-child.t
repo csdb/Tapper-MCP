@@ -21,7 +21,7 @@ use Artemis::MCP::Info;
 use Artemis::MCP::Child;
 
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 
 sub msg_send
 {
@@ -31,7 +31,7 @@ sub msg_send
         print $remote $yaml;
         close $remote;
 }
-        
+
 sub closure
 {
         my ($file) = @_;
@@ -154,7 +154,7 @@ is($retval, 2, 'New timeout value after recalculation of PRC state during boot')
 $prc_state = [{start=>0, timeouts => [], end=>97}, {start=>2, timeouts => [100], end=>100}, {start=>5, timeouts => [100,200], end=>100}];
 ($to_start, $to_stop) = (2,3);
 ($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(3, $prc_state, $to_start, $to_stop );
-is_deeply($prc_state, 
+is_deeply($prc_state,
           [{start=>0, timeouts => [], end=>94},
            {start=>0, end=>0, results => [{error => 1, msg => "Guest 1: booting not finished in time, timeout reached"}]},
            {start=>2, timeouts=> [100,200], end=>100}] ,
@@ -168,14 +168,14 @@ $prc_state = [{start=>0, timeouts=> [9], end=>9}, {start=>0, timeouts => [10,10]
 ($to_start, $to_stop) = (0,3);
 ($retval, $prc_state, $to_start, $to_stop )= $child->time_reduce(20, $prc_state, $to_start, $to_stop );
 is_deeply($prc_state, [{start=>0, end=>9, timeouts => [], results=>[{error => 1, msg => "Host: Testing not finished in time, timeout reached"}]},
-                        {start=>0, end=>10, timeouts => [10], results => [{error => 1, msg => "Guest 1: Testing not finished in time, timeout reached"}]}, 
+                        {start=>0, end=>10, timeouts => [10], results => [{error => 1, msg => "Guest 1: Testing not finished in time, timeout reached"}]},
                         {start=>0, end=>0, results => [{error => 1,  msg => "Guest 2: Testing not finished in time, timeout reached"}]}] ,'Second test for setting PRC state after timeout');
 is($to_start, 0, 'Second test for recalculate number of guests to start after timeout');
 is($to_stop, 2, 'Second test for recalculate number of guests to stop after timeout');
 
 #
 # wait_for_systeminstaller
-# 
+#
 open $fh, "<","t/command_files/install-success.txt" or die "Can't open commands file installation with error:$!";
 $closure = closure($fh);
 
@@ -204,7 +204,7 @@ my $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
         open $fh, "<","t/command_files/reboot_success.txt" or die "Can't open commands file reboot test:$!";
-        
+
         # get yaml and dump it instead of reading from file directly allows to have multiple messages in the file without need to parse seperators
         $closure = closure($fh);
         while (my $yaml = &$closure()) {
@@ -225,15 +225,15 @@ if ($pid==0) {
         };
         is($@, '', 'Get reboot messages in time');
         waitpid($pid,0);
-        is_deeply($retval, [{'msg' => 'Test in PRC 0 started', 'error' => 0 }, 
+        is_deeply($retval, [{'msg' => 'Test in PRC 0 started', 'error' => 0 },
                             {'msg' => 'Reboot 0', 'error' => 0 },
-                            {'msg' => 'Reboot 1', 'error' => 0 }, 
-                            {'msg' => 'Reboot 2', 'error' => 0 }, 
+                            {'msg' => 'Reboot 1', 'error' => 0 },
+                            {'msg' => 'Reboot 2', 'error' => 0 },
                             {'msg' => 'Test in PRC 0 finished', 'error' => 0 } ], 'Successful reboot test handling');}
 
 #
 # wait_for_testrun
-# 
+#
 
 $retval = $child->wait_for_testrun($pipe);
 is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeout seconds", error => 1}] , 'wait_for_testrun detects timeout while booting test machine');
@@ -245,7 +245,7 @@ is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeou
 #''''''''''''''''''''''''''''''''''''#
 
 # NOTE: assigning to $! has to be an error number, reading from $! will be the associated error string
-$mock_inet->mock('new', sub { $!=1, return undef; });        
+$mock_inet->mock('new', sub { $!=1, return undef; });
 $retval =  $child->runtest_handling('bullock');
 like($retval, qr(Can't open socket for testrun 4:), "Catching unsuccessful socket creation");
 
@@ -255,6 +255,21 @@ $mock_inet->mock('new', sub { return $pipe; });
 $retval =  $child->runtest_handling('bullock');
 is ($retval, "Failed to boot Installer after timeout of $timeout seconds", 'Detect timeout during installer booting');
 $mock_inet->original('new');
+
+
+
+#
+# generate_config for autoinstall
+#
+our @testconfigs;
+$mock_conf->mock('write_config',sub{my ($self, $config, $file) = @_; push @testconfigs, {config => $config, file => $file}; return 0;});
+$child      = Artemis::MCP::Child->new(100);
+my $config  = $child->generate_configs('bullock',12);
+is_deeply($testconfigs[1], {config => {'precondition_type' => 'testprogram',
+                                       'program' => '/bin/uname_tap.sh',
+                                       'runtime' => 30,
+                                       'timeout' => 90},
+                            file => "bullock-test-prc0"}, 'Create configs for autoinstall');
 
 
 
@@ -325,7 +340,7 @@ is($hostname, 'bullock', 'Getting hostname');
         $mock_net->mock('write_grub_file', sub { return "grub_file"; });
         $retval = $mock_srv->install(4, \*STDIN);
         is($retval, 'grub_file', 'Install failing to write grub config');
-        
+
         $mock_net->mock('reboot_system', sub { return 0; });
         $mock_net->mock('write_grub_file', sub { return 0; });
         open my $fh, "<","t/commands_for_installer_server/success.txt" or die "Can't open commands file for successful installation:$!";
@@ -371,7 +386,7 @@ is_deeply($report, [{error => 1, msg => "timeout for booting test system (5 seco
 open $fh, "<","t/commands_for_net_server/error2.txt" or die "Can't open commands file for test with two PRCs and one error:$!";
 $report = $srv->wait_for_testrun(4, $fh);
 close $fh;
-is_deeply($report, [{error => 1, 
+is_deeply($report, [{error => 1,
                      msg => "tried to execute /opt/artemis/testsuite/system/bin/artemis_testsuite_system.sh ".
                             "which is not an execuable or does not exist at all"},
                     {msg => "Test on guest 2"}], 'Test with two PRCs and one error');
