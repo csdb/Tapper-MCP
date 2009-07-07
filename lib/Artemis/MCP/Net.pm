@@ -176,7 +176,7 @@ $self->cfg->{files}->{autoinstall}{grubfiles}.
 
 @param string - name of the system
 @param string - source file name
-
+@param int    - artemis_port to put into grub file
 
 @return success - 0
 @return error   - error string
@@ -186,7 +186,7 @@ $self->cfg->{files}->{autoinstall}{grubfiles}.
 
 sub copy_grub_file
 {
-        my ($self, $system, $source) = @_;
+        my ($self, $system, $source, $port) = @_;
         my $artemis_host = Sys::Hostname::hostname();
 
         if (-e $source) {
@@ -203,6 +203,7 @@ sub copy_grub_file
         while (my $line = <GRUBFILE>) {
                 if ($line =~ m/^\s*kernel/) {
                         $line .= " artemis_host=$artemis_host";
+                        $line .= " artemis_port=$port" if $port;
                 }
                 $text .= $line;
 
