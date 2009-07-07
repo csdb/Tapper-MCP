@@ -20,6 +20,7 @@ use constant ONE_MINUTE => 60;
 
 extends 'Artemis::MCP::Control';
 
+has mcp_info => (is => 'rw');
 
 =head1 NAME
 
@@ -150,17 +151,17 @@ Set timeouts in prc state array.
 
 sub set_prc_state
 {
-        my ($self, $mcp_info) = @_;
-        my $prc_count = $mcp_info->get_prc_count();
+        my ($self) = @_;
+        my $prc_count = $self->mcp_info->get_prc_count();
         my $prc_state;
         for (my $i=0; $i<=$prc_count; $i++) {
-                my $max_reboot = $mcp_info->get_max_reboot($i);
+                my $max_reboot = $self->mcp_info->get_max_reboot($i);
                 if ($max_reboot) {
                         $prc_state->[$i]->{max_reboot} = $max_reboot;
-                        $prc_state->[$i]->{reboot}     = $mcp_info->get_boot_timeout($i);
+                        $prc_state->[$i]->{reboot}     = $self->mcp_info->get_boot_timeout($i);
                 }
-                $prc_state->[$i]->{start} = $mcp_info->get_boot_timeout($i);
-                push @{$prc_state->[$i]->{timeouts}}, $mcp_info->get_testprogram_timeouts($i);
+                $prc_state->[$i]->{start} = $self->mcp_info->get_boot_timeout($i);
+                push @{$prc_state->[$i]->{timeouts}}, $self->mcp_info->get_testprogram_timeouts($i);
                 $prc_state->[$i]->{end} =  ONE_MINUTE;   # give one minute for PRC to settle (i.e. time between sending start and end without any test)
         }
         return $prc_state;
@@ -415,9 +416,9 @@ for easier testing.
 
 sub wait_for_testrun
 {
-        my ($self, $fh, $mcp_info) = @_;
+        my ($self, $fh) = @_;
 
-        my $prc_state = $self->set_prc_state($mcp_info);
+        my $prc_state = $self->set_prc_state($self->mcp_info);
         my $to_start   = scalar @$prc_state;
         my $to_stop    = $to_start;
 
@@ -520,7 +521,7 @@ sub runtest_handling
         }
 
         $self->log->debug('waiting for test to finish');
-        $retval              = $self->wait_for_testrun($srv, $mcp_info);
+        $retval              = $self->wait_for_testrun($srv);
         ($error, $report_id) = $net->tap_report_send($self->testrun, $retval);
         return $report_id if $error;
 
