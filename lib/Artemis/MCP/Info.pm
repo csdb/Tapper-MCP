@@ -5,8 +5,8 @@ use Moose;
 extends 'Artemis::MCP';
 
 has mcp_info => (is  => 'rw',
-                 isa => 'ArrayRef',
-                 default => sub {[]},
+                 isa => 'HashRef',
+                 default => sub {{}},
                 );
 
 =head1 NAME
@@ -35,7 +35,7 @@ Set number of reboots to be used in a reboot test.
 sub set_max_reboot
 {
         my ($self, $prc_number, $max_reboot) = @_;
-        $self->mcp_info->[$prc_number]->{max_reboot} = $max_reboot;
+        $self->mcp_info->{prc}->[$prc_number]->{max_reboot} = $max_reboot;
         return 0;
 
 }
@@ -54,7 +54,7 @@ Get number of reboots to be used in a reboot test for a given PRC number.
 sub get_max_reboot
 {
         my ($self, $prc_number) = @_;
-        return $self->mcp_info->[$prc_number]->{max_reboot} || 0;
+        return $self->mcp_info->{prc}->[$prc_number]->{max_reboot} || 0;
 }
 
 
@@ -74,7 +74,7 @@ sub add_prc
 {
         my ($self, $prc_number, $timeout) = @_;
         return "prc_number not given to add_testprc" if not defined $prc_number;
-        $self->mcp_info->[$prc_number]->{timeouts}->{boot} =  $timeout;
+        $self->mcp_info->{prc}->[$prc_number]->{timeouts}->{boot} =  $timeout;
         return 0;
 }
 
@@ -102,8 +102,8 @@ sub add_testprogram
         my ($self, $prc_number, $program) = @_;
         return "prc_number not given to add_testprogram" if not defined $prc_number;
         $program->{timeout} = 0 if not $program->{timeout};
-        push(@{$self->mcp_info->[$prc_number]->{programs}}, $program);
-        push(@{$self->mcp_info->[$prc_number]->{timeouts}->{programs}}, $program->{timeout});
+        push(@{$self->mcp_info->{prc}->[$prc_number]->{programs}}, $program);
+        push(@{$self->mcp_info->{prc}->[$prc_number]->{timeouts}->{programs}}, $program->{timeout});
         return 0;
 }
 
@@ -126,8 +126,8 @@ sub get_testprogram_timeouts
 
 
         my ($self, $prc_number) = @_;
-        return unless defined $self->mcp_info->[$prc_number]->{timeouts}->{programs};
-        return @{$self->mcp_info->[$prc_number]->{timeouts}->{programs}};
+        return unless defined $self->mcp_info->{prc}->[$prc_number]->{timeouts}->{programs};
+        return @{$self->mcp_info->{prc}->[$prc_number]->{timeouts}->{programs}};
 }
 
 =head2 get_testprograms
@@ -144,8 +144,8 @@ sub get_testprograms
 {
 
         my ($self, $prc_number) = @_;
-        return unless defined $self->mcp_info->[$prc_number]->{programs};
-        return @{$self->mcp_info->[$prc_number]->{programs}};
+        return unless defined $self->mcp_info->{prc}->[$prc_number]->{programs};
+        return @{$self->mcp_info->{prc}->[$prc_number]->{programs}};
 }
 
 
@@ -162,7 +162,7 @@ sub get_prc_count
 {
 
         my ($self) = @_;
-        return $#{$self->mcp_info};
+        return $#{$self->mcp_info->{prc}};
 }
 
 
@@ -181,7 +181,7 @@ Returns the boot timeout for a given PRC
 sub get_boot_timeout
 {
         my ($self, $prc_number) = @_;
-        return $self->mcp_info->[$prc_number]->{timeouts}->{boot};
+        return $self->mcp_info->{prc}->[$prc_number]->{timeouts}->{boot};
 }
 
 =head set_installer_timeout
