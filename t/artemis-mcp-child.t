@@ -128,8 +128,6 @@ alarm(0);
 print STDERR $@ if $@;
 is(ref $retval, 'HASH', 'Timeout handling in get_message');
 
-
-
 #
 # set_prc_state
 #
@@ -139,6 +137,7 @@ $mcp_info->add_prc(0, 5);
 $mcp_info->add_prc(1, 5);
 $mcp_info->add_testprogram(1, {timeout =>  5, name => "foo", argv => ['--bar']});
 $mcp_info->add_testprogram(1, {timeout => 15, name => "foo", argv => ['--bar']});
+$child->mcp_info($mcp_info);
 $retval = $child->set_prc_state($mcp_info);
 is_deeply($retval, [{start => 5, end => 60, timeouts => []},{start => 5, end => 60, timeouts => [ 5, 15]}] ,'Setting PRC state array');
 
@@ -199,6 +198,7 @@ $mcp_info=Artemis::MCP::Info->new();
 $mcp_info->add_prc(0, 5);
 $mcp_info->add_testprogram(0, {timeout => 15, name => "foo", argv => ['--bar']});
 $mcp_info->set_max_reboot(0, 2);
+$child->mcp_info($mcp_info);
 
 my $pid=fork();
 if ($pid==0) {
@@ -221,7 +221,7 @@ if ($pid==0) {
         eval{
                 $SIG{ALRM}=sub{die("timeout of 5 seconds reached while waiting for file upload test.");};
                 alarm(5);
-                $retval = $child->wait_for_testrun($server, $mcp_info);
+                $retval = $child->wait_for_testrun($server);
         };
         is($@, '', 'Get reboot messages in time');
         waitpid($pid,0);
@@ -235,7 +235,7 @@ if ($pid==0) {
 # wait_for_testrun
 # 
 
-$retval = $child->wait_for_testrun($pipe, $mcp_info);
+$retval = $child->wait_for_testrun($pipe);
 is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeout seconds", error => 1}] , 'wait_for_testrun detects timeout while booting test machine');
 
 #''''''''''''''''''''''''''''''''''''#
