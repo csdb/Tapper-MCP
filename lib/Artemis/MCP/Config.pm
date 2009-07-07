@@ -80,7 +80,7 @@ sub add_guest_testprogram
         } else {
                 $timeout = $self->cfg->{times}{test_runtime_default} * $MODIFIER;
         }
-        my $retval = $self->mcp_info->add_testprogram($guest_number, {timeout => $timeout, name => $guest->{testprogram}->{execname}, argv => $guest->{testprogram}->{parameters}} );
+        my $retval = $self->mcp_info->add_testprogram($guest_number, {timeout => $timeout, program => $guest->{testprogram}->{execname}, parameters => $guest->{testprogram}->{parameters}} );
         return $retval if $retval;
 
 
@@ -133,9 +133,9 @@ sub parse_virt_preconditions
                 $main_prc_config->{parameters}          = $virt->{host}->{testprogram}->{parameters}          if $virt->{host}->{testprogram}->{parameters};
                 $main_prc_config->{timeout_testprogram} = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
                 $self->mcp_info->add_testprogram(0,{
-                                                    timeout => $self->{mcp_info}->{timeouts}->[0]->{end},
-                                                    name    => $virt->{host}->{testprogram}->{execname},
-                                                    argv    => $virt->{host}->{testprogram}->{parameters}
+                                                    timeout    => $self->{mcp_info}->{timeouts}->[0]->{end},
+                                                    program    => $virt->{host}->{testprogram}->{execname},
+                                                    parameters => $virt->{host}->{testprogram}->{parameters}
                                                    })    if $virt->{host}->{testprogram}->{timeout_testprogram};
 
         }
