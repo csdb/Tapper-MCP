@@ -52,6 +52,19 @@
     hardwaredb_systems_id: 8
     wait_after_tests: 5
 
+- schema: Testrun
+  name: foobar
+  data:
+    id: 100
+    owner_user_id: 12
+    shortname: autoinstall
+    notes: this testrun only exists to test autoinstall preconditions
+    topic_name: Software
+    test_program: none
+    hardwaredb_systems_id: 8
+    wait_after_tests: ~
+
+
 # -------------------- preconditions
 
 - schema: Precondition
@@ -88,6 +101,31 @@
     id: 11
     shortname: gcc-4.2
     precondition: some yaml here 5
+
+
+- schema: Precondition
+  name: autoinstall
+  data:
+    id: 101
+    shortname: auto_auto
+    precondition: |
+      ---
+      precondition_type: autoinstall
+      timeout: 10800
+      filename: suse/SLES10SP3_x86_64.lst
+
+- schema: Precondition
+  name: Config for autoinstall
+  data:
+    id: 102
+    shortname: auto_prc
+    precondition: |
+      ---
+      precondition_type: testprogram
+      runtime: 30
+      program: /bin/uname_tap.sh
+      timeout: 90
+
 
 # -------------------- "perfmon" <== "perl", "artemis-tools"
 
@@ -160,3 +198,18 @@
     child_precondition_id: 11
     succession: 1
 
+# -------------------- "autoinstall"
+
+- schema: TestrunPrecondition
+  name: First precondition for autoinstall
+  data:
+    testrun_id: 100
+    precondition_id: 101
+    succession: 1
+
+- schema: TestrunPrecondition
+  name: Second precondition for autoinstall
+  data:
+    testrun_id: 100
+    precondition_id: 102
+    succession: 2
