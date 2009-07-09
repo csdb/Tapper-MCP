@@ -17,7 +17,6 @@ use Sys::Hostname;
 extends 'Artemis::MCP::Control';
 
 has mcp_info => (is  => 'rw',
-                 default => sub {{}},
                 );
 
 sub BUILD
