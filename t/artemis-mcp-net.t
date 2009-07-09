@@ -57,7 +57,7 @@ my $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
         $retval = $srv->upload_files(23, 4, "install");
-        
+
         # Can't make this a test since the test counter istn't handled correctly after fork
         die $retval if $retval;
         exit 0;
@@ -118,6 +118,6 @@ my ($old_string ,$new_string) = String::Diff::diff($source, $target, remove_open
              append_close => '</ins>', );
 unlike($old_string, qr/<del>/, 'Nothing taken away from grub file while copy');
 my $artemis_host = Sys::Hostname::hostname();
-like($new_string, qr/<ins> artemis_host=$artemis_host<\/ins>/, 'Artemis host added to grub file while copy');
+like($new_string, qr/<ins> artemis_host=$artemis_host artemis_ip=(\d{1,3}\.){3}\d{1,3}<\/ins>/, 'Artemis host added to grub file while copy');
 
 
