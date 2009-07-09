@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Moose;
+use Socket;
 use Net::SSH;
 use Net::SSH::Expect;
 use IO::Socket::INET;
@@ -188,6 +189,9 @@ sub copy_grub_file
 {
         my ($self, $system, $source, $port) = @_;
         my $artemis_host = Sys::Hostname::hostname();
+        my $artemis_ip   = gethostbyname($artemis_host);
+        return qq{Can't find IP address of "$artemis_host".} if not $artemis_ip;
+        $artemis_ip = inet_ntoa($artemis_ip);
 
         if (-e $source) {
                 open(GRUBFILE, "<", $source) or
@@ -203,6 +207,7 @@ sub copy_grub_file
         while (my $line = <GRUBFILE>) {
                 if ($line =~ m/^\s*kernel/) {
                         $line .= " artemis_host=$artemis_host";
+                        $line .= " artemis_ip=$artemis_ip";
                         $line .= " artemis_port=$port" if $port;
                 }
                 $text .= $line;
@@ -232,6 +237,10 @@ sub write_grub_file
 {
         my ($self, $system, $text) = @_;
         my $artemis_host = Sys::Hostname::hostname();
+        my $artemis_ip   = gethostbyname($artemis_host);
+        return qq{Can't find IP address of "$artemis_host".} if not $artemis_ip;
+        $artemis_ip = inet_ntoa($artemis_ip);
+
         my $grub_file    = $self->cfg->{paths}{grubpath}."/$system.lst";
 
 	$self->log->debug("writing grub file ($artemis_host, $grub_file)");
@@ -252,7 +261,7 @@ timeout 2
 
 title Test
      tftpserver $tftp_server
-     kernel $kernel console=ttyS0,115200 noapic acpi=off root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host
+     kernel $kernel console=ttyS0,115200 noapic acpi=off root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host artemis_ip=$artemis_ip
 END
         }
 	print GRUBFILE $text;
