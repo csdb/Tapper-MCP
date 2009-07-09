@@ -328,7 +328,7 @@ sub parse_autoinstall
                 return "Can't find autoinstaller for $file";
         }
 
-        $config->{create_testconfig} = 1;
+        $config->{autoinstall} = 1;
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
         return $config;
