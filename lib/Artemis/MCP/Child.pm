@@ -488,6 +488,7 @@ sub generate_configs
                         $retval = $producer->write_config($testconfigs->[$i], "$hostname-test-prc$i");
                 }
         }
+        $self->mcp_info($producer->get_mcp_info());
         $config->{hostname} = $hostname;
         return $config;
 }
