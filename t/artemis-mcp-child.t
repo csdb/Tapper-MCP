@@ -247,7 +247,7 @@ is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeou
 # NOTE: assigning to $! has to be an error number, reading from $! will be the associated error string
 $mock_inet->mock('new', sub { $!=1, return undef; });
 $retval =  $child->runtest_handling('bullock');
-like($retval, qr(Can't open socket for testrun 4:), "Catching unsuccessful socket creation");
+like($retval, qr(Can't open socket for testrun 4:), "Catching unsuccessful socket creation"); #'
 
 
 
