@@ -175,6 +175,8 @@ into system installer. The time needed to install a system can vary
 widely thus no timeout for installation is applied.
 
 @param file handle - read from this file handle
+@param hash ref    - config for testrun
+@param Artemis::MCP::Net object - offers grub file writing methods
 
 
 @return success - 0
@@ -184,7 +186,7 @@ widely thus no timeout for installation is applied.
 
 sub wait_for_systeminstaller
 {
-        my ($self,$fh) = @_;
+        my ($self, $fh, $config, $remote) = @_;
 
         my $timeout = $self->cfg->{times}{boot_timeout} || 0;
 
@@ -195,6 +197,9 @@ sub wait_for_systeminstaller
         if (not $msg->{state} eq "start-install") {
                 return qq(MCP expected state start-install but remote system is in state $msg->{state});
         }
+        $remote->write_grub_file($config->{hostname},
+                                 "title Boot from first hard disc\n\tchainloader (hd0)+1") if $config->{autoinstall};
+
         $self->log->debug("Installation started for testrun ".$self->testrun);
 
         $msg=$self->get_message($fh, 0);
@@ -476,13 +481,14 @@ sub generate_configs
         $retval                    = $producer->write_config($config, "$hostname-install");
         return $retval if $retval;
 
-        if ($config->{create_testconfig}) {
+        if ($config->{autoinstall}) {
                 my $testconfigs = $producer->get_test_config();
                 return $testconfigs if not ref $testconfigs eq 'ARRAY';
                 for (my $i=0; $i<= $#{$testconfigs}; $i++ ){
                         $retval = $producer->write_config($testconfigs->[$i], "$hostname-test-prc$i");
                 }
         }
+        $config->{hostname} = $hostname;
         return $config;
 }
 
@@ -532,7 +538,7 @@ sub runtest_handling
         return $retval if $retval;
 
 
-        $retval = $self->wait_for_systeminstaller($srv);
+        $retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 
         my ($report_id, $error);
         if ($retval) {
