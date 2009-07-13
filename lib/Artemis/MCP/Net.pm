@@ -81,7 +81,7 @@ sub conserver_connect
 
 Disconnect the filehandle given as first argument from the conserver.
 We first try to quit kindly but if this fails (by what reason ever)
-the filehandle is simply closed. Closing a socket can't fail, so the
+the filehandle is simply closed. Closing a socket can not fail, so the
 function always succeeds. Thus no return value is needed.
 
 @param  IO::Socket::INET - file handle connected to the conserver
@@ -105,10 +105,10 @@ sub conserver_disconnect
 
 =head2 reboot_system
 
-Reboot the named system. First we try to do it softly, if that doesn't
-work, we try a hard reboot. Unfortunately this doesn't give any
+Reboot the named system. First we try to do it softly, if that does not
+work, we try a hard reboot. Unfortunately this does not give any
 feedback. Thus you have to wait for the typical reboot time of the
-system in question and if the system doesn't react after this time
+system in question and if the system does not react after this time
 assume that the reboot failed. This is not included in this function,
 since it would make it to complex.
 
@@ -190,7 +190,7 @@ sub copy_grub_file
         my ($self, $system, $source, $port) = @_;
         my $artemis_host = Sys::Hostname::hostname();
         my $artemis_ip   = gethostbyname($artemis_host);
-        return qq{Can't find IP address of "$artemis_host".} if not $artemis_ip;
+        return qq{Can not find IP address of "$artemis_host".} if not $artemis_ip;
         $artemis_ip = inet_ntoa($artemis_ip);
 
         if (-e $source) {
@@ -238,7 +238,7 @@ sub write_grub_file
         my ($self, $system, $text) = @_;
         my $artemis_host = Sys::Hostname::hostname();
         my $artemis_ip   = gethostbyname($artemis_host);
-        return qq{Can't find IP address of "$artemis_host".} if not $artemis_ip;
+        return qq{Can not find IP address of "$artemis_host".} if not $artemis_ip;
         $artemis_ip = inet_ntoa($artemis_ip);
 
         my $grub_file    = $self->cfg->{paths}{grubpath}."/$system.lst";
@@ -351,7 +351,7 @@ sub tap_report_send
                 $self->log->error($@) if $@;
 		close $sock;
 	} else {
-                return(1,"Can't connect to report server: $!");
+                return(1,"Can not connect to report server: $!");
 	}
         return (0,$reportid);
 }
