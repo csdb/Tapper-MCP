@@ -248,7 +248,7 @@ Run the tests that are due.
                         next SYSTEM if not $id;
 
                         $self->log->debug("test run $id on system $system");
-                
+
                         # check if this system is already active
                         if ($self->child->{$system}) {
                                 if ($self->child->{$system}->{test_run}==$id) {
@@ -266,16 +266,15 @@ Run the tests that are due.
                                         next SYSTEM;
                                 }
                         }
-				
-		
+
                         $self->log->info("start testing on $system");
 
                         my $pid = fork();
                         die "fork failed: $!" if (not defined $pid);
-		
+
                         # hello child
                         if ($pid == 0) {
-                 
+
                                 # put the start time into db
                                 my $run=model('TestrunDB')->resultset('Testrun')->search({id=>$id})->first();
                                 $run->starttime_testrun(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
