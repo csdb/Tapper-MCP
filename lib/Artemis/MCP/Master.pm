@@ -267,7 +267,7 @@ Run the tests that are due.
                                 }
                         }
 
-                        $self->log->info("start testing on $system");
+                        $self->log->info("start testrun $id on $system");
 
                         my $pid = fork();
                         die "fork failed: $!" if (not defined $pid);
