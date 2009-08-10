@@ -41,8 +41,6 @@ sub get_hostname_from_refreshed_testrun
         my ($self, $testrun) = @_;
         if (not $testrun->hardwaredb_systems_id)
         {
-                #say STDERR "testrun: ", $testrun->to_string;
-                #say STDERR "No hardwaredb_systems_id available for testrun ", $testrun->id;
                 return undef;
         }
 
@@ -76,7 +74,6 @@ sub get_next_testrun
         # foreach my $hostname (keys %$free_hosts) {
         #         $ids{$hostname} = $self->schedule($hostname);
         # }
-        say STDERR "Next testruns: ", Dumper(\%ids);
         return %ids;
 }
 
