@@ -58,8 +58,8 @@ Contains all information about all child processes.
 
 Output files for console logs ordered by file descriptor number.
 
-=cut 
-  
+=cut
+
         has consolefiles => (is => 'rw', isa => 'ArrayRef', default => sub {[]});
 
 
@@ -68,7 +68,7 @@ Output files for console logs ordered by file descriptor number.
 IO::Select object containing all opened console file handles.
 
 =cut
-  
+
         has readset      => (is => 'rw');
 
 =head2
@@ -101,7 +101,7 @@ Set interrupt handlers for important signals. No parameters, no return values.
                 $SIG{INT} = sub {
                         $SIG{INT}='ignore'; # not reentrant, don't handle signal twice
                         my $backtrace = Devel::Backtrace->new(-start=>2, -format => '%I. %s');
-                
+
                         print $backtrace;
 
                         exit -1;
@@ -134,7 +134,7 @@ failure.
                 return $console if not ref $console eq 'IO::Socket::INET';
                 $self->readset->add($console);
                 my $path = $self->cfg->{paths}{output_dir}."/$testrunid/";
-        
+
                 File::Path::mkpath($path, {error => \my $retval}) if not -d $path;
                 foreach my $diag (@$retval) {
                         my ($file, $message) = each %$diag;
@@ -163,7 +163,7 @@ Close a given console connection.
         sub console_close
         {
                 my ($self, $console) = @_;
-                close $self->consolefiles->[$console->fileno()] 
+                close $self->consolefiles->[$console->fileno()]
                     or return "Can't close console file:$!";
                 $self->consolefiles->[$console->fileno()] = undef;
                 $self->readset->remove($console);
@@ -254,7 +254,7 @@ Run the tests that are due.
                                 if ($self->child->{$system}->{test_run}==$id) {
                                 # Occurs in the rare case that child updates
                                 # the test run in the db(inside forked child) slower
-                                # than parent rereads the schedule 
+                                # than parent rereads the schedule
                                         $self->log->warn("Test run id $id is returned twice.");
                                         next SYSTEM;
                                 } else {
@@ -312,7 +312,7 @@ itself is put outside of function to allow testing.
         sub runloop
         {
                 my ($self, $lastrun) = @_;
-                my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time(); 
+                my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time();
 
                 my @ready;
                 # if readset is empty, can_read immediately returns with an empty
@@ -340,9 +340,9 @@ itself is put outside of function to allow testing.
 
 =head2 prepare_server
 
-Create communication data structures used in MCP. 
+Create communication data structures used in MCP.
 
-@return 
+@return
 
 =cut
 
@@ -372,7 +372,7 @@ Set up all needed data structures then wait for new tests.
 
 =cut
 
-        sub start
+        sub run
         {
                 my ($self) = @_;
                 $self->set_interrupt_handlers();
