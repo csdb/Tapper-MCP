@@ -31,6 +31,7 @@ my $builder = $build_class->new
                        },
      requires => {
                   'perl'                       => '5.010',
+                  'App::Daemon'                => 0,
                   'Artemis::Config'            => '2.0100031',
                   'Artemis::Model'             => '2.010003',
                   'Artemis::Schema'            => '2.010018',
