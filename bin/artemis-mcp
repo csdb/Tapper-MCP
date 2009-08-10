@@ -6,6 +6,8 @@ use warnings;
 # TODO: redirect STDERR/STDOUT
 
 use Artemis::MCP::Startup;
-my $mcp = new Artemis::MCP::Startup;
+use App::Daemon 'daemonize';
+daemonize();
+my $mcp = new Artemis::MCP::Master;
 $mcp->run;
 
