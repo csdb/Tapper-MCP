@@ -159,11 +159,9 @@ sub reboot_system
         else # trigger reset switch
         {
                 $self->log->info("Try reboot via reset switch");
-                my $cmd = $self->cfg->{osrc_rst}." -f -off $host";
+                my $cmd = $self->cfg->{osrc_rst}." -f $host";
                 $self->log->info("trying $cmd");
                 my ($error, $retval) = $self->log_and_exec($cmd);
-                $cmd = $self->cfg->{osrc_rst}." -f -on $host";
-                ($error, $retval) = $self->log_and_exec($cmd);
                 return $retval if $error;
         }
 
