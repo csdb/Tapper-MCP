@@ -56,23 +56,25 @@ Evaluate which client has to be scheduled next.
         {
                 my $vft;
                 my $queue;
-                foreach (@{$self->queues})
+
+                foreach (keys %{$self->queues})
                 {
+                        my $q = $self->queues->{$_};
                         my $this_vft;
 
                         try {
-                             $this_vft = $self->get_virtual_finishing_time($_);
+                             $this_vft = $self->get_virtual_finishing_time($q);
                             }
                             catch($e) {
                                     die ($e->msg," at ", $e->line,"\n");
                             }
                         if (not defined $vft) {
                                 $vft   = $this_vft;
-                                $queue = $_;
+                                $queue = $q;
                         } else {
                                 if ($vft > $this_vft) {
                                         $vft   = $this_vft;
-                                        $queue = $_;
+                                        $queue = $q;
                                 }
                         }
                 }
