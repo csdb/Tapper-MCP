@@ -60,7 +60,7 @@ certain host fits the requirement list of a test request.
                            },
     );
  push @hostlist, $host;
- my $job = $primat->get_next_job(\@hostlist);
+ my $job = $controller->get_next_job(\@hostlist);
 
 =head1 FUNCTIONS
 

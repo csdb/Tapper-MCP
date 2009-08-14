@@ -8,7 +8,7 @@ use Class::C3;
 use MRO::Compat;
 
 use Artemis::MCP::Scheduler::Host;
-use Artemis::MCP::Scheduler::Primate;
+use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
 use Artemis::MCP::Scheduler::Algorithm::WFQ;
 use Artemis::MCP::Scheduler::Algorithm::Dummy;
@@ -94,14 +94,9 @@ $algorithm->add_queue
     );
 
 
-my $primat =  Artemis::MCP::Scheduler::Primate->new
-    (
-     algorithm => $algorithm
-    );
+my $job = $scheduler->get_next_job(\@hostlist);
 
-my $job = $primat->get_next_job(\@hostlist);
-
-isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
+isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Controller returns a job');
 isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
 is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
 
@@ -135,11 +130,11 @@ my $request = Artemis::MCP::Scheduler::TestRequest->new
 unshift @{$queue->testrequests}, $request;
 
 $algorithm->add_queue($queue);
-$primat->algorithm($algorithm);
+$scheduler->algorithm($algorithm);
 
-$job = $primat->get_next_job(\@hostlist);
+$job = $scheduler->get_next_job(\@hostlist);
 
-isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Primate returns a job');
+isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Scheduler returns a job');
 isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
 is($job->host->name, 'featureless', 'Evaluation of feature list in a testrequest');
 

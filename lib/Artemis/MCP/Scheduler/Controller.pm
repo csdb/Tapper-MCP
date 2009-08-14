@@ -1,14 +1,14 @@
 use MooseX::Declare;
 
     
-class Artemis::MCP::Scheduler::Primate {
+class Artemis::MCP::Scheduler::Controller {
         use Artemis::Model 'model';
         use Artemis::MCP::Scheduler::Queue;
         use Artemis::MCP::Scheduler::TestRequest;
 
 =head1 NAME
         
-   Artemis::MCP::Scheduler::Primate - Main class of the scheduler
+   Artemis::MCP::Scheduler::Controller - Main class of the scheduler
 
 =head1 VERSION
 
@@ -80,7 +80,7 @@ fits any of the free hosts.
 }
 {
     # just for CPAN
-    package Artemis::MCP::Scheduler::Primate;
+    package Artemis::MCP::Scheduler::Controller;
     our $VERSION = '0.01';
 }
 
@@ -106,4 +106,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of Artemis::MCP::Scheduler::Primate
+1; # End of Artemis::MCP::Scheduler::Controller
