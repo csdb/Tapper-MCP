@@ -21,7 +21,15 @@ Version 0.01
 =cut 
 
         has hostlist  => (is => 'rw', isa => 'ArrayRef');
-        has algorithm => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Algorithm');
+        has algorithm => (is => 'rw',
+                          isa => 'Artemis::MCP::Scheduler::Algorithm',
+                          default => sub {
+                                          require Artemis::MCP::Scheduler::Algorithm::WFQ;
+                                          Artemis::MCP::Scheduler::Algorithm::WFQ->new()
+                                         }
+                         );
+
+
 
 
 =head1 FUNCTIONS
