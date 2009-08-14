@@ -48,7 +48,8 @@ Call the producer method associated with this object.
 
 =cut
 
-        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
+        method produce(Artemis::MCP::Scheduler::TestRequest $request)
+        {
                 die Artemis::Exception::Param->new("Client ".$self->name."does not have an associated producer")
                     if not $self->producer ;
                 return $self->producer->produce($request);

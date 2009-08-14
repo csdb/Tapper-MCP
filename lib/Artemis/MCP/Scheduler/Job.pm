@@ -4,15 +4,9 @@ class Artemis::MCP::Scheduler::Job
 {
         use aliased 'Artemis::MCP::Scheduler::Host';
 
-=cut 
-        
         has testrunid => (is => 'rw');
         has host      => (is => 'rw', isa => Host);
 
-
-
-=cut
-        
 }
 
 {
@@ -21,6 +15,16 @@ class Artemis::MCP::Scheduler::Job
         our $VERSION = '0.01';
 }
 
+
+=head1 NAME
+
+Artemis::MCP::Scheduler::Job - Object to abstract a job handled by Scheduler
+
+=head1 SYNOPSIS
+
+=head1 Attributes
+
+=head1 FUNCTIONS
 
 =head1 AUTHOR
 
