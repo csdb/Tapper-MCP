@@ -2,12 +2,10 @@ use MooseX::Declare;
 
 use 5.010;
 
-class Artemis::MCP::Scheduler::Queue {
-
+class Artemis::MCP::Scheduler::Queue
+{
         use Artemis::Exception::Param;
-        use Artemis::MCP::Scheduler::Host;
-        use Artemis::MCP::Scheduler::TestRequest;
-
+        use aliased 'Artemis::MCP::Scheduler::TestRequest';
 
         has name         => (is => 'rw', default => '');
         has producer     => (is => 'rw');

@@ -1,12 +1,8 @@
 use MooseX::Declare;
 
-    
-class Artemis::MCP::Scheduler::TestRequest {
-        use Artemis::MCP::Scheduler::Host;
-
-=head1 NAME
-        
-   Artemis::MCP::Scheduler::TestRequest - Object that handles requesting new tests
+class Artemis::MCP::Scheduler::TestRequest
+{
+        use aliased 'Artemis::MCP::Scheduler::Host';
 
 =head1 VERSION
 

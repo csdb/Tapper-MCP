@@ -1,28 +1,13 @@
 use MooseX::Declare;
 
-    
-class Artemis::MCP::Scheduler::Job {
-
-=head1 NAME
-        
-   Artemis::MCP::Scheduler::Job - Object to abstract a job handled by Scheduler
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-=head1 SYNOPSIS
-
-=head1 Attributes
+class Artemis::MCP::Scheduler::Job
+{
+        use aliased 'Artemis::MCP::Scheduler::Host';
 
 =cut 
         
         has testrunid => (is => 'rw');
-        has host      => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Host');
-
-=head1 FUNCTIONS
+        has host      => (is => 'rw', isa => Host);
 
 
 
