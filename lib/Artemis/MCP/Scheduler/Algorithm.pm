@@ -8,22 +8,37 @@ class Artemis::MCP::Scheduler::Algorithm {
 
         has queues => (
                        is         => 'rw',
-                       isa        => 'ArrayRef',
-                       default    => sub {[]},
+                       isa        => 'HashRef[Artemis::MCP::Scheduler::Queue]',
+                       default    => sub {{}},
                        #auto_deref => 1,
                       );
 
         #
-        method add_queue(Artemis::MCP::Scheduler::Queue $queue) {
-                $_->runcount( 0 ) foreach @{$self->queues || []};
-                push @{$self->{queues}}, $queue;
+        method add_queue(Artemis::MCP::Scheduler::Queue $q) {
+
+                my $qname = $q->name;
+                if ($self->queues->{$qname}) {
+                        warn "Queue with name '$qname' already exists";
+                        return;
+                }
+
+                foreach (keys %{$self->queues})
+                {
+                        $self->queues->{$_}->runcount( 0 );
+                }
+
+                $self->queues->{$qname} = $q;
         }
 
         #
-        method remove_client(Artemis::MCP::Scheduler::Queue $queue) {
-                my @new_queues = grep { $_->name ne $queue->name } @{$self->queues || []};
-                $self->queues(\@new_queues);
+        #multi
+        method remove_client(Artemis::MCP::Scheduler::Queue $q) {
+                delete $self->queues->{$q->name};
         }
+
+        # multi method remove_client(Str $qname) {
+        #         delete $self->queues->{$qname};
+        # }
 
         method update_client(Artemis::MCP::Scheduler::Queue $queue) {
                 $queue->{runcount} += 1;
