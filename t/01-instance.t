@@ -9,18 +9,16 @@ use MRO::Compat;
 
 use Test::More;
 
-my @modules = ('Artemis::MCP', 
+my @modules = ('Artemis::MCP',
                'Artemis::MCP::Child',
-               'Artemis::MCP::Control', 
+               'Artemis::MCP::Control',
                'Artemis::MCP::Config',
                'Artemis::MCP::Scheduler',
                'Artemis::MCP::Master',
                'Artemis::MCP::Net',
                'Artemis::MCP::Startup',
-
                'Artemis::MCP::Scheduler',
                'Artemis::MCP::Scheduler::Algorithm',
-               'Artemis::MCP::Scheduler::Algorithm::WFQ',
                'Artemis::MCP::Scheduler::Builder',
                'Artemis::MCP::Scheduler::Host',
                'Artemis::MCP::Scheduler::Job',
@@ -28,6 +26,13 @@ my @modules = ('Artemis::MCP',
                'Artemis::MCP::Scheduler::Queue',
                'Artemis::MCP::Scheduler::TestRequest',
               );
+
+my @roles = (
+             'Artemis::MCP::Scheduler::Algorithm::WFQ',
+             'Artemis::MCP::Scheduler::Algorithm::Dummy',
+            );
+
+
 plan tests => $#modules+1;
 
 =pod

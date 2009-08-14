@@ -2,12 +2,9 @@ use MooseX::Declare;
 
 use 5.010;
 
-class Artemis::MCP::Scheduler::Algorithm::Dummy extends Artemis::MCP::Scheduler::Algorithm {
+role Artemis::MCP::Scheduler::Algorithm::Dummy {
 
-        use Artemis::Exception;
-        use Artemis::MCP::Scheduler::Queue;
-        use TryCatch;
-        use Data::Dumper;
+        requires 'queues';
 
         has current_queue => (is => "rw", isa => 'Artemis::MCP::Scheduler::Queue');
 

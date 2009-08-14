@@ -24,8 +24,10 @@ Version 0.01
         has algorithm => (is => 'rw',
                           isa => 'Artemis::MCP::Scheduler::Algorithm',
                           default => sub {
-                                          require Artemis::MCP::Scheduler::Algorithm::WFQ;
-                                          Artemis::MCP::Scheduler::Algorithm::WFQ->new()
+                                          Algorithm->new_with_traits
+                                          (
+                                           traits => ['Artemis::MCP::Scheduler::Algorithm::WFQ']
+                                          );
                                          }
                          );
 

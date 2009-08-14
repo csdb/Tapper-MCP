@@ -2,7 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
-class Artemis::MCP::Scheduler::Algorithm {
+class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
 
         use Artemis::MCP::Scheduler::Queue;
 

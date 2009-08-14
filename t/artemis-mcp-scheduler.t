@@ -10,8 +10,8 @@ use MRO::Compat;
 use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
-use Artemis::MCP::Scheduler::Algorithm::WFQ;
-use Artemis::MCP::Scheduler::Algorithm::Dummy;
+#use Artemis::MCP::Scheduler::Algorithm::WFQ;
+use Artemis::MCP::Scheduler::Algorithm;
 use Artemis::MCP::Scheduler::Producer;
 
 use Test::More tests => 6;
@@ -35,7 +35,10 @@ $request->requested_features([$value]);
 $request->queue('Xen');
 
 
-my $algorithm = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
+my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
+    (
+     traits => ['Artemis::MCP::Scheduler::Algorithm::WFQ']
+    );
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
 $queue->share(300);
@@ -77,7 +80,10 @@ $host->state('free');
 push @hostlist, $host;
 
 
-$algorithm = Artemis::MCP::Scheduler::Algorithm::Dummy->new();
+$algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
+    (
+     traits => ['Artemis::MCP::Scheduler::Algorithm::Dummy']
+    );
 
 
 $queue = Artemis::MCP::Scheduler::Queue->new();

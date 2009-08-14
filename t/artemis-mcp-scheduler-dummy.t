@@ -1,11 +1,15 @@
 use Test::Deep;
 use Test::More tests => 2;
 use Data::Dumper;
-use Artemis::MCP::Scheduler::Algorithm::Dummy;
-use Artemis::MCP::Scheduler::Queue;
+use aliased 'Artemis::MCP::Scheduler::Queue';
+use aliased 'Artemis::MCP::Scheduler::Algorithm';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::Dummy';
 
-my $scheduler = Artemis::MCP::Scheduler::Algorithm::Dummy->new();
-isa_ok($scheduler, 'Artemis::MCP::Scheduler::Algorithm::Dummy');
+my $scheduler = Algorithm->new_with_traits
+    (
+     traits => [Dummy]
+    );
+ok($scheduler->does(Dummy), 'does Dummy');
 
 $scheduler->add_queue(Artemis::MCP::Scheduler::Queue->new(name => 'A', share => 300));
 $scheduler->add_queue(Artemis::MCP::Scheduler::Queue->new(name => 'B', share => 200));

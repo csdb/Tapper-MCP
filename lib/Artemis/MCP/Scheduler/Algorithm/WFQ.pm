@@ -2,7 +2,9 @@ use MooseX::Declare;
 
 use 5.010;
 
-class Artemis::MCP::Scheduler::Algorithm::WFQ extends Artemis::MCP::Scheduler::Algorithm {
+role Artemis::MCP::Scheduler::Algorithm::WFQ
+{
+        requires 'queues';
 
         use Artemis::Exception;
         use Artemis::MCP::Scheduler::Queue;

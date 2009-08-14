@@ -10,7 +10,7 @@ use MRO::Compat;
 use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
-use Artemis::MCP::Scheduler::Algorithm::Dummy;
+use Artemis::MCP::Scheduler::Algorithm;
 use Artemis::MCP::Scheduler::Producer;
 use Artemis::MCP::Scheduler::OfficialHosts;
 use Artemis::MCP::Scheduler::OfficialQueues;
@@ -48,7 +48,10 @@ push @hostlist, Artemis::MCP::Scheduler::Host->new
      state => 'free'
     );
 
-my $algorithm = Artemis::MCP::Scheduler::Algorithm::Dummy->new();
+my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
+    (
+     traits => ['Artemis::MCP::Scheduler::Algorithm::Dummy']
+    );
 
 my $queue = Artemis::MCP::Scheduler::Queue->new
     (
