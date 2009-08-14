@@ -12,6 +12,8 @@ use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
 use Artemis::MCP::Scheduler::Algorithm::Dummy;
 use Artemis::MCP::Scheduler::Producer;
+use Artemis::MCP::Scheduler::OfficialHosts;
+use Artemis::MCP::Scheduler::OfficialQueues;
 
 use Test::More tests => 6;
 
@@ -46,7 +48,7 @@ push @hostlist, Artemis::MCP::Scheduler::Host->new
      state => 'free'
     );
 
-$algorithm = Artemis::MCP::Scheduler::Algorithm::Dummy->new();
+my $algorithm = Artemis::MCP::Scheduler::Algorithm::Dummy->new();
 
 my $queue = Artemis::MCP::Scheduler::Queue->new
     (
