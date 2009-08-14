@@ -1,34 +1,19 @@
 use MooseX::Declare;
 
+use 5.010;
+
 class Artemis::MCP::Scheduler::Queue {
+
         use Artemis::Exception::Param;
         use Artemis::MCP::Scheduler::Host;
         use Artemis::MCP::Scheduler::TestRequest;
 
-=head1 NAME
-        
-   Artemis::MCP::Scheduler::Queue - Object for test queue abstraction
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-=head1 SYNOPSIS
-
-=cut
-        
 
         has name         => (is => 'rw', default => '');
         has producer     => (is => 'rw');
         has share        => (is => 'rw', isa => 'Num');
         has testrequests => (is => 'rw', isa => 'ArrayRef');
         has runcount     => (is => 'rw', default => 0); # WFQ specific
-
-=head1 FUNCTIONS
-
-=cut
 
 
 =head2 get_test_request
@@ -80,6 +65,18 @@ Call the producer method associated with this object.
         package Artemis::MCP::Scheduler::Queue;
         our $VERSION = '0.01';
 }
+
+=head1 NAME
+
+Artemis::MCP::Scheduler::Queue - Object for test queue abstraction
+
+=head1 VERSION
+
+Version 0.01
+
+=head1 SYNOPSIS
+
+=head1 FUNCTIONS
 
 
 =head1 AUTHOR
