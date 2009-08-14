@@ -65,4 +65,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of Artemis::MCP::Scheduler::Primate
+1; # End of Artemis::MCP::Scheduler::Queue::AdHoc

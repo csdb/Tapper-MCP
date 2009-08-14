@@ -10,89 +10,29 @@ use MRO::Compat;
 use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
-use Artemis::MCP::Scheduler::Algorithm::WFQ;
 use Artemis::MCP::Scheduler::Algorithm::Dummy;
 use Artemis::MCP::Scheduler::Producer;
 
 use Test::More tests => 6;
 
-my @hostlist;
-push @hostlist, Artemis::MCP::Scheduler::Host->new
-    (
-     name               =>'bullock',
-     state              => 'free',
-     available_features => {
-                            Mem             => 8192,
-                            Vendor          => 'AMD',
-                            Family          => 15,
-                            Model           => 67,
-                            Stepping        => 2,
-                            Revision        => '',
-                            Socket          => 'AM2',
-                            Number_of_cores => 2,
-                            Clock           => 2600,
-                            L2_Cache        => 1024,
-                            L3_Cache        => 0
-                           },
-    );
+my @hostlist = @{ Artemis::MCP::Scheduler::OfficialHosts->new->hostlist };
 
-push @hostlist, Artemis::MCP::Scheduler::Host->new
-    (
-     name               => 'dickstone',
-     state              => 'free',
-     available_features => {
-                            Mem             => 4096,
-                            Vendor          => 'AMD',
-                            Family          => 15,
-                            Model           => 67,
-                            Stepping        => 2,
-                            Revision        => '',
-                            Socket          => 'AM2',
-                            Number_of_cores => 2,
-                            Clock           => 2600,
-                            L2_Cache        => 1024,
-                            L3_Cache        => 0
-                           },
-     );
+my $scheduler =  Artemis::MCP::Scheduler::Controller->new;
+$scheduler->algorithm->queues(Artemis::MCP::Scheduler::OfficialQueues->new->queuelist);
+$scheduler->algorithm->queues->{Xen}->{testrequests} = [
+                                                        Artemis::MCP::Scheduler::TestRequest->new
+                                                        (
+                                                         queue              => 'Xen',
+                                                         requested_features => ['Mem <= 8000'],
+                                                        ),
+                                                       ] ;
 
-my $algorithm = Artemis::MCP::Scheduler::Algorithm::WFQ->new();
-
-$algorithm->add_queue
-    (Artemis::MCP::Scheduler::Queue->new
-     ( name         => 'Xen',
-       share        => 300,
-       producer     => Artemis::MCP::Scheduler::Producer->new,
-       testrequests => [
-                        Artemis::MCP::Scheduler::TestRequest->new
-                        (
-                         requested_features => ['Mem <= 8000'],
-                         queue              => 'Xen',
-                        ),
-                       ],
-     )
-    );
-
-$algorithm->add_queue
-    ( Artemis::MCP::Scheduler::Queue->new
-      ( name => 'KVM',
-        share => 200,
-        testrequests => [
-                         Artemis::MCP::Scheduler::TestRequest->new
-                         ( queue              => 'kvm',
-                           requested_features => [ 'Mem <= 8000' ],
-                         )
-                        ],
-      )
-    );
-
-
-$algorithm->add_queue
-    (Artemis::MCP::Scheduler::Queue->new
-     ( name => 'Kernel',
-       share => 10,
-     ),
-    );
-
+$scheduler->algorithm->queues->{KVM}{testrequests} = [
+                                                      Artemis::MCP::Scheduler::TestRequest->new
+                                                      ( queue              => 'KVM',
+                                                        requested_features => [ 'Mem <= 8000' ],
+                                                      ),
+                                                     ];
 
 my $job = $scheduler->get_next_job(\@hostlist);
 
