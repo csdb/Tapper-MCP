@@ -4,11 +4,11 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::OfficialHosts {
 
-        use Artemis::MCP::Scheduler::Host;
+        use aliased 'Artemis::MCP::Scheduler::Host';
         use Artemis::Config;
 
         has hostlist => (is => 'ro',
-                         isa => 'ArrayRef[Artemis::MCP::Scheduler::Host]',
+                         isa => 'ArrayRef['.Host.']',
                          default => sub {
                                          no strict 'refs';
                                          my $env = Artemis::Config::_getenv;
@@ -33,7 +33,7 @@ class Artemis::MCP::Scheduler::OfficialHosts {
         {
                 say STDERR "get_hostlist_test";
                 [
-                 Artemis::MCP::Scheduler::Host->new
+                 Host->new
                  (
                   name               =>'bullock',
                   state              => 'free',
@@ -51,7 +51,7 @@ class Artemis::MCP::Scheduler::OfficialHosts {
                                          L3_Cache        => 0
                                         },
                  ),
-                 Artemis::MCP::Scheduler::Host->new
+                 Host->new
                  (
                   name               => 'dickstone',
                   state              => 'free',

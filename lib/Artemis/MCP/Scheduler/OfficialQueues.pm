@@ -4,11 +4,13 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::OfficialQueues {
 
-        use Artemis::MCP::Scheduler::Queue;
+        use aliased 'Artemis::MCP::Scheduler::Queue';
+        use aliased 'Artemis::MCP::Scheduler::Producer';
+
         use Artemis::Config;
 
         has queuelist => (is => 'ro',
-                         isa => 'HashRef[Artemis::MCP::Scheduler::Queue]',
+                         isa => 'HashRef['.Queue.']',
                          default => sub {
                                          no strict 'refs';
                                          my $env = Artemis::Config::_getenv;
@@ -22,19 +24,19 @@ class Artemis::MCP::Scheduler::OfficialQueues {
         {
                 say STDERR "get_queuelist_development";
                 return {
-                        Xen => Artemis::MCP::Scheduler::Queue->new (
-                                                                    name     => 'Xen',
-                                                                    share    => 300,
-                                                                    producer => Artemis::MCP::Scheduler::Producer->new,
-                                                                   ),
-                        KVM => Artemis::MCP::Scheduler::Queue->new (
-                                                                    name  => 'KVM',
-                                                                    share => 200,
-                                                                   ),
-                        Kernel => Artemis::MCP::Scheduler::Queue->new (
-                                                                       name  => 'Kernel',
-                                                                       share => 10,
-                                                                      ),
+                        Xen => Queue->new (
+                                           name     => 'Xen',
+                                           share    => 300,
+                                           producer => Producer->new,
+                                          ),
+                        KVM => Queue->new (
+                                           name  => 'KVM',
+                                           share => 200,
+                                          ),
+                        Kernel => Queue->new (
+                                              name  => 'Kernel',
+                                              share => 10,
+                                             ),
                        };
         }
 
@@ -42,19 +44,19 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                 say STDERR "get_queuelist_live";
 
                 return {
-                        Xen => Artemis::MCP::Scheduler::Queue->new (
-                                                                    name     => 'Xen',
-                                                                    share    => 300,
-                                                                    producer => Artemis::MCP::Scheduler::Producer->new,
-                                                                   ),
-                        KVM => Artemis::MCP::Scheduler::Queue->new (
-                                                                    name  => 'KVM',
-                                                                    share => 200,
-                                                                   ),
-                        Kernel => Artemis::MCP::Scheduler::Queue->new (
-                                                                       name  => 'Kernel',
-                                                                       share => 10,
-                                                                      ),
+                        Xen => Queue->new (
+                                           name     => 'Xen',
+                                           share    => 300,
+                                           producer => Producer->new,
+                                          ),
+                        KVM => Queue->new (
+                                           name  => 'KVM',
+                                           share => 200,
+                                          ),
+                        Kernel => Queue->new (
+                                              name  => 'Kernel',
+                                              share => 10,
+                                             ),
                        };
         }
 
@@ -62,19 +64,19 @@ class Artemis::MCP::Scheduler::OfficialQueues {
         {
                 say STDERR "get_queuelist_test";
                 return {
-                        Xen => Artemis::MCP::Scheduler::Queue->new ( 
-                                                                    name     => 'Xen',
-                                                                    share    => 300,
-                                                                    producer => Artemis::MCP::Scheduler::Producer->new,
-                                                                   ),
-                        KVM => Artemis::MCP::Scheduler::Queue->new (
-                                                                    name  => 'KVM',
-                                                                    share => 200,
-                                                                   ),
-                        Kernel => Artemis::MCP::Scheduler::Queue->new (
-                                                                       name  => 'Kernel',
-                                                                       share => 10,
-                                                                      ),
+                        Xen => Queue->new ( 
+                                           name     => 'Xen',
+                                           share    => 300,
+                                           producer => Producer->new,
+                                          ),
+                        KVM => Queue->new (
+                                           name  => 'KVM',
+                                           share => 200,
+                                          ),
+                        Kernel => Queue->new (
+                                              name  => 'Kernel',
+                                              share => 10,
+                                             ),
                        };
         }
 

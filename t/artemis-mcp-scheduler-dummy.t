@@ -11,9 +11,9 @@ my $scheduler = Algorithm->new_with_traits
     );
 ok($scheduler->does(Dummy), 'does Dummy');
 
-$scheduler->add_queue(Artemis::MCP::Scheduler::Queue->new(name => 'A', share => 300));
-$scheduler->add_queue(Artemis::MCP::Scheduler::Queue->new(name => 'B', share => 200));
-$scheduler->add_queue(Artemis::MCP::Scheduler::Queue->new(name => 'C', share => 100));
+$scheduler->add_queue(Queue->new(name => 'A', share => 300));
+$scheduler->add_queue(Queue->new(name => 'B', share => 200));
+$scheduler->add_queue(Queue->new(name => 'C', share => 100));
 
 my @order;
 

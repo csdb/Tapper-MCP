@@ -53,6 +53,7 @@ my $builder = $build_class->new
                   'Socket'                     => 0,
                   'YAML'                       => 0,
                   'parent'                     => 0,
+                  'aliased'                    => 0,
                  },
      add_to_cleanup      => [ 'Artemis-*' ],
     );

@@ -5,20 +5,7 @@ class Artemis::MCP::Scheduler::Controller
         use Artemis::Model 'model';
         use Artemis::MCP::Scheduler::Queue;
         use Artemis::MCP::Scheduler::TestRequest;
-
-=head1 NAME
-        
-   Artemis::MCP::Scheduler::Controller - Main class of the scheduler
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-=head1 SYNOPSIS
-
-=cut 
+        use aliased 'Artemis::MCP::Scheduler::Algorithm';
 
         has hostlist  => (is => 'rw', isa => 'ArrayRef');
         has algorithm => (is => 'rw',
