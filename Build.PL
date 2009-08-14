@@ -48,6 +48,7 @@ my $builder = $build_class->new
                   'Log::Log4perl'              => 0,
                   'Moose'                      => 0,
                   'MooseX::Declare'            => "0.22",
+                  'MooseX::Traits'             => "0",
                   #'MooseX::Method::Signatures' => "0.16",
                   'Socket'                     => 0,
                   'YAML'                       => 0,
