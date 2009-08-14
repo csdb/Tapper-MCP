@@ -9,13 +9,11 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
         has queues => (
                        is         => 'rw',
                        isa        => 'HashRef[Artemis::MCP::Scheduler::Queue]',
-                       default    => sub {{}},
-                       #auto_deref => 1,
+                       default    => sub { {} },
                       );
 
-        #
-        method add_queue(Artemis::MCP::Scheduler::Queue $q) {
-
+        method add_queue(Artemis::MCP::Scheduler::Queue $q)
+        {
                 my $qname = $q->name;
                 if ($self->queues->{$qname}) {
                         warn "Queue with name '$qname' already exists";
@@ -30,18 +28,12 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
                 $self->queues->{$qname} = $q;
         }
 
-        #
-        #multi
         method remove_client(Artemis::MCP::Scheduler::Queue $q) {
                 delete $self->queues->{$q->name};
         }
 
-        # multi method remove_client(Str $qname) {
-        #         delete $self->queues->{$qname};
-        # }
-
-        method update_client(Artemis::MCP::Scheduler::Queue $queue) {
-                $queue->{runcount} += 1;
+        method update_client(Artemis::MCP::Scheduler::Queue $q) {
+                $q->{runcount} += 1;
         }
 
 }

@@ -46,12 +46,11 @@ modules.
 
 foreach my $module(@modules) {
         my $obj;
-        eval "require $module"; 
+        eval "require $module";
         $obj = eval "$module->new(testrun => 4)";
         isa_ok($obj, $module);
         print $@ if $@;
-        
-        
 }
 
 diag( "Testing Artemis $Artemis::MCP::VERSION,Perl $], $^X" );
+

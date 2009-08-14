@@ -8,7 +8,6 @@ role Artemis::MCP::Scheduler::Algorithm::Dummy {
 
         has current_queue => (is => "rw", isa => 'Artemis::MCP::Scheduler::Queue');
 
-        # XXX TODO: needs rewrite after queues is hash
         method get_next_queue()
         {
                 my @Q = sort keys %{$self->queues};

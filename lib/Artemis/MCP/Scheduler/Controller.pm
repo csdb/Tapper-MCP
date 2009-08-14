@@ -1,7 +1,7 @@
 use MooseX::Declare;
 
-    
-class Artemis::MCP::Scheduler::Controller {
+class Artemis::MCP::Scheduler::Controller
+{
         use Artemis::Model 'model';
         use Artemis::MCP::Scheduler::Queue;
         use Artemis::MCP::Scheduler::TestRequest;
@@ -31,29 +31,11 @@ Version 0.01
                                          }
                          );
 
-
-
-
-=head1 FUNCTIONS
-
-=cut 
-
-        method init() {
-                
-        }
-
-
-=head2 get_prioritiy_job
-
-Check priority queue for a new job and return it.
-
-@return    job available - ad hoc queue object
-@return no job available - 0
-
-=cut
+        method init() { }
 
         method get_priority_job() {
-                #                my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
+                # my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
+
                 my $testruns;
                 # do_someting in case the testrun exists;
                 if ($testruns) {
@@ -62,6 +44,41 @@ Check priority queue for a new job and return it.
                 }
                 return 0;
         }
+
+        method get_next_job(ArrayRef $free_hosts) {
+                my ($queue, $job);
+
+                do {
+                        $queue = $self->get_priority_job();
+                        $queue = $self->algorithm->get_next_queue() if not $queue;
+                        $job   = $queue->get_test_request($free_hosts); # contains host decision
+                } while (not $job);
+
+                return $job;    # MCP maintains list of free hosts
+        }
+}
+
+{
+        # help the CPAN indexer
+        package Artemis::MCP::Scheduler::Controller;
+        our $VERSION = '0.01';
+}
+
+
+=head1 NAME
+
+Artemis::MCP::Scheduler::Controller - Main class of the scheduler
+
+=head1 SYNOPSIS
+
+=head1 FUNCTIONS
+
+=head2 get_prioritiy_job
+
+Check priority queue for a new job and return it.
+
+@return    job available - ad hoc queue object
+@return no job available - 0
 
 =head2 get_next_job
 
@@ -72,28 +89,6 @@ fits any of the free hosts.
 
 @return success   - job object
 @return no job    - 0
-
-=cut
-        
-        method get_next_job(ArrayRef $free_hosts) {
-                my ($queue, $job);
-
-                do {
-                        $queue = $self->get_priority_job();
-                        $queue = $self->algorithm->get_next_queue() if not $queue;
-                        $job   = $queue->get_test_request($free_hosts); # contains host decision
-                } while (not $job);
-
-                return $job;                                 # MCP maintains list of free hosts
-        }
-        
-}
-{
-    # just for CPAN
-    package Artemis::MCP::Scheduler::Controller;
-    our $VERSION = '0.01';
-}
-
 
 =head1 AUTHOR
 
