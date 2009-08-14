@@ -9,16 +9,34 @@ class Artemis::MCP::Scheduler::Algorithm::Dummy extends Artemis::MCP::Scheduler:
         use TryCatch;
         use Data::Dumper;
 
+        has current_queue => (is => "rw", isa => 'Artemis::MCP::Scheduler::Queue');
+
+        # XXX TODO: needs rewrite after queues is hash
+        method get_next_queue()
+        {
+                my @Q = sort keys %{$self->queues};
+                my %Q = map { $Q[$_] => $_ } 0..$#Q;
+
+                if (not $self->current_queue) {
+                        $self->current_queue( $self->queues->{$Q[0]} );
+                        return $self->current_queue;
+                }
+
+                my $cur_name = $self->current_queue->name;
+                my $new_pos = (($Q{$cur_name} || 0) + 1) % @Q;
+
+                $self->current_queue( $self->queues->{$Q[$new_pos]} );
+                return $self->current_queue;
+        }
+}
+
+1; # End of Artemis::MCP::Scheduler::Algorithm::WFQ
+
+__END__
+
 =head1 NAME
 
-  Dummy  - Dummy algorithm for testing
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
+Dummy  - Dummy algorithm for testing
 
 =head1 SYNOPSIS
 
@@ -26,35 +44,11 @@ Algorithm that returns queues in order it received it.
 
 =head1 FUNCTIONS
 
-=cut
-
-=head2 add_queue
-
-Add a queue to the attribute list
-
-=cut
-
-        method add_queue(Artemis::MCP::Scheduler::Queue $queue) {
-                push(@{$self->queues}, $queue);
-        }
-
-
 =head2 get_next_queue
 
 Evaluate which client has to be scheduled next.
 
 @return success - client name;
-
-=cut
-
-        method get_next_queue() {
-                my $queue = shift @{$self->queues};
-                push(@{$self->queues}, $queue);
-                return $queue;
-        } 
-}
-
-
 
 =head1 AUTHOR
 
@@ -69,4 +63,3 @@ This program is released under the following license: proprietary
 
 =cut
 
-1; # End of Artemis::MCP::Scheduler::Algorithm::WFQ
