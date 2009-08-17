@@ -4,54 +4,32 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::Queue
 {
-        use Artemis::Exception::Param;
+        use aliased 'Artemis::Exception::Param' => 'ExceptionParam';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
 
         has name         => (is => 'rw', default => '');
         has producer     => (is => 'rw');
         has share        => (is => 'rw', isa => 'Num');
-        has testrequests => (is => 'rw', isa => 'ArrayRef');
-        has runcount     => (is => 'rw', default => 0); # WFQ specific
-
-
-=head2 get_test_request
-
-Get a testrequest for one of the free hosts provided as parameter.
-
-@param array ref - list of hostnames
-
-@return success               - Job
-@return no fitting tr found   - 0
-
-=cut
+        has testrequests => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+        has runcount     => (is => 'rw', default => 0);
 
         method get_test_request(ArrayRef $free_hosts) {
-                return 0 if not $self->testrequests and ref $self->testrequests eq 'ARRAY';
-                foreach my $testrequest(@{$self->testrequests}) {
-                        if ($testrequest->fits($free_hosts)) {
+                foreach my $testrequest(@{$self->testrequests})
+                {
+                        if ($testrequest->fits($free_hosts))
+                        {
                                 my $job = $self->produce($testrequest);
                                 return $job;
                         }
                 }
-                return 0;
+                return;
         }
-
-=head2 produce
-
-
-Call the producer method associated with this object.
-
-@param string - hostname
-
-@return success - test run id
-@return error   - exception
-
-=cut
 
         method produce(Artemis::MCP::Scheduler::TestRequest $request)
         {
-                die Artemis::Exception::Param->new("Client ".$self->name."does not have an associated producer")
-                    if not $self->producer ;
+                die ExceptionParam->new
+                    ("Client ".$self->name."does not have an associated producer")
+                        if not $self->producer ;
                 return $self->producer->produce($request);
         }
 
@@ -65,17 +43,35 @@ Call the producer method associated with this object.
         our $VERSION = '0.01';
 }
 
+__END__
+
 =head1 NAME
 
 Artemis::MCP::Scheduler::Queue - Object for test queue abstraction
 
-=head1 VERSION
-
-Version 0.01
-
 =head1 SYNOPSIS
 
 =head1 FUNCTIONS
+
+=head2 get_test_request
+
+Get a testrequest for one of the free hosts provided as parameter.
+
+@param array ref - list of hostnames
+
+@return success               - Job
+@return no fitting tr found   - 0
+
+=head2 produce
+
+
+Call the producer method associated with this object.
+
+@param string - hostname
+
+@return success - test run id
+@return error   - exception
+
 
 
 =head1 AUTHOR

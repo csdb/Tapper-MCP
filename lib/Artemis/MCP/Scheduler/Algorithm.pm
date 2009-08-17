@@ -2,6 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
+
 class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
 
         use aliased 'Artemis::MCP::Scheduler::Queue';
@@ -28,42 +29,49 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
                 $self->queues->{$qname} = $q;
         }
 
-        method remove_client(Artemis::MCP::Scheduler::Queue $q) {
+        method remove_queue(Artemis::MCP::Scheduler::Queue $q) {
                 delete $self->queues->{$q->name};
         }
 
-        method update_client(Artemis::MCP::Scheduler::Queue $q) {
-                $q->{runcount} += 1;
+        method update_queue(Artemis::MCP::Scheduler::Queue $q) {
+                # interface
+                die "Interface update_queue not implemented";
         }
 
+        method get_next_queue() {
+                # interface
+                die "Interface get_next_queue not implemented";
+        }
 }
 
-=head2 add_client
+__END__
 
-Add a new client to the scheduler.
+=head2 add_queue
 
-@param Scheduler::Client - name of the client has to be unique
+Add a new queue to the scheduler.
+
+@param Scheduler::Queue - name of the queue has to be unique
 @param int               - proportional share
 
 @return success - 0
 @return error   - error string
 
 
-=head2 remove_client
+=head2 remove_queue
 
-Remove a client from scheduling
+Remove a queue from scheduling
 
-@param string - name of the client to be removed
+@param string - name of the queue to be removed
 
 @return success - 0
 @return error   - error string
 
 
-=head2 update_client
+=head2 update_queue
 
-Update the time entry of the given client
+Update the time entry of the given queue
 
-@param string - name of the client
+@param string - name of the queue
 
 @return success - 0
 

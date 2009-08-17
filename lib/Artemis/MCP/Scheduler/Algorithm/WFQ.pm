@@ -12,7 +12,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
 
         method get_virtual_finishing_time(Artemis::MCP::Scheduler::Queue $queue)
         {
-                return ($queue->{runcount} + 1.0) / $queue->{share};
+                return ($queue->runcount + 1.0) / $queue->{share};
         }
 
 
@@ -43,9 +43,15 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
                                 $queue = $q;
                         }
                 }
-                $self->update_client($queue);
+                $self->update_queue($queue);
                 return $queue;
         }
+
+        method update_queue(Artemis::MCP::Scheduler::Queue $q) {
+                $q->runcount ( $q->runcount + 1 );
+        }
+
+
 }
 
 1;

@@ -29,7 +29,7 @@ class Artemis::MCP::Scheduler::Controller
                         my $queue = Artemis::MCP::Scheduler::Queue->new(name => 'AdHoc');
                         return $queue;
                 }
-                return 0;
+                return;
         }
 
         method get_next_job(ArrayRef $free_hosts) {
