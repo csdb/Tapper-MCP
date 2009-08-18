@@ -1,20 +1,31 @@
 use MooseX::Declare;
 
     
-class Artemis::MCP::Scheduler::Producer {
+class Artemis::MCP::Scheduler::PreconditionProducer {
         use Artemis::MCP::Scheduler::Job;
         use Artemis::MCP::Scheduler::TestRequest;
 
 
+        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
+                my $job = Artemis::MCP::Scheduler::Job->new();
+                $job->host($request->on_host);
+                return $job;
+        }
+}
+
+{
+        # just for CPAN
+        package Artemis::MCP::Scheduler::Producer;
+        our $VERSION = '0.01';
+}
+
+1; # End of WFQ
+
+__END__
+
 =head1 NAME
         
    Artemis::MCP::Scheduler::Producer - Generate Testruns
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
 
 =head1 SYNOPSIS
 
@@ -31,25 +42,10 @@ Create files needed for a testrun and put it into db.
 
 @return success - testrun id
 
-=cut
-        
-        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
-                my $job = Artemis::MCP::Scheduler::Job->new();
-                $job->host($request->on_host);
-                return $job;
-        }
-}
-
-{
-        # just for CPAN
-        package Artemis::MCP::Scheduler::Producer;
-        our $VERSION = '0.01';
-}
-
-
 =head1 AUTHOR
 
 Maik Hentsche, C<< <maik.hentsche at amd.com> >>
+
 
 =head1 COPYRIGHT & LICENSE
 
@@ -58,7 +54,3 @@ Copyright 2009 Maik Hentsche, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
-=cut
-
-1; # End of WFQ
