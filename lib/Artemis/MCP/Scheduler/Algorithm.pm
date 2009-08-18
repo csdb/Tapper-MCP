@@ -13,7 +13,7 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
                        default    => sub { {} },
                       );
 
-        method add_queue(Artemis::MCP::Scheduler::Queue $q)
+        method add_queue(Queue $q)
         {
                 my $qname = $q->name;
                 if ($self->queues->{$qname}) {
@@ -29,11 +29,11 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
                 $self->queues->{$qname} = $q;
         }
 
-        method remove_queue(Artemis::MCP::Scheduler::Queue $q) {
+        method remove_queue(Queue $q) {
                 delete $self->queues->{$q->name};
         }
 
-        method update_queue(Artemis::MCP::Scheduler::Queue $q) {
+        method update_queue(Queue $q) {
                 # interface
                 die "Interface update_queue not implemented";
         }

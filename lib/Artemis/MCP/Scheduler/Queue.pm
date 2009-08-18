@@ -28,7 +28,7 @@ class Artemis::MCP::Scheduler::Queue
                 return;
         }
 
-        method produce (Artemis::MCP::Scheduler::TestRequest $request)
+        method produce (TestRequest $request)
         {
                 if (not $self->producer) {
                         die Artemis::Exception::Param->new

@@ -1,17 +1,31 @@
 use MooseX::Declare;
 
-    
-class Artemis::MCP::Scheduler::Queue::AdHoc extends Artemis::MCP::Scheduler::Queue {
+class Artemis::MCP::Scheduler::Queue::AdHoc extends Artemis::MCP::Scheduler::Queue
+{
+        use aliased 'Artemis::MCP::Scheduler::Host';
+        use aliased 'Artemis::MCP::Scheduler::Job';
+
+        method produce(Host $host)
+        {
+                my $job = Job->new;
+                return $job;
+        }
+}
+
+{
+    # just for CPAN
+    package Artemis::MCP::Scheduler::Queue::AdHoc;
+    our $VERSION = '0.01';
+}
+
+1;
+
+__END__
+
 
 =head1 NAME
-        
-   Artemis::MCP::Scheduler::Queue::AdHoc - AdHoc queue
 
-=head1 VERSION
-
-Version 0.01
-
-=cut
+Artemis::MCP::Scheduler::Queue::AdHoc - AdHoc queue
 
 =head1 SYNOPSIS
 
@@ -27,22 +41,6 @@ Call the producer method associated with this object.
 
 @return success - test run id
 @return error   - exception
-
-=cut
-        
-        method produce(Artemis::MCP::Scheduler::Host $host) {
-                my $job = Artemis::MCP::Scheduler::Job->new;
-                return $job;
-        }
-
-        
-}
-{
-    # just for CPAN
-    package Artemis::MCP::Scheduler::Queue::AdHoc;
-    our $VERSION = '0.01';
-}
-
 
 =head1 AUTHOR
 
@@ -62,7 +60,3 @@ Copyright 2009 Maik Hentsche, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
-=cut
-
-1; # End of Artemis::MCP::Scheduler::Queue::AdHoc

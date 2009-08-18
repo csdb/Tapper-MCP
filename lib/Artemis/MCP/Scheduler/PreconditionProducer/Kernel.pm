@@ -1,39 +1,24 @@
 use MooseX::Declare;
 
-class Artemis::MCP::Scheduler::PreconditionProducer::Kernel
-    extends Artemis::MCP::Scheduler::PreconditionProducer {
-            use YAML::Syck;
+class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP::Scheduler::PreconditionProducer
+{
+        use YAML::Syck;
 
-=head1 NAME
+        use aliased 'Artemis::MCP::Scheduler::TestRequest';
+        use aliased 'Artemis::MCP::Scheduler::Job';
 
-Artemis::MCP::Scheduler::PreconditionProducer::Kernel - Produces required preconditions for kernel tests
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-=head1 SYNOPSIS
-
-
-=cut
-
-=head2 features
-
-=cut 
-
-        sub younger {
+        sub younger
+        {
                 my $st_a = stat($a);
                 my $st_b = stat($b);
                 return $st_a->mtime() <=> $st_b->mtime();
         }
 
-        method produce(Artemis::MCP::Scheduler::TestRequest $request) {
+        method produce(TestRequest $request) {
                 my $host          =  $request->on_host-name;
                 my @kernelfiles     =  sort younger <$kernel_path/x86_64/*>;
                 my $kernelbuild     =  pop @kernelfiles;
-        
+
                 my $kernel_version;
                 open FH,"tar -tzf $kernelbuild|" or die "Can't look into kernelbuild:$!";
         TARFILES:
@@ -43,19 +28,35 @@ Version 0.01
                                 last TARFILES ;
                         }
                 }
+
                 my $id = qx($execpath/artemis-testrun new --macroprecond=/data/bancroft/artemis/live/repository/macropreconditions/kernel/kernel_boot.mpc --hostname=$host -Dkernel_version=$kernel_version -Dkernelpkg=$kernelbuild --owner=mhentsc3 --topic=Kernel);
-        
-                my $job = Artemis::MCP::Scheduler::Job->new(host => $request->on_host, testrunid => $id);
+
+                my $job = Job->new(host => $request->on_host, testrunid => $id);
                 return $job;
 
         }
 }
+
 {
-        # just for CPAN
+        # help the CPAN indexer
         package Artemis::MCP::Scheduler::Producer::Kernel;
         our $VERSION = '0.01';
 }
 
+1;
+
+__END__
+
+=head1 NAME
+
+Artemis::MCP::Scheduler::PreconditionProducer::Kernel - Produces required preconditions for kernel tests
+
+=head1 SYNOPSIS
+
+
+=cut
+
+=head2 features
 
 =head1 AUTHOR
 
@@ -68,7 +69,3 @@ Copyright 2009 Maik Hentsche, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
-=cut
-
-1;

@@ -6,11 +6,11 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
 {
         requires 'queues';
 
-        use Artemis::MCP::Scheduler::Queue;
+        use aliased 'Artemis::MCP::Scheduler::Queue';
         use TryCatch;
         use Data::Dumper;
 
-        method get_virtual_finishing_time(Artemis::MCP::Scheduler::Queue $queue)
+        method get_virtual_finishing_time(Queue $queue)
         {
                 return ($queue->runcount + 1.0) / $queue->priority;
         }
@@ -47,7 +47,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
                 return $queue;
         }
 
-        method update_queue(Artemis::MCP::Scheduler::Queue $q) {
+        method update_queue(Queue $q) {
                 $q->runcount ( $q->runcount + 1 );
         }
 }
