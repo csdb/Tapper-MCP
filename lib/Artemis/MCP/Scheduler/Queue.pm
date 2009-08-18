@@ -13,7 +13,11 @@ class Artemis::MCP::Scheduler::Queue
         has testrequests => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
         has runcount     => (is => 'rw', default => 0);
 
-        method get_test_request(ArrayRef $free_hosts) {
+        has priority     => (is => 'rw', isa => 'Num');
+        has runcount     => (is => 'rw', isa => 'Num',                default => 0);
+
+        method get_test_request (ArrayRef $free_hosts)
+        {
                 foreach my $testrequest(@{$self->testrequests})
                 {
                         if ($testrequest->fits($free_hosts))

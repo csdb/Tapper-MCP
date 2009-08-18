@@ -26,16 +26,16 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                 return {
                         Xen => Queue->new (
                                            name     => 'Xen',
-                                           share    => 300,
-                                           producer => Producer->new,
+                                           priority => 300,
+                                           producer => PreconditionProducer->new,
                                           ),
                         KVM => Queue->new (
-                                           name  => 'KVM',
-                                           share => 200,
+                                           name     => 'KVM',
+                                           priority => 200,
                                           ),
                         Kernel => Queue->new (
-                                              name  => 'Kernel',
-                                              share => 10,
+                                              name     => 'Kernel',
+                                              priority => 10,
                                              ),
                        };
         }
@@ -46,16 +46,16 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                 return {
                         Xen => Queue->new (
                                            name     => 'Xen',
-                                           share    => 300,
-                                           producer => Producer->new,
+                                           priority => 300,
+                                           producer => PreconditionProducer->new,
                                           ),
                         KVM => Queue->new (
-                                           name  => 'KVM',
-                                           share => 200,
+                                           name     => 'KVM',
+                                           priority => 200,
                                           ),
                         Kernel => Queue->new (
-                                              name  => 'Kernel',
-                                              share => 10,
+                                              name     => 'Kernel',
+                                              priority => 10,
                                              ),
                        };
         }
@@ -66,16 +66,16 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                 return {
                         Xen => Queue->new ( 
                                            name     => 'Xen',
-                                           share    => 300,
-                                           producer => Producer->new,
+                                           priority => 300,
+                                           producer => PreconditionProducer->new,
                                           ),
                         KVM => Queue->new (
-                                           name  => 'KVM',
-                                           share => 200,
+                                           name     => 'KVM',
+                                           priority => 200,
                                           ),
                         Kernel => Queue->new (
-                                              name  => 'Kernel',
-                                              share => 10,
+                                              name     => 'Kernel',
+                                              priority => 10,
                                              ),
                        };
         }

@@ -11,7 +11,7 @@ use Artemis::MCP::Scheduler::Host;
 use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
 use Artemis::MCP::Scheduler::Algorithm;
-use Artemis::MCP::Scheduler::Producer;
+use Artemis::MCP::Scheduler::PreconditionProducer;
 use Artemis::MCP::Scheduler::OfficialHosts;
 use Artemis::MCP::Scheduler::OfficialQueues;
 
@@ -56,8 +56,8 @@ my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
 my $queue = Artemis::MCP::Scheduler::Queue->new
     (
      name     => 'Xen',
-     share    => 300,
-     producer => Artemis::MCP::Scheduler::Producer->new,
+     priority => 300,
+     producer => Artemis::MCP::Scheduler::PreconditionProducer->new,
      testrequests => [
                       Artemis::MCP::Scheduler::TestRequest->new
                       (

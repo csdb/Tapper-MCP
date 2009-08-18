@@ -51,7 +51,6 @@ __END__
 Add a new queue to the scheduler.
 
 @param Scheduler::Queue - name of the queue has to be unique
-@param int               - proportional share
 
 @return success - 0
 @return error   - error string

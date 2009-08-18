@@ -12,7 +12,7 @@ use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
 #use Artemis::MCP::Scheduler::Algorithm::WFQ;
 use Artemis::MCP::Scheduler::Algorithm;
-use Artemis::MCP::Scheduler::Producer;
+use Artemis::MCP::Scheduler::PreconditionProducer;
 
 use Test::More tests => 6;
 
@@ -41,11 +41,10 @@ my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
     );
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
-$queue->share(300);
-$queue->producer(Artemis::MCP::Scheduler::Producer->new);
+$queue->priority(300);
+$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer->new);
 $queue->testrequests([$request]);
 $algorithm->add_queue($queue);
-
 
 $request = Artemis::MCP::Scheduler::TestRequest->new();
 $value = 'Mem <= 8000';
@@ -54,20 +53,17 @@ $request->queue('kvm');
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('KVM');
-$queue->share(200);
+$queue->priority(200);
 $queue->testrequests([$request]);
 $algorithm->add_queue($queue);
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Kernel');
-$queue->share(10);
+$queue->priority(10);
 $algorithm->add_queue($queue);
-
-
 
 my $controller =  Artemis::MCP::Scheduler::Controller->new();
 $controller->algorithm($algorithm);
-
 
 my $job = $controller->get_next_job(\@hostlist);
 isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Controller returns a job');
@@ -88,8 +84,8 @@ $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
 
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
-$queue->share(300);
-$queue->producer(Artemis::MCP::Scheduler::Producer->new);
+$queue->priority(300);
+$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer->new);
 
 $request = Artemis::MCP::Scheduler::TestRequest->new();
 $value = 'Mem <= 8000';
