@@ -1,12 +1,12 @@
 use MooseX::Declare;
 
-    
-class Artemis::MCP::Scheduler::Producer::Kernel extends Producer {
-        use YAML::Syck;
+class Artemis::MCP::Scheduler::PreconditionProducer::Kernel
+    extends Artemis::MCP::Scheduler::PreconditionProducer {
+            use YAML::Syck;
 
 =head1 NAME
-        
-   Artemis::MCP::Scheduler::Producer::Kernel - Produces required preconditions for kernel tests
+
+Artemis::MCP::Scheduler::PreconditionProducer::Kernel - Produces required preconditions for kernel tests
 
 =head1 VERSION
 

@@ -1,12 +1,12 @@
 use MooseX::Declare;
 
-    
-class Artemis::MCP::Scheduler::Producer::Temare extends Artemis::MCP::Scheduler::Producer {
+class Artemis::MCP::Scheduler::Producer::Temare
+    extends Artemis::MCP::Scheduler::PreconditionProducer {
         use YAML::Syck;
 
 =head1 NAME
-        
-   Artemis::MCP::Scheduler::Producer::Temare - Wraps the existing temare producer
+
+Artemis::MCP::Scheduler::PreconditionProducer::Temare - Wraps the existing temare producer
 
 =head1 VERSION
 

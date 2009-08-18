@@ -5,7 +5,7 @@ use 5.010;
 class Artemis::MCP::Scheduler::OfficialQueues {
 
         use aliased 'Artemis::MCP::Scheduler::Queue';
-        use aliased 'Artemis::MCP::Scheduler::Producer';
+        use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
 
         use Artemis::Config;
 

@@ -6,12 +6,11 @@ class Artemis::MCP::Scheduler::Queue
 {
         use aliased 'Artemis::Exception::Param' => 'ExceptionParam';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
+        use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
 
-        has name         => (is => 'rw', default => '');
-        has producer     => (is => 'rw');
-        has share        => (is => 'rw', isa => 'Num');
-        has testrequests => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
-        has runcount     => (is => 'rw', default => 0);
+        has name         => (is => 'rw', isa => 'Str',                default => '');
+        has producer     => (is => 'rw', isa => PreconditionProducer);
+        has testrequests => (is => 'rw', isa => 'ArrayRef',           default => sub { [] });
 
         has priority     => (is => 'rw', isa => 'Num');
         has runcount     => (is => 'rw', isa => 'Num',                default => 0);
