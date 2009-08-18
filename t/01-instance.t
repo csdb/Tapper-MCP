@@ -22,7 +22,7 @@ my @modules = ('Artemis::MCP',
                'Artemis::MCP::Scheduler::Builder',
                'Artemis::MCP::Scheduler::Host',
                'Artemis::MCP::Scheduler::Job',
-               'Artemis::MCP::Scheduler::Producer',
+               'Artemis::MCP::Scheduler::PreconditionProducer',
                'Artemis::MCP::Scheduler::Queue',
                'Artemis::MCP::Scheduler::TestRequest',
               );
