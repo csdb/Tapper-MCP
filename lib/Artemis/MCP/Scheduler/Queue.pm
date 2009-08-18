@@ -4,7 +4,7 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::Queue
 {
-        use aliased 'Artemis::Exception::Param' => 'ExceptionParam';
+        use Artemis::Exception::Param;
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
 
@@ -19,29 +19,28 @@ class Artemis::MCP::Scheduler::Queue
         {
                 foreach my $testrequest(@{$self->testrequests})
                 {
-                        if ($testrequest->fits($free_hosts))
+                        if ($testrequest->fits( $free_hosts ))
                         {
-                                my $job = $self->produce($testrequest);
+                                my $job = $self->produce( $testrequest );
                                 return $job;
                         }
                 }
                 return;
         }
 
-        method produce(Artemis::MCP::Scheduler::TestRequest $request)
+        method produce (Artemis::MCP::Scheduler::TestRequest $request)
         {
-                die ExceptionParam->new
-                    ("Client ".$self->name."does not have an associated producer")
-                        if not $self->producer ;
+                if (not $self->producer) {
+                        die Artemis::Exception::Param->new
+                            ("Queue ".$self->name." does not have an associated producer");
+                }
                 return $self->producer->produce($request);
         }
-
-
 
 }
 
 {
-        # just for CPAN
+        # help the CPAN indexer
         package Artemis::MCP::Scheduler::Queue;
         our $VERSION = '0.01';
 }

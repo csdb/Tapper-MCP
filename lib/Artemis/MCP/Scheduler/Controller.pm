@@ -1,5 +1,7 @@
 use MooseX::Declare;
 
+use 5.010;
+
 class Artemis::MCP::Scheduler::Controller
 {
         use Artemis::Model 'model';
