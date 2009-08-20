@@ -7,22 +7,25 @@ use warnings;
 use Class::C3;
 use MRO::Compat;
 
-use Artemis::MCP::Scheduler::Host;
-use Artemis::MCP::Scheduler::Controller;
-use Artemis::MCP::Scheduler::TestRequest;
-use Artemis::MCP::Scheduler::Algorithm;
-use Artemis::MCP::Scheduler::PreconditionProducer;
-use Artemis::MCP::Scheduler::OfficialHosts;
-use Artemis::MCP::Scheduler::OfficialQueues;
+use aliased 'Artemis::MCP::Scheduler::Job';
+use aliased 'Artemis::MCP::Scheduler::Host';
+use aliased 'Artemis::MCP::Scheduler::Queue';
+use aliased 'Artemis::MCP::Scheduler::Controller';
+use aliased 'Artemis::MCP::Scheduler::TestRequest';
+use aliased 'Artemis::MCP::Scheduler::Algorithm';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::Dummy';
+use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
+use aliased 'Artemis::MCP::Scheduler::OfficialHosts';
+use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 
 use Test::More tests => 6;
 
-my @hostlist = @{ Artemis::MCP::Scheduler::OfficialHosts->new->hostlist };
+my @hostlist = @{ OfficialHosts->new->hostlist };
 
-my $scheduler =  Artemis::MCP::Scheduler::Controller->new;
-$scheduler->algorithm->queues(Artemis::MCP::Scheduler::OfficialQueues->new->queuelist);
+my $scheduler =  Controller->new;
+$scheduler->algorithm->queues(OfficialQueues->new->queuelist);
 $scheduler->algorithm->queues->{Xen}->{testrequests} = [
-                                                        Artemis::MCP::Scheduler::TestRequest->new
+                                                        TestRequest->new
                                                         (
                                                          queue              => 'Xen',
                                                          requested_features => ['Mem <= 8000'],
@@ -30,7 +33,7 @@ $scheduler->algorithm->queues->{Xen}->{testrequests} = [
                                                        ] ;
 
 $scheduler->algorithm->queues->{KVM}{testrequests} = [
-                                                      Artemis::MCP::Scheduler::TestRequest->new
+                                                      TestRequest->new
                                                       ( queue              => 'KVM',
                                                         requested_features => [ 'Mem <= 8000' ],
                                                       ),
@@ -38,28 +41,25 @@ $scheduler->algorithm->queues->{KVM}{testrequests} = [
 
 my $job = $scheduler->get_next_job(\@hostlist);
 
-isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Controller returns a job');
-isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
+isa_ok($job, Job, 'Controller returns a job');
+isa_ok($job->host, Host, 'Returned job has a host');
 is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
 
-push @hostlist, Artemis::MCP::Scheduler::Host->new
+push @hostlist, Host->new
     (
      name => 'featureless',
      state => 'free'
     );
 
-my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
-    (
-     traits => ['Artemis::MCP::Scheduler::Algorithm::Dummy']
-    );
+my $algorithm = Algorithm->new_with_traits ( traits => [Dummy] );
 
-my $queue = Artemis::MCP::Scheduler::Queue->new
+my $queue = Queue->new
     (
      name     => 'Xen',
      priority => 300,
-     producer => Artemis::MCP::Scheduler::PreconditionProducer->new,
+     producer => PreconditionProducer->new,
      testrequests => [
-                      Artemis::MCP::Scheduler::TestRequest->new
+                      TestRequest->new
                       (
                        requested_features => ['Mem <= 8000'],
                        queue => 'Xen',
@@ -67,7 +67,7 @@ my $queue = Artemis::MCP::Scheduler::Queue->new
                      ],
     );
 
-my $request = Artemis::MCP::Scheduler::TestRequest->new
+my $request = TestRequest->new
     (
      hostnames => [ 'featureless' ],
      queue => 'Xen',
@@ -79,7 +79,7 @@ $scheduler->algorithm($algorithm);
 
 $job = $scheduler->get_next_job(\@hostlist);
 
-isa_ok($job, 'Artemis::MCP::Scheduler::Job', 'Scheduler returns a job');
-isa_ok($job->host, 'Artemis::MCP::Scheduler::Host', 'Returned Job has a host');
+isa_ok($job, Job, 'Scheduler returns a job');
+isa_ok($job->host, Host, 'Returned job has a host');
 is($job->host->name, 'featureless', 'Evaluation of feature list in a testrequest');
 
