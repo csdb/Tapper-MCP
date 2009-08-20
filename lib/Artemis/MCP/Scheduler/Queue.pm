@@ -8,12 +8,12 @@ class Artemis::MCP::Scheduler::Queue
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
 
-        has name         => (is => 'rw', isa => 'Str',                default => '');
-        has producer     => (is => 'rw', isa => PreconditionProducer);
-        has testrequests => (is => 'rw', isa => 'ArrayRef',           default => sub { [] });
+        has name         => (is => 'rw', isa => 'Str',                default => '',         required => 1);
+        has producer     => (is => 'rw', isa => PreconditionProducer                                      );
+        has testrequests => (is => 'rw', isa => 'ArrayRef',           default => sub { [] },              );
 
-        has priority     => (is => 'rw', isa => 'Num');
-        has runcount     => (is => 'rw', isa => 'Num',                default => 0);
+        has priority     => (is => 'rw', isa => 'Num'                                                     );
+        has runcount     => (is => 'rw', isa => 'Num',                default => 0                        );
 
         method get_test_request (ArrayRef $free_hosts)
         {
