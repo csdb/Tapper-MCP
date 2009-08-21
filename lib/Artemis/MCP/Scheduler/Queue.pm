@@ -9,7 +9,7 @@ class Artemis::MCP::Scheduler::Queue
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
 
         has name         => (is => 'rw', isa => 'Str',                default => '',         required => 1);
-        has producer     => (is => 'rw', isa => PreconditionProducer                                      );
+        has producer     => (is => 'rw', isa => PreconditionProducer,                                     );
         has testrequests => (is => 'rw', isa => 'ArrayRef',           default => sub { [] },              );
 
         has priority     => (is => 'rw', isa => 'Num'                                                     );
@@ -31,10 +31,10 @@ class Artemis::MCP::Scheduler::Queue
         method produce (TestRequest $request)
         {
                 if (not $self->producer) {
-                        die Artemis::Exception::Param->new
-                            ("Queue ".$self->name." does not have an associated producer");
+                        warn "Queue ".$self->name." does not have an associated producer";
+                } else {
+                        return $self->producer->produce($request)
                 }
-                return $self->producer->produce($request);
         }
 
 }

@@ -29,7 +29,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 
 my @hostlist = @{ OfficialHosts->new->hostlist };
 
-my $scheduler =  Controller->new;
+my $scheduler = Controller->new;
 $scheduler->algorithm->queues(OfficialQueues->new->queuelist);
 $scheduler->algorithm->queues->{Xen}->{testrequests} = [
                                                         TestRequest->new
@@ -45,7 +45,6 @@ $scheduler->algorithm->queues->{KVM}{testrequests} = [
                                                         requested_features => [ 'Mem <= 8000' ],
                                                       ),
                                                      ];
-
 my $job = $scheduler->get_next_job(\@hostlist);
 
 isa_ok($job, Job, 'Controller returns a job');
