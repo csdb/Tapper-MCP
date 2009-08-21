@@ -12,7 +12,7 @@ use Artemis::MCP::Scheduler::Controller;
 use Artemis::MCP::Scheduler::TestRequest;
 #use Artemis::MCP::Scheduler::Algorithm::WFQ;
 use Artemis::MCP::Scheduler::Algorithm;
-use Artemis::MCP::Scheduler::PreconditionProducer;
+use Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer;
 
 use Test::More tests => 6;
 
@@ -42,7 +42,7 @@ my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
 $queue->priority(300);
-$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer->new);
+$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer->new);
 $queue->testrequests([$request]);
 $algorithm->add_queue($queue);
 
@@ -85,7 +85,7 @@ $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
 $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
 $queue->priority(300);
-$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer->new);
+$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer->new);
 
 $request = Artemis::MCP::Scheduler::TestRequest->new();
 $value = 'Mem <= 8000';

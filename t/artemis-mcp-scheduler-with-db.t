@@ -14,7 +14,7 @@ use aliased 'Artemis::MCP::Scheduler::Controller';
 use aliased 'Artemis::MCP::Scheduler::TestRequest';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::Dummy';
-use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
+use aliased 'Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer';
 use aliased 'Artemis::MCP::Scheduler::OfficialHosts';
 use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 
@@ -63,7 +63,7 @@ my $queue = Queue->new
     (
      name     => 'Xen',
      priority => 300,
-     producer => PreconditionProducer->new,
+     producer => DummyProducer->new,
      testrequests => [
                       TestRequest->new
                       (

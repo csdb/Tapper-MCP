@@ -1,15 +1,7 @@
 use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::PreconditionProducer {
-        use aliased 'Artemis::MCP::Scheduler::Job';
-        use aliased 'Artemis::MCP::Scheduler::TestRequest';
-
-        method produce(TestRequest $request)
-        {
-                my $job = Job->new();
-                $job->host($request->on_host);
-                return $job;
-        }
+        # 
 }
 
 {
