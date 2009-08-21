@@ -214,7 +214,9 @@
     precondition_id: 102
     succession: 2
 
-# -------------------- "scheduling"
+# ==================== "scheduling"
+
+# -------------------- "queues"
 
 - schema: Queue
   name: Xen Queue
@@ -239,4 +241,62 @@
     name: Kernel
     producer: DummyProducer
     priority: 10
+
+# -------------------- "test requests" (Testruns)
+
+# --- aaa ---
+
+- schema: Testrun
+  name: aaa-xen
+  data:
+    id: 1001
+    owner_user_id: 12
+    shortname: aaa-xen
+    notes: aaa
+    topic_name: Distribution
+    test_program: /data/bancroft/artemis/live/testsuites/aaa/test_aaa.sh
+
+- schema: TestrunRequestedFeature
+  name: aaa-mem-8000
+  data:
+    id: 301
+    testrun_id: 1001            # aaa
+    feature: 'Mem <= 8000'
+
+- schema: TestrunScheduling
+  name: Xen-aaa
+  data:
+    id: 101
+    testrun_id: 1001            # aaa
+    queue_id: 1                 # Xen
+    built: 0
+    active: 0
+
+# --- bbb ---
+    
+- schema: Testrun
+  name: bbb-kvm
+  data:
+    id: 1002
+    owner_user_id: 12
+    shortname: bbb-kvm
+    notes: bbb
+    topic_name: Distribution
+    test_program: /data/bancroft/artemis/live/testsuites/bbb/test_bbb.sh
+
+- schema: TestrunRequestedFeature
+  name: aaa-mem-8000
+  data:
+    id: 302
+    testrun_id: 1002            # bbb
+    feature: 'Mem <= 8000'
+
+- schema: TestrunScheduling
+  name: Xen-aaa
+  data:
+    id: 102
+    testrun_id: 1002            # bbb
+    queue_id: 2                 # KVM
+    built: 0
+    active: 0
 
