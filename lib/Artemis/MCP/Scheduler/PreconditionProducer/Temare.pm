@@ -1,6 +1,6 @@
 use MooseX::Declare;
 
-class Artemis::MCP::Scheduler::Producer::Temare extends Artemis::MCP::Scheduler::PreconditionProducer {
+class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP::Scheduler::PreconditionProducer {
         use YAML::Syck;
 
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
@@ -17,6 +17,9 @@ class Artemis::MCP::Scheduler::Producer::Temare extends Artemis::MCP::Scheduler:
 
         method produce(TestRequest $request)
         {
+                # warn "FIXME XXX TODO";
+                # return;
+
                 my $host          =  $request->on_host->name;
                 my $yaml   = qx($temarepath/temare subjectprep $host);
                 return if $?;
