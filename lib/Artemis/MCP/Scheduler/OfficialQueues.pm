@@ -7,7 +7,6 @@ class Artemis::MCP::Scheduler::OfficialQueues {
         use aliased 'Artemis::MCP::Scheduler::Queue';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
         use Artemis::Model 'model';
-        use Artemis::Config;
 
         has queuelist => (is     => 'ro',
                          isa     => 'HashRef['.Queue.']',
@@ -34,8 +33,6 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                                                        );
                 }
 
-                use Data::Dumper;
-                say STDERR Dumper (\%queues);
                 return \%queues;
         }
 }
@@ -58,9 +55,7 @@ hardwaredb is available.
 =head1 SYNOPSIS
 
  my $officialhosts = Artemis::MCP::Scheduler::OfficialHosts->new;
- print Dumper($officialhosts->development);
- print Dumper($officialhosts->live);
- print Dumper($officialhosts->test);
+ print Dumper($officialhosts->queuelist);
 
 =head1 VARIABLES
 
