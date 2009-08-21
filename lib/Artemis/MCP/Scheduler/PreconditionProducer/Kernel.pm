@@ -6,16 +6,16 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
 
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
         use aliased 'Artemis::MCP::Scheduler::Job';
+        use aliased 'Artemis::Config';
 
-        sub younger
-        {
-                my $st_a = stat($a);
-                my $st_b = stat($b);
-                return $st_a->mtime() <=> $st_b->mtime();
-        }
+        sub younger { stat($a)->mtime() <=> stat($b)->mtime() }
 
         method produce(TestRequest $request) {
-                my $host          =  $request->on_host-name;
+                # warn "FIXME XXX TODO";
+                # return;
+
+                my $host            =  $request->on_host->name;
+                my $kernel_path     =  Config->subconfig->{package_dir}."/kernel";
                 my @kernelfiles     =  sort younger <$kernel_path/x86_64/*>;
                 my $kernelbuild     =  pop @kernelfiles;
 
@@ -29,8 +29,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
                         }
                 }
 
-                my $id = qx($execpath/artemis-testrun new --macroprecond=/data/bancroft/artemis/live/repository/macropreconditions/kernel/kernel_boot.mpc --hostname=$host -Dkernel_version=$kernel_version -Dkernelpkg=$kernelbuild --owner=mhentsc3 --topic=Kernel);
-
+                my $id  = qx($execpath/artemis-testrun new --macroprecond=/data/bancroft/artemis/live/repository/macropreconditions/kernel/kernel_boot.mpc --hostname=$host -Dkernel_version=$kernel_version -Dkernelpkg=$kernelbuild --owner=mhentsc3 --topic=Kernel);
                 my $job = Job->new(host => $request->on_host, testrunid => $id);
                 return $job;
 
