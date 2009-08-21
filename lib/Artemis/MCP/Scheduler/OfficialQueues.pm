@@ -27,7 +27,8 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                                 eval "use $producer_class";
                                 %producer = (producer => $producer_class->new ) unless $@;
                         }
-                        $queues{$_->name} = Queue->new ( name     => $_->name,
+                        $queues{$_->name} = Queue->new ( id       => $_->id,
+                                                         name     => $_->name,
                                                          priority => $_->priority,
                                                          %producer,
                                                        );
