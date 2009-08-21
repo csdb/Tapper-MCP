@@ -213,3 +213,30 @@
     testrun_id: 100
     precondition_id: 102
     succession: 2
+
+# -------------------- "scheduling"
+
+- schema: Queue
+  name: Xen Queue
+  data:
+    id: 1
+    name: Xen
+    producer: DummyProducer
+    priority: 300
+
+- schema: Queue
+  name: KVM Queue
+  data:
+    id: 2
+    name: KVM
+    producer: DummyProducer
+    priority: 200
+
+- schema: Queue
+  name: Kernel Queue
+  data:
+    id: 3
+    name: Kernel
+    producer: DummyProducer
+    priority: 10
+
