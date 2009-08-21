@@ -6,80 +6,38 @@ class Artemis::MCP::Scheduler::OfficialQueues {
 
         use aliased 'Artemis::MCP::Scheduler::Queue';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
-
+        use Artemis::Model 'model';
         use Artemis::Config;
 
-        has queuelist => (is => 'ro',
-                         isa => 'HashRef['.Queue.']',
-                         default => sub {
-                                         no strict 'refs';
-                                         my $env = Artemis::Config::_getenv;
-                                         &{"get_queuelist_$env"};
-                                        },
+        has queuelist => (is     => 'ro',
+                         isa     => 'HashRef['.Queue.']',
+                         default => sub { &load_queuelist },
                         );
 
         # XXX TODO: create these lists from hardware db
 
-        sub get_queuelist_development
+        sub load_queuelist
         {
-                say STDERR "get_queuelist_development";
-                return {
-                        Xen => Queue->new (
-                                           name     => 'Xen',
-                                           priority => 300,
-                                           producer => PreconditionProducer->new,
-                                          ),
-                        KVM => Queue->new (
-                                           name     => 'KVM',
-                                           priority => 200,
-                                          ),
-                        Kernel => Queue->new (
-                                              name     => 'Kernel',
-                                              priority => 10,
-                                             ),
-                       };
+                no strict 'refs';
+                my $queue_rs = model('TestrunDB')->resultset('Queue')->search({});
+                my %queues;
+                foreach ($queue_rs->all) {
+                        my %producer;
+                        if ($_->producer) {
+                                my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
+                                eval "use $producer_class";
+                                %producer = (producer => $producer_class->new ) unless $@;
+                        }
+                        $queues{$_->name} = Queue->new ( name     => $_->name,
+                                                         priority => $_->priority,
+                                                         %producer,
+                                                       );
+                }
+
+                use Data::Dumper;
+                say STDERR Dumper (\%queues);
+                return \%queues;
         }
-
-        sub get_queuelist_live {
-                say STDERR "get_queuelist_live";
-
-                return {
-                        Xen => Queue->new (
-                                           name     => 'Xen',
-                                           priority => 300,
-                                           producer => PreconditionProducer->new,
-                                          ),
-                        KVM => Queue->new (
-                                           name     => 'KVM',
-                                           priority => 200,
-                                          ),
-                        Kernel => Queue->new (
-                                              name     => 'Kernel',
-                                              priority => 10,
-                                             ),
-                       };
-        }
-
-        sub get_queuelist_test
-        {
-                say STDERR "get_queuelist_test";
-                return {
-                        Xen => Queue->new ( 
-                                           name     => 'Xen',
-                                           priority => 300,
-                                           producer => PreconditionProducer->new,
-                                          ),
-                        KVM => Queue->new (
-                                           name     => 'KVM',
-                                           priority => 200,
-                                          ),
-                        Kernel => Queue->new (
-                                              name     => 'Kernel',
-                                              priority => 10,
-                                             ),
-                       };
-        }
-
 }
 
 {
