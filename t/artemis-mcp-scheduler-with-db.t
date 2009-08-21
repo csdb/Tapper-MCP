@@ -18,7 +18,14 @@ use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
 use aliased 'Artemis::MCP::Scheduler::OfficialHosts';
 use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 
+use Test::Fixture::DBIC::Schema;
+use Artemis::Schema::TestTools;
+
 use Test::More tests => 6;
+
+# -----------------------------------------------------------------------------------------------------------------
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
+# -----------------------------------------------------------------------------------------------------------------
 
 my @hostlist = @{ OfficialHosts->new->hostlist };
 
