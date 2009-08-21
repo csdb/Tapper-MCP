@@ -21,30 +21,21 @@ use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 
 # -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
+construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
+construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
 my @hostlist = @{ OfficialHosts->new->hostlist };
 
 my $scheduler = Controller->new;
 $scheduler->algorithm->queues(OfficialQueues->new->queuelist);
-$scheduler->algorithm->queues->{Xen}->{testrequests} = [
-                                                        TestRequest->new
-                                                        (
-                                                         queue              => 'Xen',
-                                                         requested_features => ['Mem <= 8000'],
-                                                        ),
-                                                       ] ;
 
-$scheduler->algorithm->queues->{KVM}{testrequests} = [
-                                                      TestRequest->new
-                                                      ( queue              => 'KVM',
-                                                        requested_features => [ 'Mem <= 8000' ],
-                                                      ),
-                                                     ];
+is (scalar @{$scheduler->algorithm->queues->{Xen}->testrequests}, 1, "got Xen testrequests via db");
+is (scalar @{$scheduler->algorithm->queues->{KVM}->testrequests}, 1, "got KVM testrequests via db");
+
 my $job = $scheduler->get_next_job(\@hostlist);
 
 isa_ok($job, Job, 'Controller returns a job');
