@@ -7,13 +7,49 @@ class Artemis::MCP::Scheduler::Queue
         use Artemis::Exception::Param;
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
+        use Artemis::Model 'model';
 
-        has name         => (is => 'rw', isa => 'Str',                default => '',         required => 1);
-        has producer     => (is => 'rw', isa => PreconditionProducer,                                     );
-        has testrequests => (is => 'rw', isa => 'ArrayRef',           default => sub { [] },              );
+        has id           => (is => 'ro', isa => 'Int',                                                                );
+        has name         => (is => 'rw', isa => 'Str',                default => '',                    required => 1 );
+        has producer     => (is => 'rw', isa => PreconditionProducer,                                                 );
+        has testrequests => (is => 'rw', isa => 'ArrayRef',           default => sub { &load_testruns },              );
 
-        has priority     => (is => 'rw', isa => 'Num'                                                     );
-        has runcount     => (is => 'rw', isa => 'Num',                default => 0                        );
+        has priority     => (is => 'rw', isa => 'Num'                                                                 );
+        has runcount     => (is => 'rw', isa => 'Num',                default => 0                                    );
+
+        method _hostname($testrun) {
+                return unless ($testrun and $testrun->hardwaredb_systems_id);
+                 model('HardwareDB')->resultset('Systems')->find($testrun->hardwaredb_systems_id)->systemname;
+        }
+
+        method load_testruns
+        {
+                no strict 'refs';
+                my $testrequests_rs = model('TestrunDB')->resultset('TestrunScheduling')->search
+                    ({
+                      queue_id => $self->id
+                     });
+                my @testrequests;
+                foreach ($testrequests_rs->all)
+                {
+                        my $testrun  = $_->testrun;
+                        my $hostname = $self->_hostname($testrun);
+                        my @requested_features = map {
+                                                      $_->feature
+                                                     } model('TestrunDB')
+                                                         ->resultset('TestrunRequestedFeature')
+                                                             ->search({ testrun_id => $testrun->id })
+                                                                 ->all;
+                        push @testrequests, TestRequest->new
+                            ({
+                              hostnames          => [ $hostname // () ], # one or none
+                              requested_features => \@requested_features,
+                              queue              => $self->name,
+                             });
+                }
+
+                return \@testrequests;
+        }
 
         method get_test_request (ArrayRef $free_hosts)
         {
