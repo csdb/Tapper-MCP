@@ -1,7 +1,7 @@
 use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::PreconditionProducer {
-        # 
+        #
 }
 
 {
@@ -15,8 +15,8 @@ class Artemis::MCP::Scheduler::PreconditionProducer {
 __END__
 
 =head1 NAME
-        
-   Artemis::MCP::Scheduler::Producer - Generate Testruns
+
+Artemis::MCP::Scheduler::Producer - Generate Testruns
 
 =head1 SYNOPSIS
 
