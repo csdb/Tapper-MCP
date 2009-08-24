@@ -275,7 +275,7 @@ sub parse_image_precondition
 
         if ($opt_pkg) {
                 push @{$config->{preconditions}}, $opt_pkg;
-                push @{$config->{preconditions}}, {precondition_type => 'exec', filename => '/opt/artemis/bin/testsuite-hwtrack'};
+                push @{$config->{preconditions}}, {precondition_type => 'exec', filename => '/opt/artemis/bin/artemis-testsuite-hwtrack'};
         }
         return $config;
 }
