@@ -64,6 +64,19 @@
     hardwaredb_systems_id: 8
     wait_after_tests: ~
 
+- schema: Testrun
+  name: foobar
+  data:
+    id: 112
+    owner_user_id: 12
+    shortname: hw_report
+    notes: testrun used to test sending hw_report
+    topic_name: Software
+    test_program: none
+    hardwaredb_systems_id: 12
+    wait_after_tests: ~
+
+
 
 # -------------------- preconditions
 
