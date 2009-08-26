@@ -14,14 +14,17 @@ use String::Diff;
 use Sys::Hostname;
 use YAML::Syck;
 use Cwd;
+use TAP::DOM;
 
 use Artemis::MCP::Net;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 9;
+use Test::More tests => 12;
 use Test::Deep;
 
 BEGIN { use_ok('Artemis::MCP::Net'); }
+
+my $hw_send_testrun_id=112;
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -45,6 +48,7 @@ my $expect_string = '1..2
 # Artemis-suite-name: Topic-foobar
 # Artemis-suite-version: 1.0
 # Artemis-machine-name: bullock
+# Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
 ok 1 - Test on guest 1
 not ok 2 - error
@@ -53,7 +57,8 @@ not ok 2 - error
 is($report_string, $expect_string, 'TAP report creation');
 
 
-my $pid=fork();
+my $pid;
+$pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
         $retval = $srv->upload_files(23, 4, "install");
@@ -121,3 +126,36 @@ my $artemis_host = Sys::Hostname::hostname();
 like($new_string, qr/<ins> artemis_host=$artemis_host artemis_ip=(\d{1,3}\.){3}\d{1,3}<\/ins>/, 'Artemis host added to grub file while copy');
 
 
+
+$pid=fork();
+if ($pid==0) {
+        sleep(2); #bad and ugly to prevent race condition
+        $retval = $srv->hw_report_send($hw_send_testrun_id);
+
+        # Can't make this a test since the test counter istn't handled correctly after fork
+        die $retval if $retval;
+        exit 0;
+} else {
+        my $server = IO::Socket::INET->new(Listen    => 5,
+                                           LocalPort => Artemis::Config->subconfig->{report_port},
+                                           ReuseAddr => 1,
+                                          );
+        ok($server, 'create socket');
+        my $content;
+        eval{
+                $SIG{ALRM}=sub{die("timeout of 5 seconds reached while waiting for send hw report tst.");};
+                alarm(10);
+                my $msg_sock = $server->accept();
+                $msg_sock->print("15\n");   # send report id
+                while (my $line=<$msg_sock>) {
+                        $content.=$line;
+                }
+                alarm(0);
+        };
+        is($@, '', 'Getting data from hw_report_send');
+
+        my $dom = TAP::DOM->new(tap => $content);
+        is ($dom->{lines}[3]{_children}[0]{data}{network}[0]{vendor}, 'RealTek', 'Content from hw report');
+
+        waitpid($pid,0);
+}
