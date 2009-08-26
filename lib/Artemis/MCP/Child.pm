@@ -538,10 +538,12 @@ sub runtest_handling
         $retval = $remote->reboot_system($hostname);
         return $retval if $retval;
 
+        my ($report_id, $error);
+        $error = $net->hw_report_send($self->testrun);
+        return $error if $error;
 
         $retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 
-        my ($report_id, $error);
         if ($retval) {
                 ($error, $report_id) = $net->tap_report_send($self->testrun, [{error => 1, msg => $retval}]);
                 $net->upload_files($report_id, $self->testrun);
