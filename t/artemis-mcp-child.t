@@ -244,6 +244,9 @@ is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeou
 #                                    #
 #''''''''''''''''''''''''''''''''''''#
 
+$mock_net->mock('tap_report_away',sub{return 0;});
+
+
 # NOTE: assigning to $! has to be an error number, reading from $! will be the associated error string
 $mock_inet->mock('new', sub { $!=1, return undef; });
 $retval =  $child->runtest_handling('bullock');
