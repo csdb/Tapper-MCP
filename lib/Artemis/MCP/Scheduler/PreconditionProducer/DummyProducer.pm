@@ -1,6 +1,7 @@
 use MooseX::Declare;
 
-class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer extends Artemis::MCP::Scheduler::PreconditionProducer
+class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer
+    extends Artemis::MCP::Scheduler::PreconditionProducer
 {
         use aliased 'Artemis::MCP::Scheduler::Job';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
@@ -11,7 +12,6 @@ class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer extends Artem
                 $job->host($request->on_host);
                 return $job;
         }
-
 }
 
 {
