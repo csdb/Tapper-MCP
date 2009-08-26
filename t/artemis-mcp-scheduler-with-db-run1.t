@@ -13,7 +13,7 @@ use aliased 'Artemis::MCP::Scheduler::Queue';
 use aliased 'Artemis::MCP::Scheduler::Controller';
 use aliased 'Artemis::MCP::Scheduler::TestRequest';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
-use aliased 'Artemis::MCP::Scheduler::Algorithm::Dummy';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 use aliased 'Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer';
 use aliased 'Artemis::MCP::Scheduler::OfficialHosts';
 use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
@@ -21,22 +21,14 @@ use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 9;
+use Test::More tests => 3;
 
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # --------------------------------------------------------------------------------
 
-my @hostlist = @{ OfficialHosts->new->hostlist };
-
-my $scheduler = Controller->new;
-$scheduler->algorithm->queues(OfficialQueues->new->queuelist);
-
-# check basic test db consistency
-is (scalar @{$scheduler->algorithm->queues->{Xen}->testrequests},    3, "got Xen testrequests via db");
-is (scalar @{$scheduler->algorithm->queues->{KVM}->testrequests},    3, "got KVM testrequests via db");
-is (scalar @{$scheduler->algorithm->queues->{Kernel}->testrequests}, 3, "got Kernel testrequests via db");
+my $scheduler = Controller->new (algorithm => Algorithm->new_with_traits ( traits => [DummyAlgorithm] ));
 
 my $job = $scheduler->get_next_job(\@hostlist);
 

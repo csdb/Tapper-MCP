@@ -13,7 +13,7 @@ use aliased 'Artemis::MCP::Scheduler::Queue';
 use aliased 'Artemis::MCP::Scheduler::Controller';
 use aliased 'Artemis::MCP::Scheduler::TestRequest';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
-use aliased 'Artemis::MCP::Scheduler::Algorithm::Dummy';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 use aliased 'Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer';
 use aliased 'Artemis::MCP::Scheduler::OfficialHosts';
 use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
@@ -50,7 +50,7 @@ push @hostlist, Host->new
      state => 'free'
     );
 
-my $algorithm = Algorithm->new_with_traits ( traits => [Dummy] );
+my $algorithm = Algorithm->new_with_traits ( traits => [DummyAlgorithm] );
 
 my $queue = Queue->new
     (

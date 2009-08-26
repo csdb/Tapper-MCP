@@ -2,7 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
-role Artemis::MCP::Scheduler::Algorithm::Dummy {
+role Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm {
 
         requires 'queues';
 
@@ -34,7 +34,7 @@ __END__
 
 =head1 NAME
 
-Dummy  - Dummy algorithm for testing
+DummyAlgorithm  - Dummy algorithm for testing
 
 =head1 SYNOPSIS
 
