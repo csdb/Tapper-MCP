@@ -10,6 +10,7 @@ use Net::SSH::Expect;
 use IO::Socket::INET;
 use Sys::Hostname;
 use File::Basename;
+use YAML;
 
 extends 'Artemis::MCP';
 
@@ -317,6 +318,41 @@ sub upload_files
 }
 
 
+=head2 tap_report_away
+
+Actually send the tap report to receiver.
+
+@param string - report to be sent
+
+@return success - (0, report id)
+@return error   - (1, error string)
+
+=cut
+
+sub tap_report_away
+{
+        my ($self, $tap) = @_;
+        my $reportid;
+        if (my $sock = IO::Socket::INET->new(PeerAddr => $self->cfg->{report_server},
+					     PeerPort => $self->cfg->{report_port},
+					     Proto    => 'tcp')) {
+                eval{
+                        my $timeout = 100;
+                        local $SIG{ALRM}=sub{die("timeout for sending tap report ($timeout seconds) reached.");};
+                        alarm($timeout);
+                        ($reportid) = <$sock> =~m/(\d+)$/g;
+                        $sock->print($tap);
+                };
+                alarm(0);
+                $self->log->error($@) if $@;
+		close $sock;
+	} else {
+                return(1,"Can not connect to report server: $!");
+	}
+        return (0,$reportid);
+
+}
+
 =head2 tap_report_send
 
 Send information of current test run status to report framework using TAP
@@ -334,26 +370,8 @@ sub tap_report_send
 {
         my ($self, $testrun, $report) = @_;
         my $tap = $self->tap_report_create($testrun, $report);
-        my $reportid;
         $self->log->debug($tap);
-
-        if (my $sock = IO::Socket::INET->new(PeerAddr => $self->cfg->{report_server},
-					     PeerPort => $self->cfg->{report_port},
-					     Proto    => 'tcp')){
-                eval{
-                        my $timeout = 100;
-                        local $SIG{ALRM}=sub{die("timeout for sending tap report ($timeout seconds) reached.");};
-                        alarm($timeout);
-                        ($reportid) = <$sock> =~m/(\d+)$/g;
-                        $sock->print($tap);
-                };
-                alarm(0);
-                $self->log->error($@) if $@;
-		close $sock;
-	} else {
-                return(1,"Can not connect to report server: $!");
-	}
-        return (0,$reportid);
+        return $self->tap_report_away($tap);
 }
 
 
@@ -383,6 +401,7 @@ sub tap_report_create
         $message .= "# Artemis-suite-name: Topic-$topic\n";
         $message .= "# Artemis-suite-version: 1.0\n";
         $message .= "# Artemis-machine-name: $hostname\n";
+        $message .= "# Artemis-section: MCP overview\n";
         $message .= "# Artemis-reportgroup-primary: 1\n";
 
         # @report starts with 0, reports start with 1
@@ -396,5 +415,72 @@ sub tap_report_create
         return ($message);
 }
 
+=head2 hw_report_send
+
+Send a report containing the test machines hw config as set in the hardware
+db.
+
+@param int - testrun id
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub hw_report_send
+{
+        my ($self, $testrun_id) = @_;
+        my $run       = model->resultset('Testrun')->find($testrun_id);
+        my $revisions = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id)->revisions;
+        my $data = {
+                    mem             => $revisions->mem,
+                    cpus            => [ map {{ vendor   => $_->vendor,
+                                                family   => $_->family,
+                                                model    => $_->model,
+                                                stepping => $_->stepping,
+                                                revision => $_->revision,
+                                                socket   => $_->socket_type,
+                                                cores    => $_->cores,
+                                                clock    => $_->clock,
+                                                l2cache  => $_->l2cache,
+                                                l3cache  => $_->l3cache,
+                                        }} $revisions->cpus],
+                    mainboard      => [ map {{
+                                          vendor       => $_->vendor,
+                                          model        => $_->model,
+                                          socket_type  => $_->socket_type,
+                                          nbridge      => $_->nbridge,
+                                          sbridge      => $_->sbridge,
+                                          num_cpu_sock => $_->num_cpu_sock,
+                                          num_ram_sock => $_->num_ram_sock,
+                                          bios         => $_->bios,
+                                          features     => $_->features,
+                                  }} $revisions->mainboards ]->[0],       # this is a map to handle empty mainboards correctly
+
+                    network         => [ map {{ vendor   => $_->vendor,
+                                                chipset  => $_->chipset,
+                                                mac      => $_->mac,
+                                                bus_type => $_->bus_type,
+                                                media    => $_->media,
+                                        }} $revisions->networks],
+                   };
+        my $yaml = Dump($data);
+        $yaml   .= "...\n";
+        $yaml =~ s/^(.*)$/  $1/mg;  # indent
+        my $report = sprintf("
+TAP Version 13
+1..2
+# Artemis-Reportgroup-Testrun: %s
+# Artemis-Suite-Name: HWTrack
+# Artemis-Suite-Version: %s
+ok 1 - Getting hardware information
+%s
+ok 2 - Sending
+", $testrun_id, $Artemis::MCP::VERSION, $yaml);
+
+        my ($error, $error_string) = $self->tap_report_away($report);
+        return $error_string if $error;
+        return 0;
+}
 
 1;
