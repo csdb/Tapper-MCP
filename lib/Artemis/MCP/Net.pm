@@ -14,7 +14,7 @@ use YAML;
 
 extends 'Artemis::MCP';
 
-use Artemis::Model 'model';
+use Artemis::Model qw(model get_hardwaredb_overview);
 
 =head2 conserver_connect
 
@@ -431,39 +431,7 @@ sub hw_report_send
 {
         my ($self, $testrun_id) = @_;
         my $run       = model->resultset('Testrun')->find($testrun_id);
-        my $revisions = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id)->revisions;
-        my $data = {
-                    mem             => $revisions->mem,
-                    cpus            => [ map {{ vendor   => $_->vendor,
-                                                family   => $_->family,
-                                                model    => $_->model,
-                                                stepping => $_->stepping,
-                                                revision => $_->revision,
-                                                socket   => $_->socket_type,
-                                                cores    => $_->cores,
-                                                clock    => $_->clock,
-                                                l2cache  => $_->l2cache,
-                                                l3cache  => $_->l3cache,
-                                        }} $revisions->cpus],
-                    mainboard      => [ map {{
-                                          vendor       => $_->vendor,
-                                          model        => $_->model,
-                                          socket_type  => $_->socket_type,
-                                          nbridge      => $_->nbridge,
-                                          sbridge      => $_->sbridge,
-                                          num_cpu_sock => $_->num_cpu_sock,
-                                          num_ram_sock => $_->num_ram_sock,
-                                          bios         => $_->bios,
-                                          features     => $_->features,
-                                  }} $revisions->mainboards ]->[0],       # this is a map to handle empty mainboards correctly
-
-                    network         => [ map {{ vendor   => $_->vendor,
-                                                chipset  => $_->chipset,
-                                                mac      => $_->mac,
-                                                bus_type => $_->bus_type,
-                                                media    => $_->media,
-                                        }} $revisions->networks],
-                   };
+        my $data = get_hardwaredb_overview($run->hardwaredb_systems_id);
         my $yaml = Dump($data);
         $yaml   .= "...\n";
         $yaml =~ s/^(.*)$/  $1/mg;  # indent
@@ -471,12 +439,13 @@ sub hw_report_send
 TAP Version 13
 1..2
 # Artemis-Reportgroup-Testrun: %s
-# Artemis-Suite-Name: HWTrack
+# Artemis-Suite-Name: Hardwaredb Overview
 # Artemis-Suite-Version: %s
+# Artemis-Machine-Name: %s
 ok 1 - Getting hardware information
 %s
 ok 2 - Sending
-", $testrun_id, $Artemis::MCP::VERSION, $yaml);
+", $testrun_id, $Artemis::MCP::VERSION, Artemis::Model::get_hostname_for_systems_id($run->hardwaredb_systems_id), $yaml);
 
         my ($error, $error_string) = $self->tap_report_away($report);
         return $error_string if $error;
