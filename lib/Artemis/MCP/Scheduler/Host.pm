@@ -2,6 +2,8 @@ use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::Host {
 
+        use aliased "Artemis::Model";
+
         # Hostname.
         has name  => (is => 'rw');
         has state => (is => 'rw'); # TODO: somewhat unclear. active(?)
@@ -12,15 +14,33 @@ class Artemis::MCP::Scheduler::Host {
 
         has features => (is      => 'rw',
                          isa     => 'HashRef',
-                         default => sub { &get_features },
+                         builder => 'get_features',
+                         #default => sub { &get_features },
                         );
 
         method get_features
         {
-                my $systems_id = Artemis::Model::get_systems_id_for_hostname($self->name);
-                $self->features(Artemis::Model::get_hardwaredb_overview($systems_id));
+                # do not use accessor to prevent infinite recursion via `after name() {...}'
+                my $name = $self->{name};
+
+                my $features;
+                if ($name)
+                {
+                        my $systems_id = Artemis::Model::get_systems_id_for_hostname($name);
+                        $features = Artemis::Model::get_hardwaredb_overview($systems_id);
+                }
+                #use Data::Dumper;
+                #say STDERR "get_features.features: ", Dumper($features);
+                return $features;
         }
 
+        after name {
+                if (@_ > 1) # only setters
+                {
+                        say STDERR "* after name: ", join(", ", @_);
+                        $self->features( $self->get_features );
+                }
+        };
 }
 
 {
@@ -42,17 +62,7 @@ Host - Implements a host object used for scheduling
      name               =>'bullock',
      state              => 'free',
      available_features => {
-                            Mem             => 8192,
-                            Vendor          => 'AMD',
-                            Family          => 15,
-                            Model           => 67,
-                            Stepping        => 2,
-                            Revision        => '',
-                            Socket          => 'AM2',
-                            Number_of_cores => 2,
-                            Clock           => 2600,
-                            L2_Cache        => 1024,
-                            L3_Cache        => 0
+                            ...
                            },
     );
  push @hostlist, $host;
