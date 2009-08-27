@@ -546,14 +546,21 @@ sub runtest_handling
 
         if ($retval) {
                 ($error, $report_id) = $net->tap_report_send($self->testrun, [{error => 1, msg => $retval}]);
-                $net->upload_files($report_id, $self->testrun);
+                if ($error) {
+                        $self->log->error($report_id);
+                } else {
+                        $net->upload_files($report_id, $self->testrun);
+                }
                 return $retval;
         }
 
         $self->log->debug('waiting for test to finish');
         $retval              = $self->wait_for_testrun($srv);
         ($error, $report_id) = $net->tap_report_send($self->testrun, $retval);
-        return $report_id if $error;
+        if ($error) {
+                $self->log->error($report_id);
+                return $retval;
+        }
 
         $retval = $net->upload_files($report_id, $self->testrun);
         return $retval if $retval;
