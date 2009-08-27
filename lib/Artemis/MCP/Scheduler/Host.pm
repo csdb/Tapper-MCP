@@ -15,7 +15,6 @@ class Artemis::MCP::Scheduler::Host {
         has features => (is      => 'rw',
                          isa     => 'HashRef',
                          builder => 'get_features',
-                         #default => sub { &get_features },
                         );
 
         method get_features
@@ -29,8 +28,6 @@ class Artemis::MCP::Scheduler::Host {
                         my $systems_id = Artemis::Model::get_systems_id_for_hostname($name);
                         $features = Artemis::Model::get_hardwaredb_overview($systems_id);
                 }
-                #use Data::Dumper;
-                #say STDERR "get_features.features: ", Dumper($features);
                 return $features;
         }
 
