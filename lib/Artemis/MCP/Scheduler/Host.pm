@@ -22,21 +22,17 @@ class Artemis::MCP::Scheduler::Host {
                 # do not use accessor to prevent infinite recursion via `after name() {...}'
                 my $name = $self->{name};
 
-                my $features;
+                my $features = {};
                 if ($name)
                 {
                         my $systems_id = Artemis::Model::get_systems_id_for_hostname($name);
-                        $features = Artemis::Model::get_hardwaredb_overview($systems_id);
+                        $features = Artemis::Model::get_hardwaredb_overview($systems_id) if $systems_id;
                 }
                 return $features;
         }
 
         after name {
-                if (@_ > 1) # only setters
-                {
-                        say STDERR "* after name: ", join(", ", @_);
-                        $self->features( $self->get_features );
-                }
+                $self->features( $self->get_features ) if @_ > 1; # only setters
         };
 }
 
