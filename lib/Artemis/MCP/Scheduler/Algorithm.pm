@@ -6,11 +6,12 @@ use 5.010;
 class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
 
         use aliased 'Artemis::MCP::Scheduler::Queue';
+        use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 
         has queues => (
                        is         => 'rw',
                        isa        => 'HashRef['.Queue.']',
-                       default    => sub { {} },
+                       default    => sub { OfficialQueues->new->queuelist },
                       );
 
         method add_queue(Queue $q)

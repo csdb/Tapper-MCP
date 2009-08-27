@@ -36,8 +36,8 @@ $request->queue('Xen');
 
 
 my $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
-    (
-     traits => ['Artemis::MCP::Scheduler::Algorithm::WFQ']
+    ( traits => [WFQ],
+      queues => {},
     );
 my $queue = Artemis::MCP::Scheduler::Queue->new();
 $queue->name('Xen');
@@ -78,7 +78,8 @@ push @hostlist, $host;
 
 $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
     (
-     traits => ['Artemis::MCP::Scheduler::Algorithm::Dummy']
+     traits => [DummyAlgorithm],
+     queues => {},
     );
 
 

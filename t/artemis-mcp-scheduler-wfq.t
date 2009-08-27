@@ -6,7 +6,7 @@ use aliased 'Artemis::MCP::Scheduler::Queue';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::WFQ';
 
-my $scheduler = Algorithm->new_with_traits ( traits => [WFQ] );
+my $scheduler = Algorithm->new_with_traits ( traits => [WFQ], queues => {} );
 ok($scheduler->does(WFQ), 'does WFQ');
 
 $scheduler->add_queue(Queue->new(name => 'A', priority => 300));

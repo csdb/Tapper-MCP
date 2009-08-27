@@ -1,6 +1,5 @@
 use MooseX::Declare;
 
-
 class Artemis::MCP::Scheduler::Host {
 
 =head1 NAME

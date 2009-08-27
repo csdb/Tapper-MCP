@@ -31,7 +31,6 @@ construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardware
 my @hostlist = @{ OfficialHosts->new->hostlist };
 
 my $scheduler = Controller->new;
-$scheduler->algorithm->queues(OfficialQueues->new->queuelist);
 
 # check basic test db consistency
 is (scalar @{$scheduler->algorithm->queues->{Xen}->testrequests},    3, "got Xen testrequests via db");
@@ -50,7 +49,8 @@ push @hostlist, Host->new
      state => 'free'
     );
 
-my $algorithm = Algorithm->new_with_traits ( traits => [DummyAlgorithm] );
+# no default queues, filled explicitely below
+my $algorithm = Algorithm->new_with_traits ( traits => [DummyAlgorithm], queues => {} );
 
 my $queue = Queue->new
     (

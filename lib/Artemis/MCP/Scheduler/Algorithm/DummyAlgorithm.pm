@@ -13,6 +13,7 @@ role Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm {
         method get_next_queue()
         {
                 my @Q = sort keys %{$self->queues};
+
                 my %Q = map { $Q[$_] => $_ } 0..$#Q;
 
                 if (not $self->current_queue) {
