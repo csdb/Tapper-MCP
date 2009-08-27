@@ -7,17 +7,19 @@ use warnings;
 use Class::C3;
 use MRO::Compat;
 
-use Artemis::MCP::Scheduler::Host;
-use Artemis::MCP::Scheduler::Controller;
-use Artemis::MCP::Scheduler::TestRequest;
-#use Artemis::MCP::Scheduler::Algorithm::WFQ;
-use Artemis::MCP::Scheduler::Algorithm;
-use Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer;
+use aliased 'Artemis::MCP::Scheduler::Host';
+use aliased 'Artemis::MCP::Scheduler::Controller';
+use aliased 'Artemis::MCP::Scheduler::TestRequest';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::WFQ';
+use aliased 'Artemis::MCP::Scheduler::Algorithm';
+use aliased 'Artemis::MCP::Scheduler::Queue';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
+use aliased 'Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer';
 
 use Test::More tests => 6;
 
 my @hostlist;
-my $host = Artemis::MCP::Scheduler::Host->new();
+my $host = Host->new();
 $host->name('bullock');
 $host->available_features({Mem => 8192, Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, L2_Cache => 1024, L3_Cache => 0});
 $host->state('free');
@@ -83,12 +85,12 @@ $algorithm = Artemis::MCP::Scheduler::Algorithm->new_with_traits
     );
 
 
-$queue = Artemis::MCP::Scheduler::Queue->new();
+$queue = Queue->new();
 $queue->name('Xen');
 $queue->priority(300);
-$queue->producer(Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer->new);
+$queue->producer(DummyProducer->new);
 
-$request = Artemis::MCP::Scheduler::TestRequest->new();
+$request = TestRequest->new();
 $value = 'Mem <= 8000';
 $request->requested_features([$value]);
 $request->queue('Xen');
