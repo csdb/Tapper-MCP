@@ -2,41 +2,38 @@ use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::Host {
 
+        # Hostname.
+        has name  => (is => 'rw');
+        has state => (is => 'rw'); # TODO: somewhat unclear. active(?)
+
+        # List of features offered by a host.
+        # Can be used to decide whether a certain host
+        # fits the requirements of a test request.
+
+        has features => (is      => 'rw',
+                         isa     => 'HashRef',
+                         default => sub { &get_features },
+                        );
+
+        method get_features
+        {
+                my $systems_id = Artemis::Model::get_systems_id_for_hostname($self->name);
+                $self->features(Artemis::Model::get_hardwaredb_overview($systems_id));
+        }
+
+}
+
+{
+        # help the CPAN indexer
+        package Artemis::MCP::Scheduler::Host;
+        our $VERSION = '0.01';
+}
+
+__END__
+
 =head1 NAME
 
 Host - Implements a host object used for scheduling
-
-=head1 VERSION
-
-Version 0.01
-
-=head2 name
-
-Hostname. Has to be unique.
-
-=cut
-
-        has name => (is => 'rw');
-
-=head2 state
-
-A host can have a certain state. Since it is not clear yet how to use
-this attribute possible values are also unknown yet.
-
-=cut
-
-        has state => (is => 'rw');
-
-=head2 features
-
-List of features offered by a host. Can be used to decide whether a
-certain host fits the requirement list of a test request.
-
-=cut
-
-
-        has available_features => (is => 'rw', isa => 'HashRef');
-
 
 =head1 SYNOPSIS
 
@@ -63,17 +60,6 @@ certain host fits the requirement list of a test request.
 
 =head1 FUNCTIONS
 
-=cut
-
-}
-
-{
-    # just for CPAN
-    package Artemis::MCP::Scheduler::Host;
-    our $VERSION = '0.01';
-}
-
-
 =head1 AUTHOR
 
 Maik Hentsche, C<< <maik.hentsche at amd.com> >>
@@ -96,5 +82,3 @@ under the same terms as Perl itself.
 
 
 =cut
-
-1; # End of WFQ
