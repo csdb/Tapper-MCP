@@ -95,3 +95,28 @@
     mac: 00:18:4d:76:7a:12
     bus_type: PCI
     media: RJ45
+
+# --- bascha hardware ---
+
+- schema: Revision
+  name: iring revisions
+  data:
+    lid: 115
+    revision_id: 115
+    component_type: cpu
+    component_id: 3115
+
+
+# ----- CPU
+
+- schema: Cpu
+  name: bascha cpu 3B2
+  data:
+    lid: 3115
+    vendor: AMD
+    family: 15
+    model: 67
+    stepping: 2
+    revision: 
+
+
