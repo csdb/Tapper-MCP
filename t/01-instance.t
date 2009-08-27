@@ -47,7 +47,7 @@ modules.
 foreach my $module(@modules) {
         my $obj;
         eval "require $module";
-        $obj = eval "$module->new(testrun => 4)";
+        $obj = eval "$module->new(testrun => 4, name => 'affe')";
         isa_ok($obj, $module);
         print $@ if $@;
 }
