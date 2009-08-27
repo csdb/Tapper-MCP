@@ -22,12 +22,19 @@ class Artemis::MCP::Scheduler::TestRequest
 
         # TODO:
         sub _helper {
-                my ($given, $required) = @_;
+                my ($given, $subkey, $required) = @_;
 
-                if ($required) {
-                        return grep { $_ eq $required } @{ $given };
-                } else {
-                        $given->[0];
+                if ($required)
+                {
+                        return
+                            grep
+                            {
+                                    $_ eq ($subkey ? $required->{$subkey} : $required)
+                            } @{ $given };
+                }
+                else
+                {
+                        $subkey ? $given->[0]->{$subkey} : $given->[0];
                 }
         }
 
@@ -59,18 +66,17 @@ class Artemis::MCP::Scheduler::TestRequest
 #                     ]
 #         };
 
-        sub vendor(;$) {_helper($_->features->{cpu}{vendors}, @_) }
-        sub mem(;$)    {_helper($_->features->{mem},          @_) }
-
-        sub family()   { $_->available_features->{family}          } HIER WEITER
-        sub model()    { $_->available_features->{model}           }
-        sub stepping() { $_->available_features->{stepping}        }
-        sub revision() { $_->available_features->{revision}        }
-        sub socket()   { $_->available_features->{socket_type}     }
-        sub cores()    { $_->available_features->{cores}           }
-        sub clock()    { $_->available_features->{clock}           }
-        sub l2cache()  { $_->available_features->{l2cache}         }
-        sub l3cache()  { $_->available_features->{l3cache}         }
+        sub vendor(;$)   { _helper($_->features->{cpu}, 'vendors',  @_) }
+        sub mem(;$)      { _helper($_->features->{mem}, undef,      @_) }
+        sub family(;$)   { _helper($_->features->{cpu}, 'family',   @_) }
+        sub model(;$)    { _helper($_->features->{cpu}, 'model',    @_) }
+        sub stepping(;$) { _helper($_->features->{cpu}, 'stepping', @_) }
+        sub revision(;$) { _helper($_->features->{cpu}, 'revision', @_) }
+        sub socket(;$)   { _helper($_->features->{cpu}, 'socket',   @_) }
+        sub cores(;$)    { _helper($_->features->{cpu}, 'cores',    @_) }
+        sub clock(;$)    { _helper($_->features->{cpu}, 'clock',    @_) }
+        sub l2cache(;$)  { _helper($_->features->{cpu}, 'l2cache',  @_) }
+        sub l3cache(;$)  { _helper($_->features->{cpu}, 'l3cache',  @_) }
 
         method fits(ArrayRef $free_hosts) {
                 return 0 if not $free_hosts;
