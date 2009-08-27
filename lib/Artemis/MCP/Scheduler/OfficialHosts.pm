@@ -38,17 +38,18 @@ class Artemis::MCP::Scheduler::OfficialHosts {
                   name               =>'bullock',
                   state              => 'free',
                   available_features => {
-                                         Mem             => 8192,
-                                         Vendor          => 'AMD',
-                                         Family          => 15,
-                                         Model           => 67,
-                                         Stepping        => 2,
-                                         Revision        => '',
-                                         Socket          => 'AM2',
-                                         Number_of_cores => 2,
-                                         Clock           => 2600,
-                                         L2_Cache        => 1024,
-                                         L3_Cache        => 0
+                                         # HIER
+                                         mem             => 8192,
+                                         vendor          => 'AMD',
+                                         family          => 15,
+                                         model           => 67,
+                                         stepping        => 2,
+                                         revision        => '',
+                                         socket_type     => 'AM2',
+                                         cores           => 2,
+                                         clock           => 2600,
+                                         l2cache         => 1024,
+                                         l3cache         => 0
                                         },
                  ),
                  Host->new

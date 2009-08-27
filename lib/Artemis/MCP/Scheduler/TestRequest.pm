@@ -20,17 +20,57 @@ class Artemis::MCP::Scheduler::TestRequest
                 return 0;
         }
 
-        sub Mem()             { $_->available_features->{Mem}             }
-        sub Vendor()          { $_->available_features->{Vendor}          }
-        sub Family()          { $_->available_features->{Family}          }
-        sub Model()           { $_->available_features->{Model}           }
-        sub Stepping()        { $_->available_features->{Stepping}        }
-        sub Revision()        { $_->available_features->{Revision}        }
-        sub Socket()          { $_->available_features->{Socket}          }
-        sub Number_of_cores() { $_->available_features->{Number_of_cores} }
-        sub Clock()           { $_->available_features->{Clock}           }
-        sub L2_Cache()        { $_->available_features->{L2_Cache}        }
-        sub L3_Cache()        { $_->available_features->{L3_Cache}        }
+        # TODO:
+        sub _helper {
+                my ($given, $required) = @_;
+
+                if ($required) {
+                        return grep { $_ eq $required } @{ $given };
+                } else {
+                        $given->[0];
+                }
+        }
+
+# $VAR1 = {
+#           'network' => [
+#                          {
+#                            'chipset' => 'rtl8169',
+#                            'media' => 'RJ45',
+#                            'mac' => '00:18:4d:76:7a:12',
+#                            'bus_type' => 'PCI',
+#                            'vendor' => 'RealTek'
+#                          }
+#                        ],
+#           'mainboard' => undef,
+#           'mem' => 4096,
+#           'cpus' => [
+#                       {
+#                         'model' => '3',
+#                         'l3cache' => undef,
+#                         'cores' => undef,
+#                         'socket' => undef,
+#                         'revision' => 'B',
+#                         'clock' => undef,
+#                         'l2cache' => undef,
+#                         'vendor' => 'AMD',
+#                         'family' => '10',
+#                         'stepping' => '2'
+#                       }
+#                     ]
+#         };
+
+        sub vendor(;$) {_helper($_->features->{cpu}{vendors}, @_) }
+        sub mem(;$)    {_helper($_->features->{mem},          @_) }
+
+        sub family()   { $_->available_features->{family}          } HIER WEITER
+        sub model()    { $_->available_features->{model}           }
+        sub stepping() { $_->available_features->{stepping}        }
+        sub revision() { $_->available_features->{revision}        }
+        sub socket()   { $_->available_features->{socket_type}     }
+        sub cores()    { $_->available_features->{cores}           }
+        sub clock()    { $_->available_features->{clock}           }
+        sub l2cache()  { $_->available_features->{l2cache}         }
+        sub l3cache()  { $_->available_features->{l3cache}         }
 
         method fits(ArrayRef $free_hosts) {
                 return 0 if not $free_hosts;
