@@ -37,7 +37,7 @@ is (scalar @{$scheduler->algorithm->queues->{Xen}->testrequests},    3, "got Xen
 is (scalar @{$scheduler->algorithm->queues->{KVM}->testrequests},    3, "got KVM testrequests via db");
 is (scalar @{$scheduler->algorithm->queues->{Kernel}->testrequests}, 3, "got Kernel testrequests via db");
 
-my $job = $scheduler->get_next_job(\@hostlist);
+my $job = $scheduler->get_next_job(\@hostlist, try_until_found => 0);
 
 isa_ok($job,         Job,         'Controller returns a job');
 isa_ok($job->host,   Host,        'Returned job has a host');

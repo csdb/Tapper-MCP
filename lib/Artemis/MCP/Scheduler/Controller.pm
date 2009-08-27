@@ -34,14 +34,16 @@ class Artemis::MCP::Scheduler::Controller
                 return;
         }
 
-        method get_next_job(ArrayRef $free_hosts) {
+        method get_next_job(ArrayRef $free_hosts, %args) {
                 my ($queue, $job);
 
                 do {
                         $queue = $self->get_priority_job();
                         $queue = $self->algorithm->get_next_queue() if not $queue;
                         $job   = $queue->get_test_request($free_hosts); # contains host decision
-                } while (not $job);
+                        print STDERR "job: ", Dumper($job);
+                        #sleep 3;
+                } while (not $job and $args{try_until_found});
 
                 return $job;    # MCP maintains list of free hosts
         }
