@@ -60,7 +60,7 @@ my $queue = Queue->new
      testrequests => [
                       TestRequest->new
                       (
-                       requested_features => ['Mem <= 8000'],
+                       requested_features => ['mem <= 8000'],
                        queue => 'Xen',
                       )
                      ],

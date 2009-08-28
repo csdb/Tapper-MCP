@@ -263,7 +263,7 @@
   data:
     id: 101
     testrun_id: 1001            # aaa
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-aaa
@@ -291,7 +291,7 @@
   data:
     id: 102
     testrun_id: 1002            # aaa2
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-aaa2
@@ -319,7 +319,7 @@
   data:
     id: 103
     testrun_id: 1003            # aaa3
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-aaa3
@@ -350,7 +350,7 @@
   data:
     id: 201
     testrun_id: 2001            # bbb
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-bbb
@@ -378,7 +378,7 @@
   data:
     id: 202
     testrun_id: 2002            # bbb2
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-bbb2
@@ -406,7 +406,7 @@
   data:
     id: 203
     testrun_id: 2003            # bbb3
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-bbb3
@@ -436,7 +436,7 @@
   data:
     id: 301
     testrun_id: 3001            # ccc
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-ccc
@@ -464,7 +464,7 @@
   data:
     id: 302
     testrun_id: 3002            # ccc2
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-ccc2
@@ -492,7 +492,7 @@
   data:
     id: 303
     testrun_id: 3003            # ccc3
-    feature: 'Mem <= 8000'
+    feature: 'mem <= 8000'
 
 - schema: TestrunScheduling
   name: Xen-ccc3

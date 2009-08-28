@@ -21,18 +21,42 @@ use Test::More tests => 6;
 my @hostlist;
 my $host = Host->new();
 $host->name('bullock');
-$host->available_features({Mem => 8192, Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, L2_Cache => 1024, L3_Cache => 0});
+$host->features({
+                 mem      => 8192,
+                 vendor   => 'AMD',
+                 family   => 15,
+                 model    => 67,
+                 stepping => 2,
+                 revision => '',
+                 socket   => 'AM2',
+                 cores    => 2,
+                 clock    => 2600,
+                 l2cache  => 1024,
+                 l3cache  => 0
+                });
 $host->state('free');
 push @hostlist, $host;
 
 $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('dickstone');
-$host->available_features({Mem => 4096, Vendor => 'AMD', Family => 15, Model => 67, Stepping => 2, Revision => '', Socket => 'AM2', Number_of_cores => 2, Clock => 2600, L2_Cache => 1024, L3_Cache => 0});
+$host->features({
+                 mem      => 4096,
+                 vendor   => 'AMD',
+                 family   => 15,
+                 model    => 67,
+                 stepping => 2,
+                 revision => '',
+                 socket   => 'AM2',
+                 cores    => 2,
+                 clock    => 2600,
+                 l2cache  => 1024,
+                 l3cache  => 0
+                });
 $host->state('free');
 push @hostlist, $host;
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
-my $value = 'Mem <= 8000';
+my $value = 'mem <= 8000';
 $request->requested_features([$value]);
 $request->queue('Xen');
 
@@ -49,7 +73,7 @@ $queue->testrequests([$request]);
 $algorithm->add_queue($queue);
 
 $request = Artemis::MCP::Scheduler::TestRequest->new();
-$value = 'Mem <= 8000';
+$value = 'mem <= 8000';
 $request->requested_features([$value]);
 $request->queue('kvm');
 
@@ -91,7 +115,7 @@ $queue->priority(300);
 $queue->producer(DummyProducer->new);
 
 $request = TestRequest->new();
-$value = 'Mem <= 8000';
+$value = 'mem <= 8000';
 $request->requested_features([$value]);
 $request->queue('Xen');
 $queue->testrequests([$request]);

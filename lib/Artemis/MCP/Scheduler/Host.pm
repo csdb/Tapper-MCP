@@ -26,7 +26,7 @@ class Artemis::MCP::Scheduler::Host {
                 if ($name)
                 {
                         my $systems_id = Artemis::Model::get_systems_id_for_hostname($name);
-                        $features = Artemis::Model::get_hardwaredb_overview($systems_id) if $systems_id;
+                        $features      = Artemis::Model::get_hardwaredb_overview($systems_id) if $systems_id;
                 }
                 return $features;
         }
@@ -52,11 +52,9 @@ Host - Implements a host object used for scheduling
 
  my $host = Artemis::MCP::Scheduler::Host->new
     (
-     name               =>'bullock',
-     state              => 'free',
-     available_features => {
-                            ...
-                           },
+     name     =>'bullock',
+     state    => 'free',
+     features => { ... },
     );
  push @hostlist, $host;
  my $job = $controller->get_next_job(\@hostlist);

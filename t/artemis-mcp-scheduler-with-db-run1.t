@@ -1,13 +1,5 @@
 #! /usr/bin/env perl
 
-BEGIN {
-        use Test::More tests => 3;
-        ok(1, "dummy");
-        ok(2, "dummy");
-        ok(3, "dummy");
-        exit 0;
-}
-
 use strict;
 use warnings;
 
@@ -29,8 +21,10 @@ use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 
+use Test::More tests => 3;
+
 # --------------------------------------------------------------------------------
-construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
+construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling_run1.yml' );
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # --------------------------------------------------------------------------------
 
