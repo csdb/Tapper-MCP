@@ -3,13 +3,14 @@ use Test::More tests => 2;
 use Data::Dumper;
 use aliased 'Artemis::MCP::Scheduler::Queue';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
-use aliased 'Artemis::MCP::Scheduler::Algorithm::Dummy';
+use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 
 my $scheduler = Algorithm->new_with_traits
     (
-     traits => [Dummy]
+     traits => [DummyAlgorithm],
+     queues => {}, # set explicitely later
     );
-ok($scheduler->does(Dummy), 'does Dummy');
+ok($scheduler->does(DummyAlgorithm), 'does DummyAlgorithm');
 
 $scheduler->add_queue(Queue->new(name => 'A', priority => 300));
 $scheduler->add_queue(Queue->new(name => 'B', priority => 200));
