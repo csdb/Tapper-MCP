@@ -22,17 +22,17 @@ class Artemis::MCP::Scheduler::Controller
 
         method init() { }
 
-        method get_priority_job() {
-                # my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
+        # method get_priority_job() {
+        #         # my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
 
-                my $testruns;
-                # do_someting in case the testrun exists;
-                if ($testruns) {
-                        my $queue = Artemis::MCP::Scheduler::Queue->new(name => 'AdHoc');
-                        return $queue;
-                }
-                return;
-        }
+        #         my $testruns;
+        #         # do_someting in case the testrun exists;
+        #         if ($testruns) {
+        #                 my $queue = Artemis::MCP::Scheduler::Queue->new(name => 'AdHoc');
+        #                 return $queue;
+        #         }
+        #         return;
+        # }
 
         method get_next_job(ArrayRef $free_hosts, %args) {
                 my ($queue, $job);
