@@ -21,7 +21,7 @@ use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 9;
+use Test::More tests => 5;
 
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
@@ -39,9 +39,7 @@ is (scalar @{$scheduler->algorithm->queues->{Kernel}->testrequests}, 3, "got Ker
 
 my $job = $scheduler->get_next_job(\@hostlist, try_until_found => 0);
 
-isa_ok($job,         Job,         'Controller returns a job');
-isa_ok($job->host,   Host,        'Returned job has a host');
-is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest');
+isa_ok($job,         Job,         'Job 1');
 
 push @hostlist, Host->new
     (
@@ -77,7 +75,5 @@ $scheduler->algorithm($algorithm);
 
 $job = $scheduler->get_next_job(\@hostlist);
 
-isa_ok($job,         Job,           'Scheduler returns a job');
-isa_ok($job->host,   Host,          'Returned job has a host');
-is($job->host->name, 'featureless', 'Evaluation of feature list in a testrequest');
+isa_ok($job, Job, 'Job 2');
 
