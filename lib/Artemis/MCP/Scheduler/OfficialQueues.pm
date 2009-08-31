@@ -56,7 +56,7 @@ hardwaredb is available.
 =head1 SYNOPSIS
 
  my $officialhosts = Artemis::MCP::Scheduler::OfficialHosts->new;
- print Dumper($officialhosts->queuelist);
+ #print Dumper($officialhosts->queuelist);
 
 =head1 VARIABLES
 

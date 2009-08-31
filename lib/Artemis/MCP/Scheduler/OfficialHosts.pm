@@ -92,9 +92,9 @@ hardwaredb is available.
 =head1 SYNOPSIS
 
  my $officialhosts = Artemis::MCP::Scheduler::OfficialHosts->new;
- print Dumper($officialhosts->development);
- print Dumper($officialhosts->live);
- print Dumper($officialhosts->test);
+ #print Dumper($officialhosts->development);
+ #print Dumper($officialhosts->live);
+ #print Dumper($officialhosts->test);
 
 =head1 VARIABLES
 

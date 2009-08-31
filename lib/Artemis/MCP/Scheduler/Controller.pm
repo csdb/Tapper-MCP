@@ -39,13 +39,11 @@ class Artemis::MCP::Scheduler::Controller
 
                 do {
                         use Data::Dumper;
-                        $queue = $self->get_priority_job();
-                        print STDERR "queue1: ", Dumper($queue);
                         $queue = $self->algorithm->get_next_queue() if not $queue;
-                        print STDERR "queue2: ", Dumper($queue);
-                        print STDERR "free_hosts: ", Dumper($free_hosts);
+                        print STDERR "controller loop: queue2: ", Dumper($queue);
+                        print STDERR "controller loop: free_hosts: ", Dumper($free_hosts);
                         $job   = $queue->get_test_request($free_hosts); # contains host decision
-                        print STDERR "job: ", Dumper($job);
+                        print STDERR "controller loop: job: ", Dumper($job);
                         #sleep 3;
                 } while (not $job and $args{try_until_found});
 
