@@ -66,12 +66,13 @@ Artemis::MCP::Scheduler::Controller - Main class of the scheduler
 
 =head1 FUNCTIONS
 
-=head2 get_prioritiy_job
+# DEACTIVATED
+# =head2 get_prioritiy_job
 
-Check priority queue for a new job and return it.
+# Check priority queue for a new job and return it.
 
-@return    job available - ad hoc queue object
-@return no job available - 0
+# @return    job available - ad hoc queue object
+# @return no job available - 0
 
 =head2 get_next_job
 

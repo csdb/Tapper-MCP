@@ -71,7 +71,6 @@ class Artemis::MCP::Scheduler::OfficialHosts {
                  ),
                 ];
         }
-
 }
 
 {

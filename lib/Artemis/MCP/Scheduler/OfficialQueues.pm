@@ -13,8 +13,6 @@ class Artemis::MCP::Scheduler::OfficialQueues {
                          default => sub { &load_queuelist },
                         );
 
-        # XXX TODO: create these lists from hardware db
-
         sub load_queuelist
         {
                 no strict 'refs';

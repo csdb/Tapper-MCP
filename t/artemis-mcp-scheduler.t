@@ -34,7 +34,7 @@ $host->features({
                  l2cache  => 1024,
                  l3cache  => 0
                 });
-$host->state('free');
+# TODO: "busy" 1/0: $host->state('free');
 push @hostlist, $host;
 
 $host = Artemis::MCP::Scheduler::Host->new();
@@ -52,7 +52,7 @@ $host->features({
                  l2cache  => 1024,
                  l3cache  => 0
                 });
-$host->state('free');
+# TODO: "busy" 1/0: $host->state('free');
 push @hostlist, $host;
 
 my $request = Artemis::MCP::Scheduler::TestRequest->new();
@@ -98,7 +98,7 @@ is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest')
 
 $host = Artemis::MCP::Scheduler::Host->new();
 $host->name('featureless');
-$host->state('free');
+# TODO: "busy" 1/0: $host->state('free');
 push @hostlist, $host;
 
 
