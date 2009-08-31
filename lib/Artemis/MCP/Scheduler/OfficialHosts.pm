@@ -5,71 +5,31 @@ use 5.010;
 class Artemis::MCP::Scheduler::OfficialHosts {
 
         use aliased 'Artemis::MCP::Scheduler::Host';
+        use Artemis::Model 'model';
         use Artemis::Config;
 
-        has hostlist => (is => 'ro',
-                         isa => 'ArrayRef['.Host.']',
-                         default => sub {
-                                         no strict 'refs';
-                                         my $env = Artemis::Config::_getenv;
-                                         &{"get_hostlist_$env"};
-                                        },
+        has hostlist => (is      => 'ro',
+                         isa     => 'ArrayRef['.Host.']',
+                         builder => 'load_hostlist',
                         );
 
         # XXX TODO: create these lists from hardware db
 
-        sub get_hostlist_development {
-                say STDERR "get_hostlist_development";
-                [ ];
-        }
-
-        sub get_hostlist_live
+        sub load_hostlist
         {
-                say STDERR "get_hostlist_live";
-                [ ];
-        }
+                my @hostlist;
 
-        sub get_hostlist_test
-        {
-                say STDERR "get_hostlist_test";
-                [
-                 Host->new
-                 (
-                  name               =>'bullock',
-                  state              => 'free',
-                  features => {
-                               mem             => 8192,
-                               vendor          => 'AMD',
-                               family          => 15,
-                               model           => 67,
-                               stepping        => 2,
-                               revision        => '',
-                               socket_type     => 'AM2',
-                               cores           => 2,
-                               clock           => 2600,
-                               l2cache         => 1024,
-                               l3cache         => 0
-                              },
-                 ),
-                 Host->new
-                 (
-                  name               => 'dickstone',
-                  state              => 'free',
-                  features => {
-                               mem             => 4096,
-                               vendor          => 'AMD',
-                               family          => 15,
-                               model           => 67,
-                               stepping        => 2,
-                               revision        => '',
-                               socket          => 'AM2',
-                               cores           => 2,
-                               clock           => 2600,
-                               l2cache         => 1024,
-                               l3cache         => 0
-                              },
-                 ),
-                ];
+                my $hosts_rs = model('TestrunDB')->resultset('Host')->search({});
+                while (my $host = $hosts_rs->next) {
+                        push @hostlist, Host->new({
+                                                   name => $host->name,
+                                                   # features are autoloaded
+                                                  });
+                }
+
+                use Data::Dumper;
+                print STDERR "hostlist: ", Dumper(\@hostlist);
+                return \@hostlist;
         }
 }
 
