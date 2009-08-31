@@ -46,7 +46,6 @@ is($job->host->name, 'dickstone', 'Evaluation of feature list in a testrequest')
 push @hostlist, Host->new
     (
      name => 'featureless',
-     state => 'free'
     );
 
 # no default queues, filled explicitely below

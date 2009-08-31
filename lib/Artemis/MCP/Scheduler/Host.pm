@@ -6,7 +6,7 @@ class Artemis::MCP::Scheduler::Host {
 
         # Hostname.
         has name  => (is => 'rw');
-        has state => (is => 'rw'); # TODO: somewhat unclear. active(?)
+        #has state => (is => 'rw'); # TODO: somewhat unclear. active(?), really in OO class? Better only in DB!
 
         # List of features offered by a host.
         # Can be used to decide whether a certain host
