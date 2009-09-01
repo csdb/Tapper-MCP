@@ -19,6 +19,7 @@ class Artemis::MCP::Scheduler::Controller
                                           );
                                          }
                          );
+        has merged_queue_length => (is => 'rw', isa => 'Int', );
 
         method init() { }
 
@@ -34,18 +35,45 @@ class Artemis::MCP::Scheduler::Controller
         #         return;
         # }
 
+        method prepare_merged_queue()
+        {
+                $self->merged_queue_length (@{$self->algorithm->queues})
+                    if $self->merged_queue_length <= @{$self->algorithm->queues};
+
+                my $count_queues = $self->merged_queue_length; #   @{$self->algorithm->queues};
+
+                # heuristic: have about as many testrequests in the merged_queue as we have count of queues
+
+                for (1..$count_queues)
+                {
+                        last if $merged_queue->length() >= $count_queues;
+
+                        my $queue = $self->algorithm->get_next_queue();
+                        $testrunschedulings = $queue->testrunschedulings->search({}, {order_by => id})->first; HIER_WEITER;
+                        $merged_queue->add ($testrequest);
+                }
+        }
+
         method get_next_job(ArrayRef $free_hosts, %args) {
                 my ($queue, $job);
 
+                $self->prepare_merged_queue();
+                my $cur_count_queues = scalar @{$self->algorithm->queues};
+
                 do {
                         use Data::Dumper;
-                        $queue = $self->algorithm->get_next_queue() if not $queue;
-                        print STDERR "controller loop: queue2: ", Dumper($queue);
-                        print STDERR "controller loop: free_hosts: ", Dumper($free_hosts);
-                        $job   = $queue->get_test_request($free_hosts); # contains host decision
-                        print STDERR "controller loop: job: ", Dumper($job);
+
+                        $job = $merged_queue->get_first_fitting($free_hosts);
+                        print STDERR "controller loop: job: ",        Dumper($job);
                         #sleep 3;
                 } while (not $job and $args{try_until_found});
+
+                # TODO: reduce merged_queue length because we increase it when nothing is found to
+                # prevent high priority jobs with tight host requirements to block up the merged queue
+                #
+                # $self->merged_queue_length($self->merged_queue_length - 1);
+                # $self->merged_queue_length ($cur_count_queues)
+                #    if $self->merged_queue_length <= $cur_count_queues;
 
                 return $job;    # MCP maintains list of free hosts
         }

@@ -11,7 +11,7 @@ class Artemis::MCP::Scheduler::OfficialQueues {
         has queuelist => (is     => 'ro',
                          isa     => 'HashRef['.Queue.']',
                          default => sub { &load_queuelist },
-                        );
+                         );
 
         sub load_queuelist
         {
