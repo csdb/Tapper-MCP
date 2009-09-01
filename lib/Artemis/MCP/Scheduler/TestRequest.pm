@@ -3,10 +3,13 @@ use MooseX::Declare;
 class Artemis::MCP::Scheduler::TestRequest
 {
         use aliased 'Artemis::MCP::Scheduler::Host';
+        use aliased 'Artemis::MCP::Scheduler::Queue';
+        use aliased 'Artemis::Schema::TestrunDB::Result::TestrunScheduling';
 
+        has testrun            => (is => 'rw', isa => TestrunScheduling);
         has requested_features => (is => 'rw', isa => 'ArrayRef');
         has hostnames          => (is => 'rw', isa => 'ArrayRef');
-        has queue              => (is => 'rw', default => 'Adhoc');
+        has queue              => (is => 'rw', isa => Queue);
         has on_host            => (is => 'rw', isa => Host);
 
         method match_host (ArrayRef $free_hosts)

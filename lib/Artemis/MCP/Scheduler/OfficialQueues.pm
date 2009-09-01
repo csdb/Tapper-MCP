@@ -17,22 +17,24 @@ class Artemis::MCP::Scheduler::OfficialQueues {
         {
                 no strict 'refs';
                 my $queue_rs = model('TestrunDB')->resultset('Queue')->search({});
-                my %queues;
-                foreach ($queue_rs->all) {
-                        my %producer;
-                        if ($_->producer) {
-                                my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
-                                eval "use $producer_class";
-                                %producer = (producer => $producer_class->new ) unless $@;
-                        }
-                        $queues{$_->name} = Queue->new ( id       => $_->id,
-                                                         name     => $_->name,
-                                                         priority => $_->priority,
-                                                         %producer,
-                                                       );
-                }
+                return $queue_rs;
 
-                return \%queues;
+                # my %queues;
+                # foreach ($queue_rs->all) {
+                #         my %producer;
+                #         if ($_->producer) {
+                #                 my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
+                #                 eval "use $producer_class";
+                #                 %producer = (producer => $producer_class->new ) unless $@;
+                #         }
+                #         $queues{$_->name} = Queue->new ( id       => $_->id,
+                #                                          name     => $_->name,
+                #                                          priority => $_->priority,
+                #                                          %producer,
+                #                                        );
+                # }
+
+                # return \%queues;
         }
 }
 
