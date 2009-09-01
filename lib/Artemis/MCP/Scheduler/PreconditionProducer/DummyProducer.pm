@@ -16,7 +16,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer
 
 {
         # help the CPAN indexer
-        package Artemis::MCP::Scheduler::Producer::Temare;
+        package Artemis::MCP::Scheduler::Producer::DummyProducer;
         our $VERSION = '0.01';
 }
 

@@ -95,7 +95,9 @@ class Artemis::MCP::Scheduler::TestRequest
                 foreach $host(@$free_hosts) {
                         $_ = $host;
                         foreach my $this_feature(@{$self->requested_features}) {
-                                eval $this_feature or next HOST;
+                                my $success = eval $this_feature;
+                                print STDERR "TestRequest.fits: ", $@ if $@;
+                                $success or next HOST;
                         }
                         $self->on_host($host);
                         return $self;

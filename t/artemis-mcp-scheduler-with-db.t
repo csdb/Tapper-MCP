@@ -38,7 +38,7 @@ is (scalar @{$scheduler->algorithm->queues->{KVM}->testrequests},    3, "got KVM
 is (scalar @{$scheduler->algorithm->queues->{Kernel}->testrequests}, 3, "got Kernel testrequests via db");
 
 my $job = $scheduler->get_next_job(\@hostlist, try_until_found => 0);
-
+diag Dumper($job);
 isa_ok($job,         Job,         'Job 1');
 
 push @hostlist, Host->new

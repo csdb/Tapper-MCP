@@ -353,7 +353,7 @@
     feature: 'hostname eq "bullock"'
 
 - schema: TestrunScheduling
-  name: Xen-bbb
+  name: KVM-bbb
   data:
     id: 201
     testrun_id: 2001            # bbb
@@ -381,7 +381,7 @@
     feature: 'hostname eq "bullock"'
 
 - schema: TestrunScheduling
-  name: Xen-bbb2
+  name: KVM-bbb2
   data:
     id: 202
     testrun_id: 2002            # bbb2
@@ -409,7 +409,7 @@
     feature: 'hostname eq "bullock"'
 
 - schema: TestrunScheduling
-  name: Xen-bbb3
+  name: KVM-bbb3
   data:
     id: 203
     testrun_id: 2003            # bbb3
@@ -422,11 +422,11 @@
 # --- ccc ---
     
 - schema: Testrun
-  name: ccc-kvm
+  name: ccc-kernel
   data:
     id: 3001
     owner_user_id: 12
-    shortname: ccc-kvm
+    shortname: ccc-kernel
     notes: ccc
     topic_name: Distribution
     test_program: /data/bancroft/artemis/live/testsuites/ccc/test_ccc.sh
@@ -439,7 +439,7 @@
     feature: 'hostname eq "iring"'
 
 - schema: TestrunScheduling
-  name: Xen-ccc
+  name: Kernel-ccc
   data:
     id: 301
     testrun_id: 3001            # ccc
@@ -450,11 +450,11 @@
 # --- ccc2 ---
     
 - schema: Testrun
-  name: ccc2-kvm
+  name: ccc2-kernel
   data:
     id: 3002
     owner_user_id: 12
-    shortname: ccc2-kvm
+    shortname: ccc2-kernel
     notes: ccc2
     topic_name: Distribution
     test_program: /data/bancroft/artemis/live/testsuites/ccc2/test_ccc2.sh
@@ -467,7 +467,7 @@
     feature: 'hostname eq "iring"'
 
 - schema: TestrunScheduling
-  name: Xen-ccc2
+  name: Kernel-ccc2
   data:
     id: 302
     testrun_id: 3002            # ccc2
@@ -478,11 +478,11 @@
 # --- ccc3 ---
     
 - schema: Testrun
-  name: ccc3-kvm
+  name: ccc3-kernel
   data:
     id: 3003
     owner_user_id: 12
-    shortname: ccc3-kvm
+    shortname: ccc3-kernel
     notes: ccc3
     topic_name: Distribution
     test_program: /data/bancroft/artemis/live/testsuites/ccc3/test_ccc3.sh
@@ -495,7 +495,7 @@
     feature: 'hostname eq "iring"'
 
 - schema: TestrunScheduling
-  name: Xen-ccc3
+  name: Kernel-ccc3
   data:
     id: 303
     testrun_id: 3003            # ccc3
