@@ -49,8 +49,8 @@ class Artemis::MCP::Scheduler::Controller
                         last if $merged_queue->length() >= $count_queues;
 
                         my $queue = $self->algorithm->get_next_queue();
-                        $testrunschedulings = $queue->testrunschedulings->search({}, {order_by => id})->first; HIER_WEITER;
-                        $merged_queue->add ($testrequest);
+                        $testrunscheduling = $queue->queued_testruns->first;
+                        $merged_queue->add ($testrunscheduling);
                 }
         }
 
