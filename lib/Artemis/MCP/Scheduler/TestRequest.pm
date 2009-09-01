@@ -69,17 +69,18 @@ class Artemis::MCP::Scheduler::TestRequest
 #                     ]
 #         };
 
-        sub vendor(;$)   { _helper($_->features->{cpu}, 'vendors',  @_) }
-        sub mem(;$)      { _helper($_->features->{mem}, undef,      @_) }
-        sub family(;$)   { _helper($_->features->{cpu}, 'family',   @_) }
-        sub model(;$)    { _helper($_->features->{cpu}, 'model',    @_) }
-        sub stepping(;$) { _helper($_->features->{cpu}, 'stepping', @_) }
-        sub revision(;$) { _helper($_->features->{cpu}, 'revision', @_) }
-        sub socket(;$)   { _helper($_->features->{cpu}, 'socket',   @_) }
-        sub cores(;$)    { _helper($_->features->{cpu}, 'cores',    @_) }
-        sub clock(;$)    { _helper($_->features->{cpu}, 'clock',    @_) }
-        sub l2cache(;$)  { _helper($_->features->{cpu}, 'l2cache',  @_) }
-        sub l3cache(;$)  { _helper($_->features->{cpu}, 'l3cache',  @_) }
+        sub hostname(;$) { _helper($_->features->{hostname}, undef,      @_) }
+        sub mem(;$)      { _helper($_->features->{mem},      undef,      @_) }
+        sub vendor(;$)   { _helper($_->features->{cpu},      'vendors',  @_) }
+        sub family(;$)   { _helper($_->features->{cpu},      'family',   @_) }
+        sub model(;$)    { _helper($_->features->{cpu},      'model',    @_) }
+        sub stepping(;$) { _helper($_->features->{cpu},      'stepping', @_) }
+        sub revision(;$) { _helper($_->features->{cpu},      'revision', @_) }
+        sub socket(;$)   { _helper($_->features->{cpu},      'socket',   @_) }
+        sub cores(;$)    { _helper($_->features->{cpu},      'cores',    @_) }
+        sub clock(;$)    { _helper($_->features->{cpu},      'clock',    @_) }
+        sub l2cache(;$)  { _helper($_->features->{cpu},      'l2cache',  @_) }
+        sub l3cache(;$)  { _helper($_->features->{cpu},      'l3cache',  @_) }
 
         method fits(ArrayRef $free_hosts) {
                 return 0 if not $free_hosts;
