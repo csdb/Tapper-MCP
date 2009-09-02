@@ -64,7 +64,7 @@ class Artemis::MCP::Scheduler::TestrunScheduling extends Artemis::Schema::Testru
         method match_feature($free_hosts)
         {
         HOST:
-                foreach $host (@$free_hosts)
+                foreach my $host (@$free_hosts)
                 {
                         $_ = $host;
                         foreach my $this_feature (@{$self->requested_features->all})
@@ -100,7 +100,7 @@ class Artemis::MCP::Scheduler::TestrunScheduling extends Artemis::Schema::Testru
                 }
                 elsif ($self->requested_features) # but no wanted hostnames
                 {
-                        $host = $self->match_feature($free_hosts);
+                        my $host = $self->match_feature($free_hosts);
                         return $host if $host;
                         return;
                 }
