@@ -8,11 +8,18 @@ class Artemis::MCP::Scheduler::MergedQueue
 
         use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
+        use aliased 'Artemis::MCP::Scheduler::TestrunScheduling';
         use Data::Dumper;
+
+        has wanted_length => (is => 'rw', isa => 'Int' );
 
         method _hostname($testrun) {
                 return unless ($testrun and $testrun->hardwaredb_systems_id);
                 return model('HardwareDB')->resultset('Systems')->find($testrun->hardwaredb_systems_id)->systemname;
+        }
+
+        method length {
+                model('TestrunDB')->resultset('TestrunScheduling')->search ( { mergedqueue_seq => { '>', 0 } } )->count;
         }
 
         method _max_seq {
@@ -25,10 +32,11 @@ class Artemis::MCP::Scheduler::MergedQueue
                     )->first->get_column('max_seq');
         }
 
-        method add(Testrun $tr)
+        method add(TestrunScheduling $tr)
         {
                 my $max_seq = $self->_max_seq;
                 $tr->mergedqueue_seq($max_seq + 1);
+                $tr->update;
         }
 
         method get_testrequests
