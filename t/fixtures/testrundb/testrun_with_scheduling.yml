@@ -271,8 +271,6 @@
     id: 101
     testrun_id: 1001            # aaa
     queue_id: 1                 # Xen
-    built: 0
-    active: 0
 
 # --- aaa2 ---
 
@@ -299,8 +297,6 @@
     id: 102
     testrun_id: 1002            # aaa2
     queue_id: 1                 # Xen
-    built: 0
-    active: 0
 
 # --- aaa3 ---
 
@@ -327,8 +323,6 @@
     id: 103
     testrun_id: 1003            # aaa3
     queue_id: 1                 # Xen
-    built: 0
-    active: 0
 
 
 # ======================= KVM requests =========================
@@ -358,8 +352,6 @@
     id: 201
     testrun_id: 2001            # bbb
     queue_id: 2                 # KVM
-    built: 0
-    active: 0
 
 # --- bbb2 ---
     
@@ -386,8 +378,6 @@
     id: 202
     testrun_id: 2002            # bbb2
     queue_id: 2                 # KVM
-    built: 0
-    active: 0
 
 # --- bbb3 ---
     
@@ -414,8 +404,6 @@
     id: 203
     testrun_id: 2003            # bbb3
     queue_id: 2                 # KVM
-    built: 0
-    active: 0
 
 # ======================= Kernel requests =========================
 
@@ -444,8 +432,6 @@
     id: 301
     testrun_id: 3001            # ccc
     queue_id: 3                 # Kernel
-    built: 0
-    active: 0
 
 # --- ccc2 ---
     
@@ -472,8 +458,6 @@
     id: 302
     testrun_id: 3002            # ccc2
     queue_id: 3                 # Kernel
-    built: 0
-    active: 0
 
 # --- ccc3 ---
     
@@ -500,6 +484,4 @@
     id: 303
     testrun_id: 3003            # ccc3
     queue_id: 3                 # Kernel
-    built: 0
-    active: 0
 
