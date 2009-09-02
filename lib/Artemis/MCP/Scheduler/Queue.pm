@@ -1,7 +1,16 @@
-use MooseX::Declare;
+#use MooseX::Declare;
 
-class Artemis::MCP::Scheduler::Queue extends Artemis::Schema::TestrunDB::Result::Queue
-{
+use 5.010;
+use strict;
+use warnings;
+
+#class Artemis::MCP::Scheduler::Queue extends Artemis::Schema::TestrunDB::Result::Queue
+
+package Artemis::MCP::Scheduler::Queue;
+
+use parent 'Artemis::Schema::TestrunDB::Result::Queue';
+
+#{
 
         sub producer
         {
@@ -24,10 +33,13 @@ class Artemis::MCP::Scheduler::Queue extends Artemis::Schema::TestrunDB::Result:
                         return $self->producer->produce($request)
                 }
         }
-}
+# }
 
-{
-        # just for CPAN
-        package Artemis::MCP::Scheduler::Queue;
-        our $VERSION = '0.01';
-}
+# {
+#         # just for CPAN
+#         package Artemis::MCP::Scheduler::Queue;
+#         our $VERSION = '0.01';
+# }
+
+        1;
+        

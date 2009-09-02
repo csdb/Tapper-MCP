@@ -3,12 +3,13 @@ use MooseX::Declare;
 # TODO: rename into "(Scheduler|Result)::Job"?
 class Artemis::MCP::Scheduler::TestrunScheduling extends Artemis::Schema::TestrunDB::Result::TestrunScheduling
 {
+        extends 'Class::Accessor::Fast';
+
         use aliased 'Artemis::MCP::Scheduler::Host';
         use aliased 'Artemis::MCP::Scheduler::Queue';
 
         method match_host (ArrayRef $free_hosts)
         {
-
                 foreach my $host ($self->requested_hosts->all)
                 {
                         for (my $i = 0; $i <=  $#$free_hosts; $i++) {
@@ -108,6 +109,8 @@ class Artemis::MCP::Scheduler::TestrunScheduling extends Artemis::Schema::Testru
                         return shift @$free_hosts;
                 }
         }
+
+        __PACKAGE__->meta->make_immutable(inline_constructor => 0);
 }
 
 {
