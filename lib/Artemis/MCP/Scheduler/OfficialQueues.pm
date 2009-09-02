@@ -9,32 +9,31 @@ class Artemis::MCP::Scheduler::OfficialQueues {
         use Artemis::Model 'model';
 
         has queuelist => (is     => 'ro',
-                         isa     => 'HashRef['.Queue.']',
-                         default => sub { &load_queuelist },
+                          isa     => 'HashRef['.Queue.']',
+                          default => sub { &load_queuelist },
                          );
 
         sub load_queuelist
         {
                 no strict 'refs';
                 my $queue_rs = model('TestrunDB')->resultset('Queue')->search({});
-                return $queue_rs;
 
-                # my %queues;
-                # foreach ($queue_rs->all) {
-                #         my %producer;
-                #         if ($_->producer) {
-                #                 my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
-                #                 eval "use $producer_class";
-                #                 %producer = (producer => $producer_class->new ) unless $@;
-                #         }
-                #         $queues{$_->name} = Queue->new ( id       => $_->id,
-                #                                          name     => $_->name,
-                #                                          priority => $_->priority,
-                #                                          %producer,
-                #                                        );
-                # }
+                my %queues;
+                foreach ($queue_rs->all) {
+                        my %producer;
+                        if ($_->producer) {
+                                my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
+                                eval "use $producer_class";
+                                %producer = (producer => $producer_class->new ) unless $@;
+                        }
+                        $queues{$_->name} = Queue->new ( id       => $_->id,
+                                                         name     => $_->name,
+                                                         priority => $_->priority,
+                                                         %producer,
+                                                       );
+                }
 
-                # return \%queues;
+                return \%queues;
         }
 }
 
