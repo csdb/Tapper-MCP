@@ -8,6 +8,7 @@ class Artemis::MCP::Scheduler::Controller
         use Artemis::MCP::Scheduler::Queue;
         use Artemis::MCP::Scheduler::TestRequest;
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
+        use aliased 'Artemis::MCP::Scheduler::MergedQueue';
 
         has hostlist  => (is => 'rw', isa => 'ArrayRef');
         has algorithm => (is => 'rw',
@@ -19,51 +20,39 @@ class Artemis::MCP::Scheduler::Controller
                                           );
                                          }
                          );
-        has merged_queue_length => (is => 'rw', isa => 'Int', );
+        has merged_queue => (is => 'rw', isa => MergedQueue, default => sub { MergedQueue->new });
 
-        method init() { }
+        #method init() { }
 
-        # method get_priority_job() {
-        #         # my $testruns=model('TestrunDB')->resultset('Testrun')->due_testruns();
-
-        #         my $testruns;
-        #         # do_someting in case the testrun exists;
-        #         if ($testruns) {
-        #                 my $queue = Artemis::MCP::Scheduler::Queue->new(name => 'AdHoc');
-        #                 return $queue;
-        #         }
-        #         return;
-        # }
-
-        method prepare_merged_queue()
+        method fill_merged_queue()
         {
-                $self->merged_queue_length (@{$self->algorithm->queues})
-                    if $self->merged_queue_length <= @{$self->algorithm->queues};
+                my $count_missing_jobs = $self->merged_queue->wanted_length - $self->merged_queue->length;
 
-                my $count_queues = $self->merged_queue_length; #   @{$self->algorithm->queues};
-
-                # heuristic: have about as many testrequests in the merged_queue as we have count of queues
-
-                for (1..$count_queues)
+                # fill up to wanted merged_queue length
+                for (1 .. $count_missing_jobs)
                 {
-                        last if $merged_queue->length() >= $count_queues;
-
                         my $queue = $self->algorithm->get_next_queue();
-                        $testrunscheduling = $queue->queued_testruns->first;
-                        $merged_queue->add ($testrunscheduling);
+                        my $job   = $queue->queued_testruns->first;
+                        $self->merged_queue->add($job) if $job;
                 }
         }
+
+        # TODO: wenn fits() nichts liefert       --> wanted_length++, damit potentielle neue Kandidaten reinkommen
+        # TODO: beim Rausnehmem aus merged_queue --> wanted_length--, nur, wenn nicht kleiner als count_queues
+        #                                                             my $count_queues       = scalar @{$self->algorithm->queues};
+        #                                                             $self->merged_queue->wanted_length ($count_queues) if $self->merged_queue->wanted_length <= $count_queues;
+
 
         method get_next_job(ArrayRef $free_hosts, %args) {
                 my ($queue, $job);
 
-                $self->prepare_merged_queue();
+                $self->fill_merged_queue();
                 my $cur_count_queues = scalar @{$self->algorithm->queues};
 
                 do {
                         use Data::Dumper;
 
-                        $job = $merged_queue->get_first_fitting($free_hosts);
+                        $job = $self->merged_queue->get_first_fitting($free_hosts);
                         print STDERR "controller loop: job: ",        Dumper($job);
                         #sleep 3;
                 } while (not $job and $args{try_until_found});
