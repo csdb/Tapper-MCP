@@ -24,20 +24,33 @@ use Data::Dumper;
 use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 1;
+use Test::More;
 
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling_run1.yml' );
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # --------------------------------------------------------------------------------
 
+#model("TestrunDB");
+
 my $algorithm = Algorithm->new_with_traits ( traits => [DummyAlgorithm] );
+
 my $scheduler = Controller->new (algorithm => $algorithm);
+
+ok ($scheduler->algorithm->queues, "algorithm and queues");
+ok ($scheduler->algorithm->queues->{KVM},    "KVM queue");
+ok ($scheduler->algorithm->queues->{Kernel}, "Kernel queue");
+ok ($scheduler->algorithm->queues->{Xen},    "Xen queue");
+
+diag Dumper($scheduler->merged_queue);
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length is count queues");
 
 $scheduler->fill_merged_queue;
 
-while ($scheduler->merged_queue->get_testrequests) {
-        diag Dumper($_);
-}
+# while ($scheduler->merged_queue->get_testrequests) {
+#         diag Dumper($_);
+# }
 
 ok(1, "dummy");
+
+done_testing();

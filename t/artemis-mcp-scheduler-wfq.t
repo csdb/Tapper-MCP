@@ -9,9 +9,9 @@ use aliased 'Artemis::MCP::Scheduler::Algorithm::WFQ';
 my $scheduler = Algorithm->new_with_traits ( traits => [WFQ], queues => {} );
 ok($scheduler->does(WFQ), 'does WFQ');
 
-$scheduler->add_queue(Queue->new(name => 'A', priority => 300));
-$scheduler->add_queue(Queue->new(name => 'B', priority => 200));
-$scheduler->add_queue(Queue->new(name => 'C', priority => 100));
+$scheduler->add_queue(Queue->new({name => 'A', priority => 300}));
+$scheduler->add_queue(Queue->new({name => 'B', priority => 200}));
+$scheduler->add_queue(Queue->new({name => 'C', priority => 100}));
 
 my $hostname = 'bullock';
 

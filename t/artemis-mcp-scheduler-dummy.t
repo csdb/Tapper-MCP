@@ -12,9 +12,9 @@ my $scheduler = Algorithm->new_with_traits
     );
 ok($scheduler->does(DummyAlgorithm), 'does DummyAlgorithm');
 
-$scheduler->add_queue(Queue->new(name => 'A', priority => 300));
-$scheduler->add_queue(Queue->new(name => 'B', priority => 200));
-$scheduler->add_queue(Queue->new(name => 'C', priority => 100));
+$scheduler->add_queue(Queue->new({name => 'A', priority => 300}));
+$scheduler->add_queue(Queue->new({name => 'B', priority => 200}));
+$scheduler->add_queue(Queue->new({name => 'C', priority => 100}));
 
 my @order;
 

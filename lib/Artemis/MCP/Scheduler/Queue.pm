@@ -4,28 +4,26 @@ use 5.010;
 use strict;
 use warnings;
 
-#class Artemis::MCP::Scheduler::Queue extends Artemis::Schema::TestrunDB::Result::Queue
+class Artemis::MCP::Scheduler::Queue {
+        extends 'Artemis::Schema::TestrunDB::Result::Queue';
+        extends 'Class::Accessor::Fast'; # NEEDED!?
 
-package Artemis::MCP::Scheduler::Queue;
+        # method BUILD {
+        #         my $class = ref($self);
+        #         print "class: ", Dumper($class);
+        #         my $ns = $schema_class->compose_namespace($class);
+        # }
 
-use parent 'Artemis::Schema::TestrunDB::Result::Queue';
-
-#{
-
-        sub producer
+        method producer
         {
-                my ($self) = @_;
-
                 my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$self->producer;
                 eval "use $producer_class";
                 return $producer_class->new unless $@;
                 return undef;
         }
 
-        sub produce
+        method produce ($request)
         {
-                my ($self, $request) = @_; # TestRequest
-
                 if (not $self->producer) {
                         warn "Queue ".$self->name." does not have an associated producer";
                 } else {
@@ -33,13 +31,13 @@ use parent 'Artemis::Schema::TestrunDB::Result::Queue';
                         return $self->producer->produce($request)
                 }
         }
-# }
+        __PACKAGE__->meta->make_immutable(inline_constructor => 0);
+}
 
-# {
-#         # just for CPAN
-#         package Artemis::MCP::Scheduler::Queue;
-#         our $VERSION = '0.01';
-# }
+{
+        # help the CPAN indexer
+        package Artemis::MCP::Scheduler::Queue;
+        our $VERSION = '0.01';
+}
 
-        1;
-        
+1;

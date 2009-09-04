@@ -6,33 +6,36 @@ class Artemis::MCP::Scheduler::MergedQueue
 {
         use Artemis::Exception::Param;
 
-        use Artemis::Model 'model';
+        use Artemis::MCP::Scheduler::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
-        use aliased 'Artemis::MCP::Scheduler::TestrunScheduling';
+        use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling';
         use Data::Dumper;
+        use Artemis::MCP::Scheduler::Types;#  qw( Queue );
 
         has wanted_length => (is => 'rw', isa => 'Int' );
 
-        method _hostname($testrun) {
-                return unless ($testrun and $testrun->hardwaredb_systems_id);
-                return model('HardwareDB')->resultset('Systems')->find($testrun->hardwaredb_systems_id)->systemname;
-        }
+        # method _hostname($testrun) {
+        #         return unless ($testrun and $testrun->hardwaredb_systems_id);
+        #         return model('HardwareDB')->resultset('Systems')->find($testrun->hardwaredb_systems_id)->systemname;
+        # }
 
         method length {
-                model('TestrunDB')->resultset('TestrunScheduling')->search ( { mergedqueue_seq => { '>', 0 } } )->count;
+                 model('TestrunDB')->resultset('TestrunScheduling')->search ( { mergedqueue_seq => { '>', 0 } } )->count;
         }
 
         method _max_seq {
-                my $rs = model('TestrunDB')->resultset('TestrunScheduling')->search
+                my $job_with_max_seq = model('TestrunDB')->resultset('TestrunScheduling')->search
                     (
                      { mergedqueue_seq => { '>', 0 } },
                      {
                       select => [ { max => 'mergedqueue_seq' } ],
                       as     => [ 'max_seq' ], }
-                    )->first->get_column('max_seq');
+                    )->first;
+                return $job_with_max_seq->get_column('max_seq') if $job_with_max_seq;
+                return 0;
         }
 
-        method add(TestrunScheduling $tr)
+        method add( $tr) # TODO: Artemis::MCP::Scheduler::Types::TestrunScheduling
         {
                 my $max_seq = $self->_max_seq;
                 $tr->mergedqueue_seq($max_seq + 1);

@@ -1,11 +1,9 @@
-use MooseX::Declare;
+ use MooseX::Declare;
 
 use 5.010;
 
 class Artemis::MCP::Scheduler::Controller
 {
-        use Artemis::Model 'model';
-        use Artemis::MCP::Scheduler::Queue;
         use Artemis::MCP::Scheduler::TestRequest;
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::MergedQueue';
@@ -22,6 +20,10 @@ class Artemis::MCP::Scheduler::Controller
                          );
         has merged_queue => (is => 'rw', isa => MergedQueue, default => sub { MergedQueue->new });
 
+        method BUILD {
+                $self->merged_queue->wanted_length( $self->algorithm->queue_count );
+        }
+
         #method init() { }
 
         method fill_merged_queue()
@@ -32,7 +34,10 @@ class Artemis::MCP::Scheduler::Controller
                 for (1 .. $count_missing_jobs)
                 {
                         my $queue = $self->algorithm->get_next_queue();
-                        my $job   = $queue->queued_testruns->first;
+                        #say STDERR "Controller.fill_merged_queue: queue: ", Dumper($queue);
+                        say STDERR "Controller.fill_merged_queue: queue.name: ", $queue->name;
+                        my $testrun_rs = $queue->queued_testruns;
+                        my $job   = $testrun_rs->first;
                         $self->merged_queue->add($job) if $job;
                 }
         }

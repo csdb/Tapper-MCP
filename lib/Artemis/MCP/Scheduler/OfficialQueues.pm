@@ -4,33 +4,36 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::OfficialQueues {
 
-        use aliased 'Artemis::MCP::Scheduler::Queue';
+        use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::Queue';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
-        use Artemis::Model 'model';
+        use Artemis::MCP::Scheduler::Model 'model';
+        use Artemis::MCP::Scheduler::Types;#  qw( Queue );
+        use Data::Dumper;
 
         has queuelist => (is     => 'ro',
-                          isa     => 'HashRef['.Queue.']',
+                          isa        => 'HashRef', # TODO: HashRef['.Artemis::MCP::Scheduler::Types::Queue.']',
                           default => sub { &load_queuelist },
                          );
 
         sub load_queuelist
         {
                 no strict 'refs';
-                my $queue_rs = model('TestrunDB')->resultset('Queue')->search({});
+                my $queue_rs = model("TestrunDB")->resultset('Queue')->search({});
 
                 my %queues;
                 foreach ($queue_rs->all) {
                         my %producer;
-                        if ($_->producer) {
-                                my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
-                                eval "use $producer_class";
-                                %producer = (producer => $producer_class->new ) unless $@;
-                        }
-                        $queues{$_->name} = Queue->new ( id       => $_->id,
-                                                         name     => $_->name,
-                                                         priority => $_->priority,
-                                                         %producer,
-                                                       );
+                        # if ($_->producer) {
+                        #         my $producer_class = "Artemis::MCP::Scheduler::PreconditionProducer::".$_->producer;
+                        #         eval "use $producer_class";
+                        #         %producer = (producer => $producer_class->new ) unless $@;
+                        # }
+                        print STDERR "* name: ", Dumper($_->name);
+                        # ROTZ: bless $_, "Artemis::MCP::Scheduler::Queue";
+                        # print STDERR "* name nachher: ", Dumper($_->name);
+                        #print STDERR Dumper($_);
+                        $queues{$_->name} = $_;
+                        # %producer,
                 }
 
                 return \%queues;

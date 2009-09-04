@@ -6,9 +6,10 @@ role Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm {
 
         requires 'queues';
 
-        use aliased 'Artemis::MCP::Scheduler::Queue';
+        #use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::Queue';
+        use Artemis::MCP::Scheduler::Types;#  qw( Queue );
 
-        has current_queue => (is => "rw", isa => Queue);
+        has current_queue => (is => "rw"); # TODO:, isa => Artemis::MCP::Scheduler::Types::Queue);
 
         method get_next_queue()
         {

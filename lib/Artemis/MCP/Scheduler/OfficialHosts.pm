@@ -5,7 +5,7 @@ use 5.010;
 class Artemis::MCP::Scheduler::OfficialHosts {
 
         use aliased 'Artemis::MCP::Scheduler::Host';
-        use Artemis::Model 'model';
+        use Artemis::MCP::Scheduler::Model 'model';
         use Artemis::Config;
 
         has hostlist => (is      => 'ro',
