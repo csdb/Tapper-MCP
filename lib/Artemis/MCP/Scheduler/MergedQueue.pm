@@ -55,6 +55,10 @@ class Artemis::MCP::Scheduler::MergedQueue
                     );
                 return $testrequests_rs;
         }
+
+        method get_first_fitting($free_hosts) {
+                # 
+        }
 }
 
 {

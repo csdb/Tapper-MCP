@@ -41,8 +41,7 @@ Artemis::MCP::Scheduler::Model - Get a connected Artemis Schema, using the MCP v
 =head1 SYNOPSIS
 
     use Artemis::MCP::Scheduler::Model 'model';
-    my $testrun = model('ReportsDB')->schema('Report')->find(7343);
-
+    # ...
 
 =head1 EXPORT
 

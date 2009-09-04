@@ -24,8 +24,6 @@ class Artemis::MCP::Scheduler::Controller
                 $self->merged_queue->wanted_length( $self->algorithm->queue_count );
         }
 
-        #method init() { }
-
         method fill_merged_queue()
         {
                 my $count_missing_jobs = $self->merged_queue->wanted_length - $self->merged_queue->length;
@@ -34,7 +32,6 @@ class Artemis::MCP::Scheduler::Controller
                 for (1 .. $count_missing_jobs)
                 {
                         my $queue = $self->algorithm->get_next_queue();
-                        #say STDERR "Controller.fill_merged_queue: queue: ", Dumper($queue);
                         say STDERR "Controller.fill_merged_queue: queue.name: ", $queue->name;
                         my $testrun_rs = $queue->queued_testruns;
                         my $job   = $testrun_rs->first;
