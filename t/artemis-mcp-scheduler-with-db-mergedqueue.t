@@ -47,10 +47,23 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length is count queues");
 
 $scheduler->fill_merged_queue;
 
-# while ($scheduler->merged_queue->get_testrequests) {
-#         diag Dumper($_);
-# }
+my $tr_rs = $scheduler->merged_queue->get_testrequests;
 
-ok(1, "dummy");
+is($tr_rs->count, 3, "expected count of elements in merged_queue");
+
+#diag Dumper($tr_rs);
+my $job;
+
+$job = $tr_rs->next;
+is($job->id, 201, "first job id");
+is($job->testrun_id, 2001, "first job testrun_id");
+
+$job = $tr_rs->next;
+is($job->id, 301, "second job id");
+is($job->testrun_id, 3001, "second job testrun_id");
+
+$job = $tr_rs->next;
+is($job->id, 101, "third job");
+is($job->testrun_id, 1001, "third job testrun_id");
 
 done_testing();
