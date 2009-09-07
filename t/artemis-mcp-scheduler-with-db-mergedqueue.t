@@ -72,7 +72,7 @@ is($job->testrun_id, 1001, "third job testrun_id");
 # --------------------------------------------------
 
 # MICRO-TODO:
-# - rebase brach "scheduler" on "master"
+# DONE rebase brach "scheduler" on "master"
 # - checken, ob available_features in systems.yml ok
 # - create Artemis::MCP::Scheduler::Schema::HardwareDB like ...::TestrunDB
 # - check their derived additional methods (Artemis::Model::get_hardwaredb_overview)
@@ -82,6 +82,7 @@ is($job->testrun_id, 1001, "third job testrun_id");
 #   * even if it would use the "wrong" (base) HardwareDB this would do the Right Thing, because we just want to query on host<-->lid mapping
 #
 # - write get_first_fitting according to current Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling
+# - implement free_hosts in Schema: model("TestrunDB")->resultset("Host")->free_hosts()
 
 my $free_hosts = model("TestrunDB")->resultset("Host");
 my $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
@@ -89,8 +90,8 @@ is($next_job->id, 201, "next fitting host");
 
 # delete the following 2 lines, once the 3 lines above work
 
-my $next_job = $scheduler->get_next_job;
-is ($next_job->id, 201, "next job is first job from merged_queue");
+#  $next_job = $scheduler->get_next_job;
+# is ($next_job->id, 201, "next job is first job from merged_queue");
 
 # --------------------------------------------------
 
