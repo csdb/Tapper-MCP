@@ -84,7 +84,7 @@ is($job->testrun_id, 1001, "third job testrun_id");
 # - write get_first_fitting according to current Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling
 
 my $free_hosts = model("TestrunDB")->resultset("Host");
-my $next_job   = $scheduler->merged_queue->get_first_fitting($free_host);
+my $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 201, "next fitting host");
 
 # delete the following 2 lines, once the 3 lines above work

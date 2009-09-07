@@ -1,5 +1,7 @@
 package Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling;
 
+use MooseX::Method::Signatures;
+
         use aliased 'Artemis::MCP::Scheduler::Host';
         use aliased 'Artemis::MCP::Scheduler::Queue';
 
