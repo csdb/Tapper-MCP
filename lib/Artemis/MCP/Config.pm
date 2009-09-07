@@ -131,12 +131,12 @@ sub parse_virt_preconditions
                 $main_prc_config->{test_program}        = $virt->{host}->{testprogram}->{execname};
                 $main_prc_config->{parameters}          = $virt->{host}->{testprogram}->{parameters}          if $virt->{host}->{testprogram}->{parameters};
                 $main_prc_config->{timeout_testprogram} = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
+                return "No timeout for testprogram in virtualisation host" if not $virt->{host}->{testprogram}->{timeout_testprogram};
                 $self->mcp_info->add_testprogram(0,{
-                                                    timeout    => $self->{mcp_info}->{timeouts}->[0]->{end},
+                                                    timeout    => $virt->{host}->{testprogram}->{timeout_testprogram},
                                                     program    => $virt->{host}->{testprogram}->{execname},
                                                     parameters => $virt->{host}->{testprogram}->{parameters}
-                                                   })    if $virt->{host}->{testprogram}->{timeout_testprogram};
-
+                                                   });
         }
         push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_testprogram}; # always have a value for host, undef if no tests there
 

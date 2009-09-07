@@ -82,8 +82,9 @@ sub add_prc
 
 Add a testprogram for a given PRC. The given config has should have the
 following elements:
-program    - string          - full path of the test program
-timeout    - int             - timeout value for the test program
+program             - string - full path of the test program
+timeout             - int    - timeout value for the test program
+timeout_testprogram - int    - timeout value for the test program (deprecated)
 parameters - array of string - parameter array as given to exec
 
 
@@ -101,7 +102,7 @@ sub add_testprogram
 
         my ($self, $prc_number, $program) = @_;
         return "prc_number not given to add_testprogram" if not defined $prc_number;
-        $program->{timeout} = 0 if not $program->{timeout};
+        $program->{timeout} = $program->{timeout_testprogram} || $program->{timeout} || 0;
         push(@{$self->mcp_info->{prc}->[$prc_number]->{programs}}, $program);
         push(@{$self->mcp_info->{prc}->[$prc_number]->{timeouts}->{programs}}, $program->{timeout});
         return 0;
