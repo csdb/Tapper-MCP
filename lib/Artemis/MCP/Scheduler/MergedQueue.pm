@@ -57,7 +57,14 @@ class Artemis::MCP::Scheduler::MergedQueue
         }
 
         method get_first_fitting($free_hosts) {
-                # 
+                my $testrequests = $self->get_testrequests;
+                while (my $tr = $testrequests->next()) {
+                        if (my $host = $tr->fits($free_hosts)) {
+                                $tr->host_id ($host->id);
+                                warn "*** \$tr->update (im MCP?) nicht vergessen!";
+                                return $tr;
+                        }
+                }
         }
 }
 
