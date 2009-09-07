@@ -72,9 +72,10 @@ is($job->testrun_id, 1001, "third job testrun_id");
 # --------------------------------------------------
 
 # MICRO-TODO:
+# - rebase brach "scheduler" on "master"
 # - checken, ob available_features in systems.yml ok
 # - create Artemis::MCP::Scheduler::Schema::HardwareDB like ...::TestrunDB
-# - check their derived additional methods (get_available_features())
+# - check their derived additional methods (Artemis::Model::get_hardwaredb_overview)
 # - check where model("HardwareDB") is currently used, fix this to use Artemis::MCP::Scheduler::Model->model();
 #   * it is used in Artemis::Model.get_systems_id_for_hostname() which calls model() again
 #   * check that this calls the derived class  Artemis::MCP::Scheduler::Model.model()
