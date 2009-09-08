@@ -21,6 +21,7 @@ use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 
 use Test::More;
+use Test::Deep;
 
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling_run1.yml' );
@@ -55,14 +56,17 @@ my $job;
 
 $job = $tr_rs->next;
 is($job->id, 201, "first job id");
+is($job->requested_hosts->first->host->name, "bullock", "first job requested_host");
 is($job->testrun_id, 2001, "first job testrun_id");
 
 $job = $tr_rs->next;
 is($job->id, 301, "second job id");
+is($job->requested_hosts->first->host->name, "iring", "second job requested_host");
 is($job->testrun_id, 3001, "second job testrun_id");
 
 $job = $tr_rs->next;
 is($job->id, 101, "third job");
+is($job->requested_hosts->first->host->name, "bascha", "third job requested_host");
 is($job->testrun_id, 1001, "third job testrun_id");
 
 # --------------------------------------------------
@@ -70,17 +74,37 @@ is($job->testrun_id, 1001, "third job testrun_id");
 # MICRO-TODO:
 #
 # - implement free_hosts in Schema: model("TestrunDB")->resultset("Host")->free_hosts()
+my $free_hosts;
+my $next_job;
+my @free_host_names;
 
-my $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-my $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts: all");
+$next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 201, "next fitting host");
+is($next_job->host->name, "bullock", "fitting host bullock");
+$scheduler->mark_job_as_running($next_job);
 
-# delete the following 2 lines, once the 3 lines above work
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(iring dickstone athene bascha)], "free hosts: bullock taken");
+$next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
+is($next_job->id, 301, "next fitting host");
+is($next_job->host->name, "iring", "fitting host iring");
+$scheduler->mark_job_as_running($next_job);
 
-#  $next_job = $scheduler->get_next_job;
-# is ($next_job->id, 201, "next job is first job from merged_queue");
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene bascha)], "free hosts: iring taken");
+$next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
+is($next_job->id, 101, "next fitting host");
+is($next_job->host->name, "bascha", "fitting host bascha");
+$scheduler->mark_job_as_running($next_job);
 
-# --------------------------------------------------
 
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: bascha taken");
 
 done_testing();
