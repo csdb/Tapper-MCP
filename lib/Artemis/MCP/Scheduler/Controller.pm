@@ -73,6 +73,10 @@ class Artemis::MCP::Scheduler::Controller
                 $self->fill_merged_queue;
         }
 
+        method mark_job_as_finished ($job) {
+                $job->mark_as_finished;
+        }
+
 }
 
 {

@@ -78,7 +78,21 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: bascha taken");
 
-# finish Job
+my $non_scheduled_jobs = model('TestrunDB')->resultset('TestrunScheduling')->search({ mergedqueue_seq => undef, status => "schedule" });
+is($non_scheduled_jobs->count, 3, "still have 3 jobs in queues but not in merged_queue");
+
+$next_job = $scheduler->merged_queue->get_first_fitting($free_hosts);
+is($next_job, undef, "Indeed no fitting while all requested machines busy");
+
+is($scheduler->merged_queue->wanted_length, 4, "incremented wanted_length after unsuccessful get_first_fitting");
+
+# finish
+$scheduler->mark_job_as_finished($job2);
+is($job2->status, "finished", "job2 finished");
+is($job2->host->free, 1, "host of job2 free again");
+is($job2->host->name, "iring", "and it is indeed iring");
+
+# Job 4
 
 
 
