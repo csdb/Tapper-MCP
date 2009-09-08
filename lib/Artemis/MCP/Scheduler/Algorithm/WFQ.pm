@@ -49,6 +49,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
 
         method update_queue( $q) { # Queue
                 $q->runcount ( $q->runcount + 1 );
+                $q->update;
         }
 }
 

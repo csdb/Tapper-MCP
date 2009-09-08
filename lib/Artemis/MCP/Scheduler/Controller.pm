@@ -22,6 +22,7 @@ class Artemis::MCP::Scheduler::Controller
 
         method BUILD {
                 $self->merged_queue->wanted_length( $self->algorithm->queue_count );
+                $self->fill_merged_queue();
         }
 
         method fill_merged_queue()
@@ -47,7 +48,6 @@ class Artemis::MCP::Scheduler::Controller
         method get_next_job(ArrayRef $free_hosts, %args) {
                 my ($queue, $job);
 
-                $self->fill_merged_queue();
                 my $cur_count_queues = scalar @{$self->algorithm->queues};
 
                 do {
@@ -70,6 +70,7 @@ class Artemis::MCP::Scheduler::Controller
 
         method mark_job_as_running ($job) {
                 $job->mark_as_running;
+                $self->fill_merged_queue;
         }
 
 }

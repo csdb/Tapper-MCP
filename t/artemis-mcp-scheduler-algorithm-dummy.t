@@ -1,7 +1,7 @@
 use Test::Deep;
 use Test::More tests => 2;
 use Data::Dumper;
-use aliased 'Artemis::MCP::Scheduler::Queue';
+use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 
