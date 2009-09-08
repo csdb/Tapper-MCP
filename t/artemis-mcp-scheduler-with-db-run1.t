@@ -103,6 +103,23 @@ is($job2->host->name, "iring", "and it is indeed iring");
 
 # Job 4
 
+my $free_hosts2 = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts2->all;
+cmp_bag(\@free_host_names, [qw(iring dickstone athene )], "free hosts: iring in free hosts");
+$next_job = $scheduler->merged_queue->get_first_fitting($free_hosts2);
+is($next_job->id, 302, "next fitting host");
+is($next_job->host->name, "iring", "fitting host iring");
+# $scheduler->mark_job_as_running($next_job);
+# is($scheduler->merged_queue->length, 3, "merged_queue filled up");
+# is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting");
+# my $job4 = $next_job;
+
+
+# bis zum bitteren Ende:
+#
+#  finish Job
+#  merged_queue testen
+#  free_hosts testen
 
 
 
