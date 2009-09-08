@@ -68,6 +68,11 @@ class Artemis::MCP::Scheduler::Controller
 
                 return $job;    # MCP maintains list of free hosts
         }
+
+        method mark_job_as_running ($job) {
+                $job->mark_as_running;
+        }
+
 }
 
 {
