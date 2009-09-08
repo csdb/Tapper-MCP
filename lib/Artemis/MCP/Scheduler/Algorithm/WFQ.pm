@@ -6,7 +6,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
 {
         requires 'queues';
 
-        use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::Queue';
+        use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
         use TryCatch;
         use Data::Dumper;
 

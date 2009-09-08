@@ -5,15 +5,12 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
 
-        #use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::Queue';
         use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
-
-        use Artemis::MCP::Scheduler::Types;#  qw( Queue );
-        #use Artemis::MCP::Scheduler::Schema::TestrunDB::Result::Queue;
+        use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
 
         has queues => (
                        is         => 'rw',
-                       isa        => 'HashRef', # TODO: HashRef['.Artemis::MCP::Scheduler::Types::Queue.']',
+                       isa        => 'HashRef',
                        default    => sub { OfficialQueues->new->queuelist },
                       );
 
@@ -39,7 +36,7 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
                 delete $self->queues->{$q->name};
         }
 
-        method update_queue(Artemis::MCP::Scheduler::Types::Queue $q) {
+        method update_queue( $q) { # Queue
                 # interface
                 die "Interface update_queue not implemented";
         }

@@ -4,14 +4,13 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::OfficialQueues {
 
-        use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::Queue';
+        use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
         use aliased 'Artemis::MCP::Scheduler::PreconditionProducer';
-        use Artemis::MCP::Scheduler::Model 'model';
-        use Artemis::MCP::Scheduler::Types;#  qw( Queue );
+        use Artemis::Model 'model';
         use Data::Dumper;
 
         has queuelist => (is     => 'ro',
-                          isa        => 'HashRef', # TODO: HashRef['.Artemis::MCP::Scheduler::Types::Queue.']',
+                          isa        => 'HashRef',
                           default => sub { &load_queuelist },
                          );
 

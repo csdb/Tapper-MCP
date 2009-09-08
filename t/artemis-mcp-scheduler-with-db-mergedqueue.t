@@ -83,6 +83,8 @@ is($job->testrun_id, 1001, "third job testrun_id");
 #
 # - write get_first_fitting according to current Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling
 # - implement free_hosts in Schema: model("TestrunDB")->resultset("Host")->free_hosts()
+# - ::Scheduler::Host notwendig? Warum ist OfficialHosts nicht auch nur ein ResultSet?
+# - Scheduler::Queue? ... OfficialQueues?
 
 my $free_hosts = model("TestrunDB")->resultset("Host");
 my $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);

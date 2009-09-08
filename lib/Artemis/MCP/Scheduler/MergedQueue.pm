@@ -6,11 +6,10 @@ class Artemis::MCP::Scheduler::MergedQueue
 {
         use Artemis::Exception::Param;
 
-        use Artemis::MCP::Scheduler::Model 'model';
+        use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
-        use aliased 'Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling';
+        use aliased 'Artemis::Schema::TestrunDB::Result::TestrunScheduling';
         use Data::Dumper;
-        use Artemis::MCP::Scheduler::Types;#  qw( Queue );
 
         has wanted_length => (is => 'rw', isa => 'Int' );
 
@@ -35,7 +34,7 @@ class Artemis::MCP::Scheduler::MergedQueue
                 return 0;
         }
 
-        method add( $tr) # TODO: Artemis::MCP::Scheduler::Types::TestrunScheduling
+        method add( $tr) # TODO: TestrunScheduling
         {
                 my $max_seq = $self->_max_seq;
                 $tr->mergedqueue_seq($max_seq + 1);
