@@ -15,5 +15,3 @@ my $composed_schema = Artemis::Schema::TestrunDB->compose_namespace(__PACKAGE__.
 my $schema = $composed_schema->clone;
 
 1;
-
-
