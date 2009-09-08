@@ -9,6 +9,7 @@ use MRO::Compat;
 
 use Memoize;
 use Artemis::Config;
+use Artemis::Model;
 use parent 'Exporter';
 
 our @EXPORT_OK = qw(model);
@@ -18,19 +19,8 @@ sub model
 {
         my ($schema_basename) = @_;
 
-        $schema_basename ||= 'TestrunDB';
-
-        my $schema_class = "Artemis::MCP::Scheduler::Schema::$schema_basename";
-
-        # lazy load class
-        eval "use $schema_class";
-        if ($@) {
-                print STDERR $@;
-                return undef;
-        }
-        return $schema_class->connect(Artemis::Config->subconfig->{database}{$schema_basename}{dsn},
-                                      Artemis::Config->subconfig->{database}{$schema_basename}{username},
-                                      Artemis::Config->subconfig->{database}{$schema_basename}{password});
+        my $model = Artemis::Model::model(@_);
+        return $model;
 }
 
 
