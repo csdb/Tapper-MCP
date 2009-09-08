@@ -5,25 +5,25 @@ use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 
-my $scheduler = Algorithm->new_with_traits
+my $algorithm = Algorithm->new_with_traits
     (
      traits => [DummyAlgorithm],
      queues => {}, # set explicitely later
     );
-ok($scheduler->does(DummyAlgorithm), 'does DummyAlgorithm');
+ok($algorithm->does(DummyAlgorithm), 'does DummyAlgorithm');
 
-$scheduler->add_queue(Queue->new({name => 'A', priority => 300}));
-$scheduler->add_queue(Queue->new({name => 'B', priority => 200}));
-$scheduler->add_queue(Queue->new({name => 'C', priority => 100}));
+$algorithm->add_queue(Queue->new({name => 'A', priority => 300}));
+$algorithm->add_queue(Queue->new({name => 'B', priority => 200}));
+$algorithm->add_queue(Queue->new({name => 'C', priority => 100}));
 
 my @order;
 
-push @order, $scheduler->get_next_queue();
-push @order, $scheduler->get_next_queue();
-push @order, $scheduler->get_next_queue();
-push @order, $scheduler->get_next_queue();
-push @order, $scheduler->get_next_queue();
-push @order, $scheduler->get_next_queue();
+push @order, $algorithm->get_next_queue();
+push @order, $algorithm->get_next_queue();
+push @order, $algorithm->get_next_queue();
+push @order, $algorithm->get_next_queue();
+push @order, $algorithm->get_next_queue();
+push @order, $algorithm->get_next_queue();
 
 my $right_order=['A','B','C','A','B','C'];
 my @order_names = map { $_->name } @order;

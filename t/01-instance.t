@@ -9,7 +9,7 @@ use MRO::Compat;
 
 use Test::More;
 
-my @modules = ('Artemis::MCP',
+my @modules = ('Artemis::MCP', 
                'Artemis::MCP::Child',
                'Artemis::MCP::Control',
                'Artemis::MCP::Config',
