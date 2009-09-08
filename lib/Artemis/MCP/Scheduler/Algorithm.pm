@@ -5,13 +5,12 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
 
-        use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
-        use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
+        use Artemis::Model 'model';
 
         has queues => (
                        is         => 'rw',
                        isa        => 'HashRef',
-                       default    => sub { OfficialQueues->new->queuelist },
+                       default    => sub { model('TestrunDB')->resultset('Queue')->official_queuelist },
                       );
 
         method queue_count { scalar keys %{$self->queues} }

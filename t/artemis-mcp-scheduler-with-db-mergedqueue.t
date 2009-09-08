@@ -8,15 +8,11 @@ use Class::C3;
 use MRO::Compat;
 
 use aliased 'Artemis::MCP::Scheduler::Job';
-use aliased 'Artemis::MCP::Scheduler::Host';
-use aliased 'Artemis::MCP::Scheduler::Queue';
 use aliased 'Artemis::MCP::Scheduler::Controller';
 use aliased 'Artemis::MCP::Scheduler::TestRequest';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 use aliased 'Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer';
-use aliased 'Artemis::MCP::Scheduler::OfficialHosts';
-use aliased 'Artemis::MCP::Scheduler::OfficialQueues';
 
 use Artemis::Model 'model';
 
@@ -72,21 +68,10 @@ is($job->testrun_id, 1001, "third job testrun_id");
 # --------------------------------------------------
 
 # MICRO-TODO:
-# DONE rebase brach "scheduler" on "master"
-# - checken, ob available_features in systems.yml ok
-# - create Artemis::MCP::Scheduler::Schema::HardwareDB like ...::TestrunDB
-# - check their derived additional methods (Artemis::Model::get_hardwaredb_overview)
-# - check where model("HardwareDB") is currently used, fix this to use Artemis::MCP::Scheduler::Model->model();
-#   * it is used in Artemis::Model.get_systems_id_for_hostname() which calls model() again
-#   * check that this calls the derived class  Artemis::MCP::Scheduler::Model.model()
-#   * even if it would use the "wrong" (base) HardwareDB this would do the Right Thing, because we just want to query on host<-->lid mapping
 #
-# - write get_first_fitting according to current Artemis::MCP::Scheduler::Schema::TestrunDB::Result::TestrunScheduling
 # - implement free_hosts in Schema: model("TestrunDB")->resultset("Host")->free_hosts()
-# - ::Scheduler::Host notwendig? Warum ist OfficialHosts nicht auch nur ein ResultSet?
-# - Scheduler::Queue? ... OfficialQueues?
 
-my $free_hosts = model("TestrunDB")->resultset("Host");
+my $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 my $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 201, "next fitting host");
 

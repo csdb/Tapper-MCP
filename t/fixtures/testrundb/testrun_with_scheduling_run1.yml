@@ -500,33 +500,28 @@
   name: iring
   data:
     name: iring
-    allowed_context: test
-    busy: 0
+    free: 1
 
 - schema: Host
   name: bullock
   data:
     name: bullock
-    allowed_context: test
-    busy: 0
+    free: 1
 
 - schema: Host
   name: dickstone
   data:
     name: dickstone
-    allowed_context: test
-    busy: 0
+    free: 1
 
 - schema: Host
   name: athene
   data:
     name: athene
-    allowed_context: live
-    busy: 0
+    free: 1
 
 - schema: Host
   name: bascha
   data:
     name: bascha
-    allowed_context: 
-    busy: 0
+    free: 1
