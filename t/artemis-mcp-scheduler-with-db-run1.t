@@ -42,6 +42,23 @@ my $free_hosts;
 my $next_job;
 my @free_host_names;
 
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+my $host = $free_hosts->next;
+diag $host->name;
+my $host = $free_hosts->next;
+diag $host->name;
+
+diag "----------------------------------------";
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+$host = $free_hosts->next;
+diag $host->name;
+$host = $free_hosts->next;
+diag $host->name;
+
+diag "----------------------------------------";
+
 # Job 1
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -103,7 +120,24 @@ is($job2->host->name, "iring", "and it is indeed iring");
 
 # Job 4
 
+sub affe {
+        my ($free_hosts) = @_;
+
+        diag "----------------------------------------";
+
+        while (my $host = $free_hosts->next) {
+                diag $host->name;
+        }
+}
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+affe($free_hosts);
+
 my $free_hosts2 = model("TestrunDB")->resultset("Host")->free_hosts;
+affe ($free_hosts2);
+
+#WEITER MIT: Debugger durch while-Schleife in TestrunScheduling:44;
+
 @free_host_names = map { $_->name } $free_hosts2->all;
 cmp_bag(\@free_host_names, [qw(iring dickstone athene )], "free hosts: iring in free hosts");
 $next_job = $scheduler->merged_queue->get_first_fitting($free_hosts2);
