@@ -12,23 +12,19 @@ use Test::More;
 
 my @modules = ('Artemis::MCP', 
                'Artemis::MCP::Child',
-               'Artemis::MCP::Control', 
+               'Artemis::MCP::Control',
                'Artemis::MCP::Config',
                'Artemis::MCP::Scheduler',
                'Artemis::MCP::Master',
                'Artemis::MCP::Net',
                'Artemis::MCP::Startup',
-
                'Artemis::MCP::Scheduler',
                'Artemis::MCP::Scheduler::Algorithm',
                'Artemis::MCP::Scheduler::Algorithm::WFQ',
+               'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm',
                'Artemis::MCP::Scheduler::Builder',
-               'Artemis::MCP::Scheduler::Host',
-               'Artemis::MCP::Scheduler::Job',
                'Artemis::MCP::Scheduler::PreconditionProducer',
                'Artemis::MCP::Scheduler::Controller',
-               'Artemis::MCP::Scheduler::Queue',
-               'Artemis::MCP::Scheduler::TestrunScheduling',
                'Artemis::MCP::Scheduler::MergedQueue',
               );
 

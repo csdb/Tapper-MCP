@@ -40,7 +40,6 @@ ok ($scheduler->algorithm->queues->{Xen},    "Xen queue");
 
 # --------------------------------------------------
 
-diag Dumper($scheduler->merged_queue);
 is($scheduler->merged_queue->wanted_length, 3, "wanted_length is count queues");
 
 $scheduler->fill_merged_queue;
@@ -51,7 +50,6 @@ is($tr_rs->count, 3, "expected count of elements in merged_queue");
 
 # --------------------------------------------------
 
-#diag Dumper($tr_rs);
 my $job;
 
 $job = $tr_rs->next;

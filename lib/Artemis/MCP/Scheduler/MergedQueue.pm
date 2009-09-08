@@ -60,7 +60,6 @@ class Artemis::MCP::Scheduler::MergedQueue
                 while (my $tr = $testrequests->next()) {
                         if (my $host = $tr->fits($free_hosts)) {
                                 $tr->host_id ($host->id);
-                                warn "*** \$tr->update (im MCP?) nicht vergessen!";
                                 return $tr;
                         }
                 }

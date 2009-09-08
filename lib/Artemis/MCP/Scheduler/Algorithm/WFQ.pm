@@ -10,7 +10,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
         use TryCatch;
         use Data::Dumper;
 
-        method get_virtual_finishing_time(Queue $queue)
+        method get_virtual_finishing_time($queue) # Queue
         {
                 return ($queue->runcount + 1.0) / $queue->priority;
         }
@@ -47,7 +47,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
                 return $queue;
         }
 
-        method update_queue(Queue $q) {
+        method update_queue( $q) { # Queue
                 $q->runcount ( $q->runcount + 1 );
         }
 }

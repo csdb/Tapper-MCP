@@ -20,11 +20,9 @@ my @modules = ('Artemis::MCP',
                'Artemis::MCP::Scheduler',
                'Artemis::MCP::Scheduler::Algorithm',
                'Artemis::MCP::Scheduler::Builder',
-               'Artemis::MCP::Scheduler::Host',
-               'Artemis::MCP::Scheduler::Job',
                'Artemis::MCP::Scheduler::PreconditionProducer',
-               'Artemis::MCP::Scheduler::Queue',
-               'Artemis::MCP::Scheduler::TestRequest',
+               'Artemis::MCP::Scheduler::Controller',
+               'Artemis::MCP::Scheduler::MergedQueue',
               );
 
 my @roles = (
