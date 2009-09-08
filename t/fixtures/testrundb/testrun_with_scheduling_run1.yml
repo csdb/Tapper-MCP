@@ -453,7 +453,7 @@
     test_program: /data/bancroft/artemis/live/testsuites/ccc2/test_ccc2.sh
 
 - schema: TestrunRequestedHost
-  name: ccc2-mem-8000
+  name: ccc2-host-iring
   data:
     id: 302
     testrun_id: 3002            # ccc2

@@ -51,6 +51,9 @@ $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 201, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 $scheduler->mark_job_as_running($next_job);
+is($scheduler->merged_queue->length, 3, "merged_queue filled up");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting");
+my $job1 = $next_job;
 
 # Job 2
 
@@ -61,16 +64,22 @@ $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 301, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
+is($scheduler->merged_queue->length, 3, "merged_queue filled up");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting");
+my $job2 = $next_job;
 
 # Job 3
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene bascha)], "free hosts: iring taken");
-$next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
+$next_job = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 101, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 $scheduler->mark_job_as_running($next_job);
+is($scheduler->merged_queue->length, 3, "merged_queue filled up");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting");
+my $job3 = $next_job;
 
 # Intermediate state
 
