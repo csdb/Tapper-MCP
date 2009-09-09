@@ -404,11 +404,168 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free ho
 
 # currently running: none
 
+# Job 8
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free hosts: iring, bascha and bullock available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job->id, 203, "next fitting host");
+is($next_job->host->name, "bullock", "fitting host bullock");
+is($next_job->queue->name, "KVM", "it is a KVM job");
+$scheduler->mark_job_as_running($next_job);
+is($scheduler->merged_queue->length, 1, "merged_queue length");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length after successful get_first_fitting");
+my $job8 = $next_job;
+
+# check queue, no new because merged queue is full
+@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
+@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
+
+is_deeply(\@merged_queue_jobs,    [ qw( Xen ) ], "expected state of merged queue by queue-name");
+is_deeply(\@merged_queue_job_ids, [ 103 ],       "expected state of merged queue by id");
+
+# check free hosts
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iring and bascha available");
+
+# currently running: Job 8-bullock-KVM
+
+# Job 9
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha )], "free hosts: iring, bascha available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job->id, 103, "next fitting host");
+is($next_job->host->name, "bascha", "fitting host bascha");
+is($next_job->queue->name, "Xen", "it is a Xen job");
+$scheduler->mark_job_as_running($next_job);
+is($scheduler->merged_queue->length, 0, "merged_queue length");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length after successful get_first_fitting");
+my $job9 = $next_job;
+
+# check queue, no new because merged queue is full
+@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
+@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
+
+is_deeply(\@merged_queue_jobs,    [ qw( ) ], "expected state of merged queue by queue-name");
+is_deeply(\@merged_queue_job_ids, [ ],       "expected state of merged queue by id");
+
+# check free hosts
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring )], "free hosts: iring available");
+
+# currently running: Job 8-bullock-KVM, Job 9-bascha-Xen
 
 
+# try an unsuccessful get_next_job
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job, undef, "Again no fitting for available machines");
+
+is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
+
+# try second time unsuccessfully
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job, undef, "Again no fitting for available machines");
+
+is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
+
+# try third time unsuccessfully, just to be sure
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job, undef, "Again no fitting for available machines");
+
+is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 
+# currently running: Job 8-bullock-KVM, Job 9-bascha-Xen
 
+# Finish Job 8
+
+$scheduler->mark_job_as_finished($job8);
+is($job8->status, "finished", "job8 finished");
+is($job8->host->free, 1, "host of job8 free again");
+is($job8->host->name, "bullock", "and it is indeed bullock");
+is($job8->queue->name, "KVM", "and it is a KVM job");
+
+# check state of merged queue AFTER FINISH
+is($scheduler->merged_queue->length, 0, "finishing a job does not interfere with merged_queue length");
+is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock)], "free hosts: iring, bullock available");
+
+# currently running: Job 9-bascha-Xen
+
+# Finish Job 9
+
+$scheduler->mark_job_as_finished($job9);
+is($job9->status, "finished", "job9 finished");
+is($job9->host->free, 1, "host of job9 free again");
+is($job9->host->name, "bascha", "and it is indeed bascha");
+is($job9->queue->name, "Xen", "and it is a Xen job");
+
+# check state of merged queue AFTER FINISH
+is($scheduler->merged_queue->length, 0, "finishing a job does not interfere with merged_queue length");
+is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
+
+# currently running: none
+
+
+# try an unsuccessful get_next_job
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job, undef, "Again no fitting for available machines");
+
+is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
+
+# try second time unsuccessfully
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job, undef, "Again no fitting for available machines");
+
+is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
+
+# try third time unsuccessfully, just to be sure
+
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+@free_host_names = map { $_->name } $free_hosts->all;
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
+$next_job = $scheduler->get_next_job($free_hosts);
+is($next_job, undef, "Again no fitting for available machines");
+
+is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
+is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 
 done_testing();
