@@ -27,6 +27,7 @@ class Artemis::MCP::Scheduler::Controller
 
         method fill_merged_queue()
         {
+                my $add_counter = 0;
                 my $count_missing_jobs = $self->merged_queue->wanted_length - $self->merged_queue->length;
 
                 # fill up to wanted merged_queue length
@@ -35,8 +36,12 @@ class Artemis::MCP::Scheduler::Controller
                         my $queue = $self->algorithm->get_next_queue();
                         my $testrun_rs = $queue->queued_testruns;
                         my $job   = $testrun_rs->first;
-                        $self->merged_queue->add($job) if $job;
+                        if ($job) {
+                                $self->merged_queue->add($job);
+                                $add_counter++;
+                        }
                 }
+                return $add_counter;
         }
 
         # TODO: wenn fits() nichts liefert       --> wanted_length++, damit potentielle neue Kandidaten reinkommen
@@ -44,12 +49,15 @@ class Artemis::MCP::Scheduler::Controller
         #                                                             my $count_queues       = scalar @{$self->algorithm->queues};
         #                                                             $self->merged_queue->wanted_length ($count_queues) if $self->merged_queue->wanted_length <= $count_queues;
 
-        method adapt_merged_queue_length(Any $job) {
+        method adapt_merged_queue_length(Any $job, $add_counter) {
                 if (not $job) {
-                        # increase merged_queue length if no job found
-                        $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 );
+                        # increase merged_queue length if no job found,
+                        # but not longer than current length + 1
+                        $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 )
+                            if $self->merged_queue->wanted_length - $self->merged_queue->length < 1;
                 } else {
-                        # count down merged_queue again on success, but not smaller that count queues
+                        # count down merged_queue again on success,
+                        # but not smaller that count queues
                         $self->merged_queue->wanted_length( $self->merged_queue->wanted_length - 1 )
                             if $self->merged_queue->wanted_length > $self->algorithm->queue_count;
                 }
@@ -61,9 +69,9 @@ class Artemis::MCP::Scheduler::Controller
                 do {
                         use Data::Dumper;
 
-                        $self->fill_merged_queue;
+                        my $add_counter = $self->fill_merged_queue;
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
-                        $self->adapt_merged_queue_length($job);
+                        $self->adapt_merged_queue_length($job, $add_counter);
 
                 } while (not $job and $args{try_until_found});
 

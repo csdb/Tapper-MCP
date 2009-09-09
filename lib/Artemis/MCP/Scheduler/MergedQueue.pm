@@ -41,7 +41,7 @@ class Artemis::MCP::Scheduler::MergedQueue
                 $tr->update;
         }
 
-        method get_testrequests
+        method get_testrequests # get_jobs
         {
                 no strict 'refs';
                 my $testrequests_rs = model('TestrunDB')->resultset('TestrunScheduling')->search
