@@ -55,10 +55,8 @@ class Artemis::MCP::Scheduler::Controller
                 }
         }
 
-        method get_next_job(ArrayRef $free_hosts, %args) {
+        method get_next_job($free_hosts, Any %args) {
                 my ($queue, $job);
-
-                my $cur_count_queues = scalar @{$self->algorithm->queues};
 
                 do {
                         use Data::Dumper;
