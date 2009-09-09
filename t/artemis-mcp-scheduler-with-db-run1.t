@@ -46,7 +46,7 @@ my @free_host_names;
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 my $host = $free_hosts->next;
 diag $host->name;
-my $host = $free_hosts->next;
+$host = $free_hosts->next;
 diag $host->name;
 
 diag "----------------------------------------";
@@ -118,29 +118,7 @@ is($job2->status, "finished", "job2 finished");
 is($job2->host->free, 1, "host of job2 free again");
 is($job2->host->name, "iring", "and it is indeed iring");
 
-# Job 4
-
-sub affe {
-        my ($free_hosts) = @_;
-
-        diag "----------------------------------------";
-
-        while (my $host = $free_hosts->next) {
-                diag $host->name;
-        }
-}
-
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-affe($free_hosts);
-
-my $free_hosts2 = model("TestrunDB")->resultset("Host")->free_hosts;
-affe ($free_hosts2);
-
-#WEITER MIT: Debugger durch while-Schleife in TestrunScheduling:44;
-
-@free_host_names = map { $_->name } $free_hosts2->all;
-cmp_bag(\@free_host_names, [qw(iring dickstone athene )], "free hosts: iring in free hosts");
-$next_job = $scheduler->merged_queue->get_first_fitting($free_hosts2);
+$next_job = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 302, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 # $scheduler->mark_job_as_running($next_job);
