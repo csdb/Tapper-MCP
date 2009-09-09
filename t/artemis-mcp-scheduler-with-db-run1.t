@@ -569,3 +569,11 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 
 
 done_testing();
+
+# Idea: auto_restart attribute on $job
+# when $job goes from Queue into merged_queue and auto_restart=1 then recreate copy of itself in according Queue
+
+# Yacc-Shaving:
+# - move ::Cmd guts into Schema
+# - keep ::Cmd interface functions that prepare the model-stuff
+

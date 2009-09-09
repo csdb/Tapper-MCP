@@ -34,11 +34,14 @@ class Artemis::MCP::Scheduler::MergedQueue
                 return 0;
         }
 
-        method add( $tr) # TODO: TestrunScheduling
+        method add($job)
         {
                 my $max_seq = $self->_max_seq;
-                $tr->mergedqueue_seq($max_seq + 1);
-                $tr->update;
+                # if ($job->auto_restart) {
+                #         $job->rerun;
+                # }
+                $job->mergedqueue_seq($max_seq + 1);
+                $job->update;
         }
 
         method get_testrequests # get_jobs
