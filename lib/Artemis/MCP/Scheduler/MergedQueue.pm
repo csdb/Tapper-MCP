@@ -63,7 +63,6 @@ class Artemis::MCP::Scheduler::MergedQueue
                                 return $tr;
                         }
                 }
-                $self->wanted_length( $self->wanted_length + 1 );
                 return;
         }
 }

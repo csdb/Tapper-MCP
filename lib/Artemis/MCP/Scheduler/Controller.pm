@@ -22,7 +22,7 @@ class Artemis::MCP::Scheduler::Controller
 
         method BUILD {
                 $self->merged_queue->wanted_length( $self->algorithm->queue_count );
-                $self->fill_merged_queue();
+                #$self->fill_merged_queue();
         }
 
         method fill_merged_queue()
@@ -44,6 +44,16 @@ class Artemis::MCP::Scheduler::Controller
         #                                                             my $count_queues       = scalar @{$self->algorithm->queues};
         #                                                             $self->merged_queue->wanted_length ($count_queues) if $self->merged_queue->wanted_length <= $count_queues;
 
+        method adapt_merged_queue_length(Any $job) {
+                if (not $job) {
+                        # increase merged_queue length if no job found
+                        $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 );
+                } else {
+                        # count down merged_queue again on success, but not smaller that count queues
+                        $self->merged_queue->wanted_length( $self->merged_queue->wanted_length - 1 )
+                            if $self->merged_queue->wanted_length > $self->algorithm->queue_count;
+                }
+        }
 
         method get_next_job(ArrayRef $free_hosts, %args) {
                 my ($queue, $job);
@@ -53,9 +63,10 @@ class Artemis::MCP::Scheduler::Controller
                 do {
                         use Data::Dumper;
 
+                        $self->fill_merged_queue;
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
-                        print STDERR "controller loop: job: ",        Dumper($job);
-                        #sleep 3;
+                        $self->adapt_merged_queue_length($job);
+
                 } while (not $job and $args{try_until_found});
 
                 # TODO: reduce merged_queue length because we increase it when nothing is found to
@@ -70,7 +81,6 @@ class Artemis::MCP::Scheduler::Controller
 
         method mark_job_as_running ($job) {
                 $job->mark_as_running;
-                $self->fill_merged_queue;
         }
 
         method mark_job_as_finished ($job) {
