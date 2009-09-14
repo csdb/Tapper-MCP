@@ -276,14 +276,20 @@ Run the tests that are due.
                         if ($pid == 0) {
 
                                 # put the start time into db
+                                # TODO: $job->mark_as_running()
                                 my $run=model('TestrunDB')->resultset('Testrun')->search({id=>$id})->first();
                                 $run->starttime_testrun(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
                                 $run->update();
+
+                                # stay
                                 my $child = Artemis::MCP::Child->new($id);
                                 my $retval = $child->runtest_handling( $system );
+
+                                # TODO: $job->mark_as_finished()
                                 $run->endtime_test_program(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
                                 $run->update();
 
+                                # stay
                                 if ($retval) {
                                         $self->log->error("An error occured while trying to run testrun $id on $system: $retval");
                                 } else {
