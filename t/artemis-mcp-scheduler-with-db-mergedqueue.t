@@ -41,7 +41,7 @@ ok ($scheduler->algorithm->queues->{Xen},    "Xen queue");
 # --------------------------------------------------
 
 is($scheduler->merged_queue->wanted_length, 3, "wanted_length is count queues");
-
+$scheduler->fill_merged_queue();
 my $tr_rs = $scheduler->merged_queue->get_testrequests;
 
 is($tr_rs->count, 3, "expected count of elements in merged_queue");
