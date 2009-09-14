@@ -570,10 +570,6 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 
 done_testing();
 
-# Idea: auto_restart attribute on $job
-# DONE? (CHECK DAS!) when $job goes from Queue into merged_queue and auto_restart=1 then recreate copy of itself in according Queue
-# - write test for auto_rerun
-
 # - integrate controller into MCP: replace Scheduler.pm: in MCP::Master: scheduler->new() --> controller->new()
 # - drop "xentest.pl", now all in MCP
 # - in Master: review reschedule_testrun(), still neccessary? just do "error handling" because it should no more happen that a host is free and not free at same time
@@ -634,3 +630,5 @@ done_testing();
 #  }
 # disassign_all_preconditions()
 # assign_preconditions()
+#
+# - write test for auto_rerun
