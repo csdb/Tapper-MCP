@@ -69,7 +69,7 @@ class Artemis::MCP::Scheduler::Controller
                         $self->fill_merged_queue;
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
                         $self->adapt_merged_queue_length($job);
-                        # TODO: produce_preconditions
+                        $job->produce_preconditions() if $job;
 
                 } while (not $job and $args{try_until_found});
 
