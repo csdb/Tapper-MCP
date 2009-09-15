@@ -38,7 +38,7 @@ class Artemis::MCP::Scheduler::MergedQueue
         {
                 my $max_seq = $self->_max_seq;
                 if ($job->auto_rerun) {
-                        $job->rerun; # TODO: with option
+                        $job->testrun->rerun;
                 }
                 $job->mergedqueue_seq($max_seq + 1);
                 $job->update;
