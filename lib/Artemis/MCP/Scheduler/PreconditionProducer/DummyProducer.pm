@@ -1,16 +1,16 @@
 use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer
-    extends Artemis::MCP::Scheduler::PreconditionProducer
+  extends Artemis::MCP::Scheduler::PreconditionProducer
 {
         use aliased 'Artemis::MCP::Scheduler::Job';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
 
-        method produce(TestRequest $request)
+        method produce(HashRef $precondition)
         {
-                my $job = Job->new();
-                $job->host($request->on_host);
-                return $job;
+                my $type = $precondition->{options}{type} || 'no_option';
+                return "---\nprecondition_type: $type\n---\nprecondition_type: second\n";
+                
         }
 }
 
