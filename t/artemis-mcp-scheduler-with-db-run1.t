@@ -35,9 +35,6 @@ my $scheduler = Controller->new (algorithm => $algorithm);
 
 # --------------------------------------------------
 
-# MICRO-TODO:
-#
-# - implement free_hosts in Schema: model("TestrunDB")->resultset("Host")->free_hosts()
 my $free_hosts;
 my $next_job;
 my @free_host_names;
@@ -566,6 +563,7 @@ is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
 is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
+
 
 
 done_testing();
