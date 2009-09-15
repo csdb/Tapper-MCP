@@ -223,7 +223,6 @@
   data:
     id: 1
     name: Xen
-    producer: DummyProducer
     priority: 300
 
 - schema: Queue
@@ -231,7 +230,6 @@
   data:
     id: 2
     name: KVM
-    producer: DummyProducer
     priority: 200
 
 - schema: Queue
@@ -239,7 +237,6 @@
   data:
     id: 3
     name: Kernel
-    producer: DummyProducer
     priority: 10
 
 # -------------------- "test requests" (Testruns)
