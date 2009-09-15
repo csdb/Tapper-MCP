@@ -43,7 +43,7 @@ my $scheduler = Controller->new (algorithm => $algorithm);
 my $free_hosts;
 my $next_job;
 my @free_host_names;
-
+my @precondition_ids;
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 my $host = $free_hosts->next;
@@ -64,6 +64,11 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
 
+
+my @all_preconditions = $next_job->testrun->ordered_preconditions;
+is($all_preconditions[3]->precondition_as_hash->{precondition_type}, 'no_option', 'First precondition produced by producer');
+is($all_preconditions[4]->precondition_as_hash->{precondition_type}, 'second', 'Second precondition produced by producer');
+
 $scheduler->mark_job_as_finished($next_job);
 
 
@@ -83,6 +88,8 @@ $scheduler->mark_job_as_running($next_job);
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
+
+my $preconditions = $next_job->testrun->ordered_preconditions;
 
 $scheduler->mark_job_as_finished($next_job);
 
