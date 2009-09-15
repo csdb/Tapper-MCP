@@ -67,40 +67,56 @@
 
 # -------------------- preconditions
 
+
+- schema: Precondition
+  name: Producer
+  data:
+    id: 6
+    shortname: temare_producer
+    precondition: |
+      ---
+      precondition_type: produce
+      producer: DummyProducer
+
 - schema: Precondition
   name: artemis-tools
   data:
     id: 7
     shortname: artemis-tools
-    precondition: some yaml here 1
+    precondition: |
+      precondition_type: some yaml here 1
 
 - schema: Precondition
   name: perl-5.10
   data:
     id: 8
     shortname: perl-5.10
-    precondition: some yaml here 2
+    precondition: |
+      precondition_type: some yaml here 2
 
 - schema: Precondition
   name: gcc
   data:
     id: 9
     shortname: gcc-4.2
-    precondition: some yaml here 3
+    precondition: |
+      precondition_type: some yaml here 3
 
 - schema: Precondition
   name: glibc
   data:
     id: 10
     shortname: glibc-2.1
-    precondition: some yaml here 4
+    precondition: |
+      precondition_type: some yaml here 4
 
 - schema: Precondition
   name: gcc
   data:
     id: 11
     shortname: gcc-4.2
-    precondition: some yaml here 5
+    precondition: |
+      precondition_type: some yaml here 5
 
 
 - schema: Precondition
@@ -246,7 +262,7 @@
 # ======================= Kernel requests =========================
 
 # --- ccc ---
-    
+
 - schema: Testrun
   name: ccc-kernel
   data:
@@ -274,7 +290,7 @@
     status: schedule
 
 # --- ccc2 ---
-    
+
 - schema: Testrun
   name: ccc2-kernel
   data:
@@ -337,3 +353,43 @@
     id: 9
     name: bascha
     free: 1
+
+# -------------------- "preconditions for scheduled tests 1"
+
+- schema: TestrunPrecondition
+  name: 1st precondition for perfmon
+  data:
+    testrun_id: 3001
+    precondition_id: 8
+    succession: 1
+
+- schema: TestrunPrecondition
+  name: 1st precondition for perfmon
+  data:
+    testrun_id: 3001
+    precondition_id: 6
+    succession: 2
+
+- schema: TestrunPrecondition
+  name: 2nd preconditions for perfmon
+  data:
+    testrun_id: 3001
+    precondition_id: 7
+    succession: 3
+
+
+# -------------------- "preconditions for scheduled tests 2"
+
+- schema: TestrunPrecondition
+  name: 1st precondition for perfmon
+  data:
+    testrun_id: 3002
+    precondition_id: 8
+    succession: 1
+
+- schema: TestrunPrecondition
+  name: 1st precondition for perfmon
+  data:
+    testrun_id: 3002
+    precondition_id: 6
+    succession: 2
