@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+
+use YAML;
+
+my @configs;
+push @configs, {precondition_type => 'command', text => $ARGV[0]};
+push @configs, {precondition_type => 'hostname',text => $ARGV[1]};
+push @configs, {precondition_type => 'subject', text => $ARGV[2]};
+push @configs, {precondition_type => 'bitness', text => $ARGV[3]};
+
+
+if ($ENV{ARTEMIS_TEMARE}){
+        {
+                open my $fh, ">", $ENV{ARTEMIS_TEMARE} or last;
+                print $fh "subject: temare\n";
+                close $fh;
+        }
+}
+
+print Dump(@configs);
