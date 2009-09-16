@@ -61,7 +61,7 @@ diag "----------------------------------------";
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts: all");
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->id, 201, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 $scheduler->mark_job_as_running($next_job);
@@ -74,7 +74,7 @@ my $job1 = $next_job;
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring dickstone athene bascha)], "free hosts: bullock taken");
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->id, 301, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
@@ -87,7 +87,7 @@ my $job2 = $next_job;
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene bascha)], "free hosts: iring taken");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 101, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 $scheduler->mark_job_as_running($next_job);
@@ -104,13 +104,13 @@ cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: bascha taken");
 my $non_scheduled_jobs = model('TestrunDB')->resultset('TestrunScheduling')->non_scheduled_jobs;
 is($non_scheduled_jobs->count, 4, "still have 4 jobs in queues but not in merged_queue");
 
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Indeed no fitting while all requested machines busy");
 is($scheduler->merged_queue->length, 3, "merged_queue filled up on last get_next_job");
 is($scheduler->merged_queue->wanted_length, 4, "incremented wanted_length after unsuccessful get_next_job");
 
 # ask once again unsuccessfully
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting while all requested machines busy");
 
 # check state of merged queue BEFORE FINISH
@@ -133,7 +133,7 @@ is($scheduler->merged_queue->wanted_length, 5, "finishing a job does not interfe
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 302, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 is($next_job->queue->name, "Kernel", "it is a Kernel job");
@@ -172,7 +172,7 @@ is($scheduler->merged_queue->wanted_length, 4, "finishing a job does not interfe
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 303, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 is($next_job->queue->name, "Kernel", "it is a Kernel job");
@@ -194,7 +194,7 @@ is_deeply(\@merged_queue_job_ids, [ 202, 102, 203 ],     "expected state of merg
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: only useless hosts");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 3, "merged_queue filled up");
@@ -222,7 +222,7 @@ is($scheduler->merged_queue->wanted_length, 4, "finishing a job does not interfe
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available again");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 4, "merged_queue filled up");
@@ -233,7 +233,7 @@ is($scheduler->merged_queue->wanted_length, 5, "wanted_length unchanged after su
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available again");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 4, "merged_queue tried to fill up and no more available");
@@ -245,7 +245,7 @@ is($scheduler->merged_queue->wanted_length, 5, "wanted_length unchanged after su
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available again");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 4, "merged_queue tried to fill up and no more available");
@@ -278,7 +278,7 @@ is_deeply(\@merged_queue_job_ids, [ 202, 102, 203, 103 ],     "expected state of
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock)], "free hosts: iring and bullock available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 202, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 is($next_job->queue->name, "KVM", "it is a KVM job");
@@ -326,7 +326,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iri
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iring and bascha available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 102, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 is($next_job->queue->name, "Xen", "it is a Xen job");
@@ -406,7 +406,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free ho
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free hosts: iring, bascha and bullock available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 203, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 is($next_job->queue->name, "KVM", "it is a KVM job");
@@ -434,7 +434,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iri
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha )], "free hosts: iring, bascha available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job->id, 103, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 is($next_job->queue->name, "Xen", "it is a Xen job");
@@ -463,7 +463,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring )], "free hosts: iring ava
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
@@ -474,7 +474,7 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
@@ -485,7 +485,7 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
@@ -536,7 +536,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free ho
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
@@ -547,7 +547,7 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
@@ -558,7 +558,7 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
-$next_job = $scheduler->get_next_job($free_hosts);
+$next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
 is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
