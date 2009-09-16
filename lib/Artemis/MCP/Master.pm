@@ -12,7 +12,7 @@ class Artemis::MCP::Master extends Artemis::MCP
 
         use Artemis::MCP::Child;
         use Artemis::MCP::Net;
-        use Artemis::MCP::Scheduler;
+        use Artemis::MCP::Scheduler::Controller;
         use Artemis::Model 'model';
 
 
@@ -77,9 +77,18 @@ Associated Scheduler object.
 
 =cut
 
-        has scheduler    => (is => 'rw', isa => 'Artemis::MCP::Scheduler');
+        has scheduler    => (is => 'rw', isa => 'Artemis::MCP::Scheduler::Controller');
 
 =head1 FUNCTIONS
+
+=cut 
+
+sub BUILD
+{
+        my $self = shift;
+        $self->scheduler(Artemis::MCP::Scheduler::Controller->new());
+}
+
 
 =head2 set_interrupt_handlers
 
@@ -239,74 +248,58 @@ Run the tests that are due.
 
         sub run_due_tests
         {
-                my ($self, $due_tests) = @_;
+                my ($self, $job) = @_;
                 $self->log->debug('run_due_test');
 
         SYSTEM:
-                foreach my $system (keys %$due_tests) {
-                        my $id = $due_tests->{$system};
-                        next SYSTEM if not $id;
+                my $system = $job->host->name;
+                my $id = $job->testrun->id;
 
-                        $self->log->debug("test run $id on system $system");
-
-                        # check if this system is already active
-                        if ($self->child->{$system}) {
-                                if ($self->child->{$system}->{test_run}==$id) {
-                                # Occurs in the rare case that child updates
-                                # the test run in the db(inside forked child) slower
-                                # than parent rereads the schedule
-                                        $self->log->warn("Test run id $id is returned twice.");
-                                        next SYSTEM;
-                                } else {
-                                        my $scheduler = Artemis::MCP::Scheduler->new();
-                                        my ($error, $time) = $scheduler->reschedule_testrun($id);
-                                        $self->log->warn("Got a new test run( id = $id) for $system, but test run ",
-                                                         $self->child->{$system}->{test_run},
-                                                         " is still active. Test run $id is rescheduled to ",$time->datetime());
-                                        next SYSTEM;
-                                }
-                        }
-
-                        $self->log->info("start testrun $id on $system");
-
-                        my $pid = fork();
-                        die "fork failed: $!" if (not defined $pid);
-
-                        # hello child
-                        if ($pid == 0) {
-
-                                # put the start time into db
-                                # TODO: $job->mark_as_running()
-                                my $run=model('TestrunDB')->resultset('Testrun')->search({id=>$id})->first();
-                                $run->starttime_testrun(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
-                                $run->update();
-
-                                # stay
-                                my $child = Artemis::MCP::Child->new($id);
-                                my $retval = $child->runtest_handling( $system );
-
-                                # TODO: $job->mark_as_finished()
-                                $run->endtime_test_program(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
-                                $run->update();
-
-                                # stay
-                                if ($retval) {
-                                        $self->log->error("An error occured while trying to run testrun $id on $system: $retval");
-                                } else {
-                                        $self->log->info("Runtest $id finished successfully");
-                                }
-                                exit 0;
+                $self->log->info("start testrun $id on $system");
+                # check if this system is already active, just for error handling
+                if ($self->child->{$system}) {
+                        if ($self->child->{$system}->{test_run}==$id) {
+                                $self->log->error("Test run id $id is returned twice.");
+                                return;
                         } else {
-                                my $console = $self->console_open($system, $id);
-                                $self->log->error($console) if not ref($console) eq 'IO::Socket::INET';
-
-                                $self->child->{$system}->{pid}      = $pid;
-                                $self->child->{$system}->{test_run} = $id;
-                                $self->child->{$system}->{console}  = $console;
+                                $self->log->error("Got a new test run( id = $id) for $system, but test run ",
+                                                  $self->child->{$system}->{test_run},
+                                                  " is still active. Please report this bug.");
+                                return;
                         }
                 }
+
+                $self->scheduler->mark_job_as_running($job);
+
+                my $pid = fork();
+                die "fork failed: $!" if (not defined $pid);
+                
+                # hello child
+                if ($pid == 0) {
+
+                        my $child = Artemis::MCP::Child->new( $id );
+                        my $retval = $child->runtest_handling( $system );
+
+                        $self->scheduler->mark_job_as_finished($job);
+                          
+                        if ($retval) {
+                                $self->log->error("An error occured while trying to run testrun $id on $system: $retval");
+                        } else {
+                                $self->log->info("Runtest $id finished successfully");
+                        }
+                        exit 0;
+                } else {
+                        my $console = $self->console_open($system, $id);
+                        $self->log->error($console) if not ref($console) eq 'IO::Socket::INET';
+
+                        $self->child->{$system}->{pid}      = $pid;
+                        $self->child->{$system}->{test_run} = $id;
+                        $self->child->{$system}->{console}  = $console;
+                }
                 return 0;
+
         }
+
 
 =head2 runloop
 
@@ -336,10 +329,9 @@ itself is put outside of function to allow testing.
                 }
 
                 if (not @ready) {
-                        # run_due_tests needs the hostname, so we let get_next_test search it
-                        my $scheduler = Artemis::MCP::Scheduler->new();
-                        my %due_tests = $scheduler->get_next_testrun();
-                        $self->run_due_tests(\%due_tests);
+                        while ( my $job = $self->scheduler->get_next_job() ) {
+                                $self->run_due_tests($job);
+                        }
                 }
         }
 
@@ -360,7 +352,6 @@ Create communication data structures used in MCP.
                 my $select = IO::Select->new();
                 return "Can't create select object:$!" if not $select;
                 $self->readset ($select);
-                $self->scheduler(Artemis::MCP::Scheduler->new());
                 return "Can't create select object:$!" if not $select;
 
                 my $allhosts = model('HardwareDB')->resultset('Systems')->search({active => 1, current_owner => {like => '%artemis%'}});
