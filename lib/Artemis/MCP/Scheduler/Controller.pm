@@ -86,10 +86,14 @@ class Artemis::MCP::Scheduler::Controller
         }
 
         method mark_job_as_running ($job) {
+                $job->testrun->starttime_testrun(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
+                $job->testrun->update();
                 $job->mark_as_running;
         }
 
         method mark_job_as_finished ($job) {
+                $job->testrun->endtime_test_program(model('TestrunDB')->storage->datetime_parser->format_datetime(DateTime->now));
+                $job->testrun->update();
                 $job->mark_as_finished;
         }
 
