@@ -1,55 +1,33 @@
 use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP::Scheduler::PreconditionProducer {
-        use YAML::Syck;
+        use File::Temp 'tempfile';
+        use YAML       'LoadFile';
+        use Artemis::Config;
 
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
         use aliased 'Artemis::MCP::Scheduler::Job';
 
-        our $temarepath="/home/artemis/temare";
 
-        $ENV{PYTHONPATH} .= ":$temarepath/src";
-        our $artemispath="/home/artemis/perl510/";
-        our $execpath="$artemispath/bin";
-        our $grub_precondition=14;
-        our $filename="/tmp/temare.yml";
-
-
-        method produce(TestRequest $request)
+        method produce(Any $job, HashRef $produce)
         {
-                # warn "FIXME XXX TODO";
-                # return;
+                my (undef, $file) = tempfile( CLEANUP => 1 );
 
-                my $host          =  $request->on_host->name;
-                my $yaml   = qx($temarepath/temare subjectprep $host);
-                return if $?;
-                my $config = Load($yaml);
-                my $precond_id;
+                use Data::Dumper;
+                my $temare_path=Artemis::Config->subconfig->{paths}{temare_path};
 
-                if ($config) {
-                        open (FH,">",$filename) or die "Can't open $filename:$!";
-                        print FH $yaml;
-                        close FH or die "Can't write $filename:$!";
-                        open(FH, "$execpath/artemis-testrun newprecondition --condition_file=$filename|") or die "Can't open pipe:$!";
-                        $precond_id = <FH>;
-                        chomp $precond_id;
-                }
-
-                if (not $precond_id) {
-                        system("cp $filename $filename.backup");
-                        return;
-                }
-
-                my $testrun;
-                if ($config->{name} eq "automatically generated KVM test") {
-                        $testrun    = qx($execpath/artemis-testrun new --topic=KVM --precondition=$precond_id --host=$host);
-                        print "KVM on $host with precondition $precond_id: $testrun";
-                } else {
-                        $testrun    = qx($execpath/artemis-testrun new --topic=Xen --precondition=$grub_precondition --precondition=$precond_id --host=$host);
-                        print "Xen on $host with preconditions $grub_precondition, $precond_id: $testrun";
-                }
-                my $job = Job->new(host => $request->on_host, testrunid => $testrun);
-                return $job;
+                my $subject = $produce->{subject};
+                my $bitness = $produce->{bitness};
+                my $host =  $job->host->name;
+                $ENV{ARTEMIS_TEMARE} = $file;
+                my $yaml = qx($temare_path/temare subjectprep $host $subject $bitness);
+                return {error => $yaml} if $?;
+                my $config = LoadFile($file);
+                my $topic = $config->{subject} || 'Misc';
+                return {
+                        topic => $topic,
+                        precondition_yaml => $yaml
+                       };
         }
 
 }
