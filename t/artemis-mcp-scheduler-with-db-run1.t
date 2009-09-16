@@ -592,6 +592,16 @@ done_testing();
 # - What we have then: - have preconditions
 #                      - can start as usual
 #
+#
+# - Producer need options, eg., 32/64 bit, KVM/Xen
+# - we need TemareProducer, this is configured at Queue with options
+#   --> no Producer assigned in db at all!?
+#       just the "producer" procondition, and this has options
+#
+# write test for temare producer
+# * handle using correct perl
+#
+#
 # - initial db fill:
 #   - rerun-tests for each Queue
 #     * Xen    -- nearly empty, just the "produce precond" and the right Queue assigned
@@ -610,25 +620,10 @@ done_testing();
 #   - each Queue
 #   - each Host
 #
-# - Producer need options, eg., 32/64 bit, KVM/Xen
-# - we need TemareProducer, this is configured at Queue with options
-#   --> no Producer assigned in db at all!?
-#       just the "producer" procondition, and this has options
-
-# precondition_type:produce
-# producer: Temare
-# options:
-#   subject: kvm
-#   bitness: 64
-
-# while (my $current = $ordered_preconds->next) {
-#  if ($current->precondition_as_hash->{type} eq 'produce') {
-#    my $options = PrecondYaml->{options};
-#    my $producer = Artemis::MCP::Scheduler::$::"Temare"->new();
-#    @new_preconds = $producer->produce($options);
-#    push @preconds, @new_preconds;
-#  } else {
-#    push @preconds, $current;
-#  }
-# disassign_all_preconditions()
-# assign_preconditions()
+#
+# Generate preconditions:
+# * KVM -> testrun with auto_rerun
+# ** temare producer
+# * Xen -> testrun with auto_rerun
+# ** temare producer
+# ** grub 14
