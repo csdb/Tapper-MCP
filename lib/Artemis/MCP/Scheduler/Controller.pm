@@ -5,6 +5,7 @@ use 5.010;
 class Artemis::MCP::Scheduler::Controller
 {
         use Artemis::MCP::Scheduler::TestRequest;
+        use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::MergedQueue';
 
@@ -60,13 +61,14 @@ class Artemis::MCP::Scheduler::Controller
                 }
         }
 
-        method get_next_job($free_hosts, Any %args) {
+        method get_next_job(Any %args) {
                 my ($queue, $job);
 
                 do {
                         use Data::Dumper;
 
                         $self->fill_merged_queue;
+                        my $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
                         $self->adapt_merged_queue_length($job);
                         $job->produce_preconditions() if $job;
