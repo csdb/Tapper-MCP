@@ -552,39 +552,10 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 
 done_testing();
 
-#
-#
-# - write test for auto_rerun
-#
 # - integrate controller into MCP: replace Scheduler.pm: in MCP::Master: scheduler->new() --> controller->new()
 # - drop "xentest.pl", now all in MCP
 # - in Master: review reschedule_testrun(), still neccessary? just do "error handling" because it should no more happen that a host is free and not free at same time
-# - MCP::Master has to set $job->mark_job_running(), must be done before fork()
-# - mark_job_running() should also set starttime_testrun, what Master currently does in fork.child( pid == 0 branch)
-# - job::mark_as_finished(), does the current Master.child stuff after run, set endtime_test_program()
 # -
-# - temare as PreconditionProducer
-#   - precond_produce only if not already existing preconditions
-#   - define API how/where to do this
-# - auto_rerun --> auto_refill_queue oder mit param "no_precond", so that precond_producer recreates them
-# - testrequest -> 1 special precondition -> "temare_produce" -> "auto_rerun" before producer
-# - call producer after successful first_fitting, then we know host
-# - order matters:
-#   - 1.) rerun(), from Q -> MQ (add)              # copy existing and therefore also "produce"-precondition to new request
-#   - 2.) get_first_fitting() MQ -> MCP (a)        # get testrun, host assignment
-#   - 3.) produce_preconditions() MQ -> MCP (b)    # solve "lazy preconditions", replace "produce" with real preconds, keep existing
-# - What we have then: - have preconditions
-#                      - can start as usual
-#
-#
-# - Producer need options, eg., 32/64 bit, KVM/Xen
-# - we need TemareProducer, this is configured at Queue with options
-#   --> no Producer assigned in db at all!?
-#       just the "producer" procondition, and this has options
-#
-# write test for temare producer
-# * handle using correct perl
-#
 #
 # - initial db fill:
 #   - rerun-tests for each Queue
@@ -611,3 +582,7 @@ done_testing();
 # * Xen -> testrun with auto_rerun
 # ** temare producer
 # ** grub 14
+# 
+# Put hosts into DB
+#
+# add "use" to host-schema
