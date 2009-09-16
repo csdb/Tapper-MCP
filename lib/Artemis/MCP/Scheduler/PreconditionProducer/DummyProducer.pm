@@ -6,11 +6,14 @@ class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer
         use aliased 'Artemis::MCP::Scheduler::Job';
         use aliased 'Artemis::MCP::Scheduler::TestRequest';
 
-        method produce(HashRef $precondition)
+        method produce(Any $job, HashRef $precondition)
         {
                 my $type = $precondition->{options}{type} || 'no_option';
-                return "---\nprecondition_type: $type\n---\nprecondition_type: second\n";
-                
+                return {
+                        precondition_yaml => "---\nprecondition_type: $type\n---\nprecondition_type: second\n",
+                        topic => 'new_topic',
+                       };
+
         }
 }
 
