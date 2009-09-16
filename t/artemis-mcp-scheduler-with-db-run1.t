@@ -40,22 +40,6 @@ my $next_job;
 my @free_host_names;
 
 
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-my $host = $free_hosts->next;
-diag $host->name;
-$host = $free_hosts->next;
-diag $host->name;
-
-diag "----------------------------------------";
-
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-$host = $free_hosts->next;
-diag $host->name;
-$host = $free_hosts->next;
-diag $host->name;
-
-diag "----------------------------------------";
-
 # Job 1
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
