@@ -18,6 +18,19 @@
     name: Software
     description: any non-kernel software, e.g., libraries, programs
 
+- schema: Topic
+  name: old_topic
+  data:
+    name: old_topic
+    description: only for testing
+
+- schema: Topic
+  name: new_topic
+  data:
+    name: new_topic
+    description: only for testing
+
+
 # -------------------- testruns "perfmon", "lmbench"
 
 - schema: Testrun
@@ -71,8 +84,21 @@
 - schema: Precondition
   name: Producer
   data:
-    id: 6
+    id: 5
     shortname: temare_producer
+    precondition: |
+      ---
+      precondition_type: produce
+      producer: Temare
+      subject: KVM
+      bitness: 64
+
+
+- schema: Precondition
+  name: Producer
+  data:
+    id: 6
+    shortname: dummy_producer
     precondition: |
       ---
       precondition_type: produce
@@ -270,7 +296,7 @@
     owner_user_id: 12
     shortname: ccc-kernel
     notes: ccc
-    topic_name: Distribution
+    topic_name: old_topic
     test_program: /data/bancroft/artemis/live/testsuites/ccc/test_ccc.sh
 
 - schema: TestrunRequestedHost
@@ -298,7 +324,7 @@
     owner_user_id: 12
     shortname: ccc2-kernel
     notes: ccc2
-    topic_name: Distribution
+    topic_name: old_topic
     test_program: /data/bancroft/artemis/live/testsuites/ccc2/test_ccc2.sh
 
 - schema: TestrunRequestedHost
@@ -391,5 +417,5 @@
   name: 1st precondition for perfmon
   data:
     testrun_id: 3002
-    precondition_id: 6
+    precondition_id: 5
     succession: 2
