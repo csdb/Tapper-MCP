@@ -51,7 +51,7 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
 
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->id, 301, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
@@ -77,7 +77,7 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
 
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->id, 302, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 is($next_job->testrun->shortname, "ccc2-kernel", "Shortname testrun");
@@ -105,7 +105,7 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
 
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
@@ -125,7 +125,7 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
 
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
@@ -143,7 +143,7 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
 
-$next_job   = $scheduler->get_next_job($free_hosts);
+$next_job   = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
