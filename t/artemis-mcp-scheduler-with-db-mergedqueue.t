@@ -74,24 +74,24 @@ my $free_hosts;
 my $next_job;
 my @free_host_names;
 
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-@free_host_names = map { $_->name } $free_hosts->all;
+$free_hosts = Artemis::Model::free_hosts_with_features;
+@free_host_names = map { $_->{host}->name } @$free_hosts;
 cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts: all");
 $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 201, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 $scheduler->mark_job_as_running($next_job);
 
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-@free_host_names = map { $_->name } $free_hosts->all;
+$free_hosts = Artemis::Model::free_hosts_with_features;
+@free_host_names = map { $_->{host}->name } @$free_hosts;
 cmp_bag(\@free_host_names, [qw(iring dickstone athene bascha)], "free hosts: bullock taken");
 $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 301, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
 
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-@free_host_names = map { $_->name } $free_hosts->all;
+$free_hosts = Artemis::Model::free_hosts_with_features;
+@free_host_names = map { $_->{host}->name } @$free_hosts;
 cmp_bag(\@free_host_names, [qw(dickstone athene bascha)], "free hosts: iring taken");
 $next_job   = $scheduler->merged_queue->get_first_fitting($free_hosts);
 is($next_job->id, 101, "next fitting host");
@@ -99,8 +99,8 @@ is($next_job->host->name, "bascha", "fitting host bascha");
 $scheduler->mark_job_as_running($next_job);
 
 
-$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
-@free_host_names = map { $_->name } $free_hosts->all;
+$free_hosts = Artemis::Model::free_hosts_with_features;
+@free_host_names = map { $_->{host}->name } @$free_hosts;
 cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: bascha taken");
 
 done_testing();
