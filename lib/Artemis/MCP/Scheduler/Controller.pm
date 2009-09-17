@@ -68,7 +68,7 @@ class Artemis::MCP::Scheduler::Controller
                         use Data::Dumper;
 
                         $self->fill_merged_queue;
-                        my $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+                        my $free_hosts = Artemis::Model::free_hosts_with_features();
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
                         $self->adapt_merged_queue_length($job);
                         $job->produce_preconditions() if $job;
