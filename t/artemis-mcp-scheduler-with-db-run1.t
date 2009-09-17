@@ -552,37 +552,4 @@ is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although
 
 done_testing();
 
-# - integrate controller into MCP: replace Scheduler.pm: in MCP::Master: scheduler->new() --> controller->new()
 # - drop "xentest.pl", now all in MCP
-# - in Master: review reschedule_testrun(), still neccessary? just do "error handling" because it should no more happen that a host is free and not free at same time
-# -
-#
-# - initial db fill:
-#   - rerun-tests for each Queue
-#     * Xen    -- nearly empty, just the "produce precond" and the right Queue assigned
-#       - Xen 3.1
-#       - Xen 3.1 32
-#       - Xen 3.2
-#       - Xen 3.2 32
-#       - Xen 3.3
-#       - Xen 3.3 32
-#       - Xen 3.4
-#       - Xen 3.4 32
-#       - Xen 3.5
-#       - Xen 3.5 32
-#     * KVM    -- 
-#     * Kernel -- replace xentest.pl::gen_kernel())
-#   - each Queue
-#   - each Host
-#
-#
-# Generate preconditions:
-# * KVM -> testrun with auto_rerun
-# ** temare producer
-# * Xen -> testrun with auto_rerun
-# ** temare producer
-# ** grub 14
-# 
-# Put hosts into DB
-#
-# add "use" to host-schema
