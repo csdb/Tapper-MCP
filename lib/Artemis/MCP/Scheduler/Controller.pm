@@ -71,8 +71,9 @@ class Artemis::MCP::Scheduler::Controller
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
                         $self->adapt_merged_queue_length($job);
-                        $job->produce_preconditions() if $job;
-
+                        my $error=$job->produce_preconditions() if $job;
+                        return $error if $error;
+                        
                 } while (not $job and $args{try_until_found});
 
                 # TODO: reduce merged_queue length because we increase it when nothing is found to
