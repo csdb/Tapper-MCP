@@ -9,6 +9,8 @@ class Artemis::MCP::Master extends Artemis::MCP
         use File::Path;
         use IO::Select;
         use Log::Log4perl;
+        use POSIX ":sys_wait_h";
+
 
         use Artemis::MCP::Child;
         use Artemis::MCP::Net;
@@ -194,7 +196,12 @@ information when the test run is finished and the child process ends.
                 my ($self) = @_;
         CHILD: while ($self->dead_child) {
                         $self->log->debug("Number of dead children is ".$self->dead_child);
-                        my $dead_pid = wait(); # there have to be childs pending, otherwise $self->DEAD_CHILD should be 0
+                        my $dead_pid = waitpid(-1, WNOHANG);  # don't use wait(); qx() sends a SIGCHLD and increases $self->deadchild, but wait() for the return value and thus our wait would block
+                        if ($dead_pid <= 0) { # git here because of qx()
+                                print STDERR "dead_pid=$dead_pid\n";
+                                $self->dead_child($self->dead_child - 1);
+                                next CHILD;
+                        }
                 CHILDREN_CHECK: foreach my $this_child (keys %{$self->child})
                         {
                                 if ($self->child->{$this_child}->{pid} == $dead_pid) {
