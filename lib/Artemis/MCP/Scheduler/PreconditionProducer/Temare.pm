@@ -15,13 +15,16 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP
 
                 use Data::Dumper;
                 my $temare_path=Artemis::Config->subconfig->{paths}{temare_path};
-
+                
+                $ENV{PYTHONPATH}="$temare_path/src";
                 my $subject = $produce->{subject};
                 my $bitness = $produce->{bitness};
                 my $host =  $job->host->name;
                 $ENV{ARTEMIS_TEMARE} = $file;
-                my $yaml = qx($temare_path/temare subjectprep $host $subject $bitness);
+                my $cmd="$temare_path/temare subjectprep $host $subject $bitness";
+                my $yaml = qx($cmd);
                 return {error => $yaml} if $?;
+                
                 my $config = LoadFile($file);
                 my $topic = $config->{subject} || 'Misc';
                 return {
