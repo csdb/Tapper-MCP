@@ -13,6 +13,7 @@ use YAML::Syck;
 
 use Artemis::MCP::Net;
 use Artemis::MCP::Config;
+use Artemis::Model 'model';
 
 use constant BUFLEN     => 1024;
 use constant ONE_MINUTE => 60;
@@ -34,6 +35,31 @@ Artemis::MCP::Child - Control one specific testrun on MCP side
 
 
 =head1 FUNCTIONS
+
+
+=head2 set_hardwaredb_systems_id
+
+Set the actual hardwaredb_systems_id of the used test machine.
+
+@param Testrun id object - found testrun result
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub set_hardwaredb_systems_id
+{
+        my ($self, $hostname) = @_;
+
+        my $testrun = model('TestrunDB')->resultset('Testrun')->find($self->testrun);
+        return "Testrun with id ".$self->testrun." not found" if not $testrun;
+        my $host = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1});
+        return "Can not find $hostname in hardware db, databases out of sync" if not $host;
+        $testrun->hardwaredb_systems_id($host->first->lid);
+        $testrun->update();
+        return 0;
+}
 
 
 =head2 net_read_do
@@ -511,6 +537,9 @@ sub runtest_handling
         my  ($self, $hostname) = @_;
         my $retval;
 
+        $retval = $self->set_hardwaredb_systems_id($hostname);
+        return $retval if $retval;
+        
         my $srv=IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
         my $remote = new Artemis::MCP::Net;
