@@ -394,7 +394,7 @@ sub tap_report_create
         my $run = model->resultset('Testrun')->search({id=>$testrun})->first();
         my $hostname = model('HardwareDB')->resultset('Systems')->search({lid => $run->hardwaredb_systems_id})->first->systemname;
         my $message;
-        my $topic = $run->shortname() || $run->topic_name();
+        my $topic = $run->topic_name() || $run->shortname();
         $topic =~ s/\s+/-/g;
         $message .= "1..".($#report+1)."\n";
         $message .= "# Artemis-reportgroup-testrun: $testrun\n";
