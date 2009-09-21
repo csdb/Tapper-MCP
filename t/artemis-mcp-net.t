@@ -45,7 +45,7 @@ my $srv = new Artemis::MCP::Net;
 my $report_string = $srv->tap_report_create(4, [{msg => "Test on guest 1"},{error => 1, msg => "error"}]);
 my $expect_string = '1..2
 # Artemis-reportgroup-testrun: 4
-# Artemis-suite-name: Topic-foobar
+# Artemis-suite-name: Topic-Software
 # Artemis-suite-version: 1.0
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
