@@ -499,6 +499,7 @@
     id: 5
     name: iring
     free: 1
+    active: 1
 
 - schema: Host
   name: bullock
@@ -506,6 +507,7 @@
     id: 6
     name: bullock
     free: 1
+    active: 1
 
 - schema: Host
   name: dickstone
@@ -513,6 +515,7 @@
     id: 7
     name: dickstone
     free: 1
+    active: 1
 
 - schema: Host
   name: athene
@@ -520,6 +523,7 @@
     id: 8
     name: athene
     free: 1
+    active: 1
 
 - schema: Host
   name: bascha
@@ -527,3 +531,4 @@
     id: 9
     name: bascha
     free: 1
+    active: 1
