@@ -386,19 +386,20 @@
     active: 1
 
 - schema: Host
-  name: Yaron
+  name: yaron
   data:
     id: 10
-    name: Yaron
-    free: 0
+    name: yaron
+    free: 1
     active: 1
 
 # -------------------- "Host Yaron queuebound to KVM"
 
 - schema: QueueHost
   name: YaronKVM
-  queue_id: 2
-  host_id: 10
+  data:
+    queue_id: 2
+    host_id: 10
 
 
 
@@ -441,3 +442,33 @@
     testrun_id: 3002
     precondition_id: 5
     succession: 2
+
+
+# -------------------- Testrequest with requested host bound to queue
+
+- schema: Testrun
+  name: bound-kernel
+  data:
+    id: 3010
+    owner_user_id: 12
+    shortname: bound-kernel
+    notes: bound
+    topic_name: old_topic
+    test_program: /data/bancroft/artemis/live/testsuites/ccc/test_ccc.sh
+
+- schema: TestrunRequestedHost
+  name: bound-yaron
+  data:
+    id: 310
+    testrun_id: 3010            # bound-kernel
+    host_id: 10                 # yaron
+
+- schema: TestrunScheduling
+  name: Kernel-bound
+  data:
+    id: 310
+    testrun_id: 3010            # ccc
+    queue_id: 3                 # Kernel
+    auto_rerun: 1
+    status: prepare
+
