@@ -385,6 +385,23 @@
     free: 1
     active: 1
 
+- schema: Host
+  name: Yaron
+  data:
+    id: 10
+    name: Yaron
+    free: 0
+    active: 1
+
+# -------------------- "Host Yaron queuebound to KVM"
+
+- schema: QueueHost
+  name: YaronKVM
+  queue_id: 2
+  host_id: 10
+
+
+
 # -------------------- "preconditions for scheduled tests 1"
 
 - schema: TestrunPrecondition
