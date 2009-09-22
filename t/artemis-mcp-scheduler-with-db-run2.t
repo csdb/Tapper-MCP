@@ -49,7 +49,7 @@ my @precondition_ids;
 # Job 1
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
+cmp_bag(\@free_host_names, [qw(yaron iring bullock dickstone athene bascha)], "free hosts");
 
 $next_job   = $scheduler->get_next_job();
 is($next_job->id, 301, "next fitting host");
@@ -59,7 +59,7 @@ $scheduler->mark_job_as_running($next_job);
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
+cmp_bag(\@free_host_names, [qw(yaron bullock dickstone athene bascha)], "free hosts: iring taken ");
 
 
 my @all_preconditions = $next_job->testrun->ordered_preconditions;
@@ -75,7 +75,7 @@ $scheduler->mark_job_as_finished($next_job);
 # Job 2
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
+cmp_bag(\@free_host_names, [qw(yaron iring bullock dickstone athene bascha)], "free hosts");
 
 $next_job   = $scheduler->get_next_job();
 is($next_job->id, 302, "next fitting host");
@@ -85,7 +85,7 @@ $scheduler->mark_job_as_running($next_job);
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
+cmp_bag(\@free_host_names, [qw(yaron bullock dickstone athene bascha)], "free hosts: iring taken ");
 
 my $preconditions = $next_job->testrun->ordered_preconditions;
 @all_preconditions = map {$_->precondition} $next_job->testrun->ordered_preconditions;
@@ -103,7 +103,7 @@ is_deeply(\@splice, [ "--- \nprecondition_type: command\ntext: subjectprep\n",
 # Job 3
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
+cmp_bag(\@free_host_names, [qw(yaron iring bullock dickstone athene bascha)], "free hosts");
 
 $next_job   = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
@@ -112,7 +112,7 @@ $scheduler->mark_job_as_running($next_job);
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
+cmp_bag(\@free_host_names, [qw(yaron bullock dickstone athene bascha)], "free hosts: iring taken ");
 
 $scheduler->mark_job_as_finished($next_job);
 
@@ -123,7 +123,7 @@ $scheduler->mark_job_as_finished($next_job);
 # Job 4
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
+cmp_bag(\@free_host_names, [qw(yaron iring bullock dickstone athene bascha)], "free hosts");
 
 $next_job   = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
@@ -132,7 +132,7 @@ $scheduler->mark_job_as_running($next_job);
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
+cmp_bag(\@free_host_names, [qw(yaron bullock dickstone athene bascha)], "free hosts: iring taken ");
 
 $scheduler->mark_job_as_finished($next_job);
 
@@ -141,7 +141,7 @@ $scheduler->mark_job_as_finished($next_job);
 # Job 5
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(iring bullock dickstone athene bascha)], "free hosts");
+cmp_bag(\@free_host_names, [qw(yaron iring bullock dickstone athene bascha)], "free hosts");
 
 $next_job   = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
@@ -150,9 +150,58 @@ $scheduler->mark_job_as_running($next_job);
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(bullock dickstone athene bascha)], "free hosts: iring taken ");
+cmp_bag(\@free_host_names, [qw(yaron bullock dickstone athene bascha)], "free hosts: iring taken ");
 
 $scheduler->mark_job_as_finished($next_job);
+
+
+
+# prepare db changes
+my $host = model("TestrunDB")->resultset("Host")->find(10);
+my $queuehost = $host->queuehosts->first;
+$queuehost->queue_id(3);  # kernel queue
+$queuehost->update;
+
+# 310 is bound-kernel, a testrun that requests host yaron
+my $job = model("TestrunDB")->resultset("TestrunScheduling")->find(310);
+$job->status('schedule');
+$job->update;
+
+$next_job = $scheduler->get_next_job();
+is($next_job->testrun->shortname, "bound-kernel", "Shortname testrun is bound-kernel");
+is($next_job->host->name, "yaron", "fitting host yaron");
+$scheduler->mark_job_as_running($next_job);
+$scheduler->mark_job_as_finished($next_job);
+
+
+# Queue bound tests
+$free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
+while (my $host = $free_hosts->next) {
+        $host->free(0);
+        $host->update;
+}
+
+$host = model("TestrunDB")->resultset("Host")->find(10);
+$host->free(1);
+$host->update();
+$queuehost = $host->queuehosts->first;
+$queuehost->queue_id(2);  # KVM queue
+$queuehost->update;
+
+$next_job   = $scheduler->get_next_job();
+is($next_job, undef, 'No job when only available host is bound to empty queue');
+
+
+
+$queuehost->queue_id(3);  # kernel queue
+$queuehost->update;
+
+$next_job = $scheduler->get_next_job();
+is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
+is($next_job->host->name, "yaron", "fitting host yaron");
+$scheduler->mark_job_as_running($next_job);
+$scheduler->mark_job_as_finished($next_job);
+
 
 
 done_testing;
