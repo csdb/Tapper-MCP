@@ -143,6 +143,7 @@ failure.
                 my $net = Artemis::MCP::Net->new();
                 my $console = $net->conserver_connect($system);
                 return $console if not ref $console eq 'IO::Socket::INET';
+                $console->blocking(0);
                 $self->readset->add($console);
                 my $path = $self->cfg->{paths}{output_dir}."/$testrunid/";
 
