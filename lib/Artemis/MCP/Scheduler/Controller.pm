@@ -29,16 +29,25 @@ class Artemis::MCP::Scheduler::Controller
         method fill_merged_queue()
         {
                 my $count_missing_jobs = $self->merged_queue->wanted_length - $self->merged_queue->length;
+                my %queues;
+                my $queue_rs = model('TestrunDB')->resultset('Queue');
+                foreach my $queue_name( map {$_->name} $queue_rs->all ) {
+                        $queues{$queue_name} = 1;
+                }
 
-                # fill up to wanted merged_queue length
-                for (1 .. $count_missing_jobs)
+                # fill up to wanted merged_queue length, only accept shorter merged_queue if no queue has jobs to offer
+                while($count_missing_jobs)
                 {
                         my $queue = $self->algorithm->get_next_queue();
                         my $testrun_rs = $queue->queued_testruns;
                         my $job   = $testrun_rs->first;
                         if ($job) {
+                                $count_missing_jobs--;
                                 $self->merged_queue->add($job);
+                        } else {
+                                delete $queues{$queue->name};
                         }
+                        last if not %queues;
                 }
         }
 
