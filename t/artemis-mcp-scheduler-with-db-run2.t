@@ -157,7 +157,7 @@ $scheduler->mark_job_as_finished($next_job);
 
 
 # prepare db changes
-my $host = model("TestrunDB")->resultset("Host")->find(10);
+my $host = model("TestrunDB")->resultset("Host")->find(10); # host yaron
 my $queuehost = $host->queuehosts->first;
 $queuehost->queue_id(3);  # kernel queue
 $queuehost->update;
@@ -166,6 +166,15 @@ $queuehost->update;
 my $job = model("TestrunDB")->resultset("TestrunScheduling")->find(310);
 $job->status('schedule');
 $job->update;
+
+# clean merged queue
+$next_job = $scheduler->get_next_job();
+$scheduler->mark_job_as_running($next_job);
+$scheduler->mark_job_as_finished($next_job);
+$next_job = $scheduler->get_next_job();
+$scheduler->mark_job_as_running($next_job);
+$scheduler->mark_job_as_finished($next_job);
+
 
 $next_job = $scheduler->get_next_job();
 is($next_job->testrun->shortname, "bound-kernel", "Shortname testrun is bound-kernel");
@@ -184,6 +193,7 @@ while (my $host = $free_hosts->next) {
 $host = model("TestrunDB")->resultset("Host")->find(10);
 $host->free(1);
 $host->update();
+
 $queuehost = $host->queuehosts->first;
 $queuehost->queue_id(2);  # KVM queue
 $queuehost->update;
