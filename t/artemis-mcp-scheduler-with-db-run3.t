@@ -9,10 +9,8 @@ use MRO::Compat;
 
 use aliased 'Artemis::MCP::Scheduler::Job';
 use aliased 'Artemis::MCP::Scheduler::Controller';
-use aliased 'Artemis::MCP::Scheduler::TestRequest';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
-use aliased 'Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer';
 
 use Artemis::Model 'model';
 
@@ -69,6 +67,37 @@ is($next_job, undef, "No fitting since no free machines");
 
 is($scheduler->merged_queue->length, 3, "merged_queue full");
 is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged");
+
+
+# Queue bound tests
+$free_hosts = model("TestrunDB")->resultset("Host");
+while (my $host = $free_hosts->next) {
+        $host->free(1);
+        $host->update;
+}
+
+my $testrun_rs = model('TestrunDB')->resultset('Testrun');
+while (my $tr = $testrun_rs->next()) {
+        my $feature=model('TestrunDB')->resultset('TestrunRequestedFeature')->new({testrun_id => $tr->id, feature => 'mem > 5000'});
+        $feature->insert;
+        if ($tr->testrun_scheduling) {
+                my $host_rs = model('TestrunDB')->resultset('TestrunRequestedHost');
+                foreach my $host($host_rs->all) {
+                        $host->delete();
+                }
+        }
+};
+
+$next_job = $scheduler->get_next_job();
+is($next_job->host->name, "iring", "fitting host iring");
+$scheduler->mark_job_as_running($next_job);
+my $job1=$next_job;
+
+$next_job = $scheduler->get_next_job();
+is($next_job, undef, "no job since only host with more than 5GB RAM is in use");
+
+
+$scheduler->mark_job_as_finished($job1);
 
 
 done_testing();
