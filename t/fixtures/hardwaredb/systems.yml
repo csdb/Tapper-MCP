@@ -7,6 +7,7 @@
   data:
     lid: 42
     systemname: affe
+    revision_id: 142
 
 - schema: Systems
   name: a system called iring
@@ -27,7 +28,7 @@
   data:
     lid: 8
     systemname: bullock
-
+    revision_id: 118
 
 # ------ revision
 
@@ -45,7 +46,7 @@
   data:
     lid: 113
     revision_id: 112
-    component_type: Ram
+    component_type: ram
     component_id: 3212
 
 - schema: Revision
@@ -53,8 +54,34 @@
   data:
     lid: 114
     revision_id: 112
-    component_type: Ram
+    component_type: ram
     component_id: 3213
+
+- schema: Revision
+  name: Bullock RAM
+  data:
+    lid: 118
+    revision_id: 118
+    component_type: ram
+    component_id: 3214
+
+
+- schema: Revision
+  name: Bascha RAM
+  data:
+    lid: 115
+    revision_id: 115
+    component_type: ram
+    component_id: 3215
+
+- schema: Revision
+  name: Affe RAM
+  data:
+    lid: 142
+    revision_id: 142
+    component_type: ram
+    component_id: 3216
+
 
 
 # ----- CPU
@@ -72,18 +99,41 @@
 
 # ------ RAM
 - schema: Ram
-  name: iring ram
+  name: RAM1
   data:
     lid: 3212
     size_mbyte: 2048
     vendor: Kingston
 
 - schema: Ram
-  name: second iring ram
+  name: RAM2
   data:
     lid: 3213
-    size_mbyte: 2048
+    size_mbyte: 4123
     vendor: Kingston
+
+- schema: Ram
+  name: RAM3
+  data:
+    lid: 3214
+    size_mbyte: 567
+    vendor: Kingston
+
+- schema: Ram
+  name: RAM3
+  data:
+    lid: 3215
+    size_mbyte: 123
+    vendor: Kingston
+
+- schema: Ram
+  name: RAM3
+  data:
+    lid: 3216
+    size_mbyte: 234
+    vendor: Kingston
+
+
 
 # ------ Network
 - schema: Network
@@ -101,7 +151,7 @@
 - schema: Revision
   name: iring revisions
   data:
-    lid: 115
+    lid: 1150
     revision_id: 115
     component_type: cpu
     component_id: 3115
