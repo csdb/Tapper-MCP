@@ -105,8 +105,7 @@ Set interrupt handlers for important signals. No parameters, no return values.
                 my ($self) = @_;
                 $SIG{CHLD} = sub {
                         $self->dead_child($self->dead_child + 1);
-                }
-                  ;
+                };
 
                 # give me a stack trace when ^C
                 $SIG{INT} = sub {
@@ -116,8 +115,7 @@ Set interrupt handlers for important signals. No parameters, no return values.
                         print $backtrace;
 
                         exit -1;
-                }
-                  ;
+                };
                 return 0;
         }
 
@@ -198,8 +196,7 @@ information when the test run is finished and the child process ends.
         CHILD: while ($self->dead_child) {
                         $self->log->debug("Number of dead children is ".$self->dead_child);
                         my $dead_pid = waitpid(-1, WNOHANG);  # don't use wait(); qx() sends a SIGCHLD and increases $self->deadchild, but wait() for the return value and thus our wait would block
-                        if ($dead_pid <= 0) { # git here because of qx()
-                                print STDERR "dead_pid=$dead_pid\n";
+                        if ($dead_pid <= 0) { # got here because of qx()
                                 $self->dead_child($self->dead_child - 1);
                                 next CHILD;
                         }
@@ -265,17 +262,7 @@ Run the tests that are due.
 
                 $self->log->info("start testrun $id on $system");
                 # check if this system is already active, just for error handling
-                if ($self->child->{$system}) {
-                        if ($self->child->{$system}->{test_run}==$id) {
-                                $self->log->error("Test run id $id is returned twice.");
-                                return;
-                        } else {
-                                $self->log->error("Got a new test run( id = $id) for $system, but test run ",
-                                                  $self->child->{$system}->{test_run},
-                                                  " is still active. Please report this bug.");
-                                return;
-                        }
-                }
+                $self->handle_dead_children() if $self->child->{$system};
 
                 $self->scheduler->mark_job_as_running($job);
 
