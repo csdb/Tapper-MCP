@@ -68,9 +68,7 @@ sub add_guest_testprogram
         $prc_config->{config}->{parameters}   = $guest->{testprogram}->{parameters}
           if $guest->{testprogram}->{parameters};
         $prc_config->{config}->{guest_number} = $guest_number;
-        $prc_config->{config}->{runtime}      = $self->cfg->{times}{test_runtime_default};
-        $prc_config->{config}->{runtime}      = $guest->{testprogram}->{runtime} ||
-          $self->cfg->{times}{test_runtime_default};
+        $prc_config->{config}->{runtime}      = $guest->{testprogram}->{runtime} || $self->cfg->{times}{test_runtime_default};
 
         my $timeout;
         if ($guest->{testprogram}->{timeout_testprogram}) {
