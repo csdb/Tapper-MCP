@@ -24,6 +24,6 @@ rsync -vv --progress --ignore-existing ${DISTFILES} artemis@wotan:/home/artemis/
 
 echo ""
 echo '----- re-index -------------------------------------------------'
-ssh artemis@wotan /home/artemis/perl510/bin/cpansite -vl index /home/artemis/CPANSITE/CPAN/
-ssh artemis@wotan 'echo "/home/artemis/perl510/bin/cpansite install Artemis::MCP" | bash -l'
+ssh artemis@wotan /home/artemis/perl510/bin/cpansite -vv --site=/home/artemis/CPANSITE/CPAN --cpan=ftp://ftp.fu-berlin.de/unix/languages/perl/ index
+ssh artemis@wotan /home/artemis/perl510/bin/cpan Artemis::MCP
 
