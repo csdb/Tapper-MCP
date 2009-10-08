@@ -3,7 +3,7 @@ package Artemis::MCP;
 use warnings;
 use strict;
 
-our $VERSION = '2.000046';
+our $VERSION = '2.000047';
 
 
 use Artemis::Config;
