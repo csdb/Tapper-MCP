@@ -43,7 +43,7 @@ is_deeply(\@timeout,[15],'Timeout for testprogram in PRC 1');
 $producer = Artemis::MCP::Config->new(3);
 $config = $producer->create_config();
 is(ref($config),'HASH', 'Config created');
-is($config->{preconditions}->[3]->{config}->{max_reboot}, 2, 'Reboot test');
+is($config->{preconditions}->[2]->{config}->{max_reboot}, 2, 'Reboot test');
 
 $info = $producer->get_mcp_info();
 isa_ok($info, 'Artemis::MCP::Info', 'mcp_info');
