@@ -11,6 +11,27 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
 
         sub younger { stat($a)->mtime() <=> stat($b)->mtime() }
 
+        # try to get the kernel version by reading the files in the packet
+        # this approach works since that way the kernel_version required by gen_initrd
+        # even if other approaches would report different version strings
+        method get_version(Str $kernelbuild)
+        {
+                my @files;
+                if ($kernelbuild =~ m/gz$/) {
+                        @files = qx(tar -tzf $kernelbuild);
+                } elsif ($kernelbuild =~ m/bz2$/) {
+                        @files = qx(tar -tjf $kernelbuild);
+                } else {
+                        return {error => 'Can not detect type of file $kernelbuild. Supported types are tar.gz and tar.bz2'};
+                }
+                chomp @files;
+                foreach my $file (@files) {
+                        if ($file =~m|boot/vmlinuz-(.+)$|) {
+                                return {version => $1};
+                        }
+                }
+        }
+
         method produce(Any $job, HashRef $produce) {
 
                 my $pkg_dir     = Config->subconfig->{package_dir};
@@ -21,16 +42,30 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
                         error => 'No kernel files found',
                        } if not @kernelfiles;
                 my $kernelbuild = pop @kernelfiles;
+                my $kernel_version = $self->get_version($kernelbuild);
+                if ($kernel_version->{error}) {
+                        return $kernel_version;
+                }
                 ($kernelbuild)  = $kernelbuild =~ m|$pkg_dir/(kernel/$arch/.+)$|;
+                
 
-                my $retval = {
-                              precondition_type => 'package', 
-                              filename => $kernelbuild,
-                             };
+                my $retval = [
+                              {
+                               precondition_type => 'package', 
+                               filename => $kernelbuild,
+                              }, 
+                              {
+                               precondition_type => 'exec',
+                               filename =>  '/bin/gen_initrd.sh',
+                               options => [ $kernel_version->{version} ],
+                              }
+                             ]
+                              
+;
 
 
                 return {
-                        precondition_yaml => Dump($retval),
+                        precondition_yaml => Dump(@$retval),
                        };
         }
         
