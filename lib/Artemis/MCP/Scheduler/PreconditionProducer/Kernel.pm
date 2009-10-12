@@ -2,44 +2,40 @@ use MooseX::Declare;
 
 class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP::Scheduler::PreconditionProducer
 {
-        use YAML::Syck;
+        use YAML;
 
-        use aliased 'Artemis::MCP::Scheduler::TestRequest';
-        use aliased 'Artemis::MCP::Scheduler::Job';
+        use 5.010;
+
         use aliased 'Artemis::Config';
+        use File::stat;
 
         sub younger { stat($a)->mtime() <=> stat($b)->mtime() }
 
-        method produce(TestRequest $request) {
-                # warn "FIXME XXX TODO";
-                # return;
+        method produce(Any $job, HashRef $produce) {
 
-                my $host            =  $request->on_host->name;
-                my $kernel_path     =  Config->subconfig->{package_dir}."/kernel";
-                my @kernelfiles     =  sort younger <$kernel_path/x86_64/*>;
-                my $kernelbuild     =  pop @kernelfiles;
+                my $pkg_dir     = Config->subconfig->{package_dir};
+                my $arch        = $produce->{arch} // 'x86_64';
+                my $kernel_path = $pkg_dir."/kernel";
+                my @kernelfiles = sort younger <$kernel_path/$arch/*>;
+                return {
+                        error => 'No kernel files found',
+                       } if not @kernelfiles;
+                my $kernelbuild = pop @kernelfiles;
+                ($kernelbuild)  = $kernelbuild =~ m|$pkg_dir/(kernel/$arch/.+)$|;
 
-                my $kernel_version;
-                open FH,"tar -tzf $kernelbuild|" or die "Can't look into kernelbuild:$!";
-        TARFILES:
-                while (my $line = <FH>) {
-                        if ($line =~ m/vmlinuz-(.+)$/) {
-                                $kernel_version = $1;
-                                last TARFILES ;
-                        }
-                }
+                my $retval = {
+                              precondition_type => 'package', 
+                              filename => $kernelbuild,
+                             };
 
-                my $id  = qx($execpath/artemis-testrun new --macroprecond=/data/bancroft/artemis/live/repository/macropreconditions/kernel/kernel_boot.mpc --hostname=$host -Dkernel_version=$kernel_version -Dkernelpkg=$kernelbuild --owner=mhentsc3 --topic=Kernel);
-                my $job = Job->new(host => $request->on_host, testrunid => $id);
-                return $job;
 
+                return {
+                        precondition_yaml => Dump($retval),
+                       };
         }
-}
+        
+        
 
-{
-        # help the CPAN indexer
-        package Artemis::MCP::Scheduler::Producer::Kernel;
-        our $VERSION = '0.01';
 }
 
 1;
