@@ -26,7 +26,7 @@ construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardware
 # --------------------------------------------------------------------------------
 
 Artemis::Config->subconfig->{package_dir}='t/misc_files/kernel_producer/';
-qx(touch t/misc_files/kernel_producer/kernel/x86_64/file3);  # make sure file3 is the newest
+qx(touch t/misc_files/kernel_producer/kernel/x86_64/kernel_file3.tar.gz);  # make sure file3 is the newest
 
 my $job          = Artemis::MCP::Scheduler::Job->new();
 my $producer     = Artemis::MCP::Scheduler::PreconditionProducer::Kernel->new();
@@ -34,8 +34,12 @@ my $precondition = $producer->produce($job, {});
 
 is(ref $precondition, 'HASH', 'Producer / returned hash');
 
-my $yaml = Load($precondition->{precondition_yaml});
-is( $yaml->{precondition_type}, 'package', 'Precondition / precondition type');
-is( $yaml->{filename}, 'kernel/x86_64/file3', 'Precondition / file name');
+
+my @yaml = Load($precondition->{precondition_yaml});
+is( $yaml[0]->{precondition_type}, 'package', 'Precondition 1 / precondition type');
+is( $yaml[0]->{filename}, 'kernel/x86_64/kernel_file3.tar.gz', 'Precondition 1/ file name');
+
+is( $yaml[1]->{precondition_type}, 'exec', 'Precondition 2/ precondition type');
+is( $yaml[1]->{options}->[0], 'file3', 'Precondition 2/ options');
 
 done_testing();
