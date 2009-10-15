@@ -59,9 +59,13 @@ class Artemis::MCP::Scheduler::Controller
         method adapt_merged_queue_length(Any $job) {
                 if (not $job) {
                         # increase merged_queue length if no job found,
-                        # but not longer than current length + 1
-                        $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 )
-                            if $self->merged_queue->wanted_length - $self->merged_queue->length < 1;
+                        if (($self->merged_queue->wanted_length - $self->merged_queue->length < 1) # not longer than current length + 1
+                            and
+                            ($self->merged_queue->length < 2 * $self->algorithm->queue_count) # not longer than 2 queuecount to prevent flooding when only bound hosts available
+                           )
+                        { 
+                                $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 );
+                        }
                 } else {
                         # count down merged_queue again on success,
                         # but not smaller that count queues
@@ -82,7 +86,12 @@ class Artemis::MCP::Scheduler::Controller
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
                         $self->adapt_merged_queue_length($job);
                         my $error=$job->produce_preconditions() if $job;
-                        return $error if $error;
+                        if ($error) {
+                                my $net    = Artemis::MCP::Net->new();
+                                $net->tap_report_send($job->testrun_id, [{error => 1, msg => $error}]);
+                                $self->mark_job_as_finished($job);
+                                return;
+                        }
 
                 } while (not $job and $args{try_until_found});
 
