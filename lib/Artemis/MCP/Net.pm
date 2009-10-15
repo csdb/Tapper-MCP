@@ -3,6 +3,8 @@ package Artemis::MCP::Net;
 use strict;
 use warnings;
 
+use 5.010;
+
 use Moose;
 use Socket;
 use Net::SSH;
@@ -390,9 +392,11 @@ does data transformation, no error should ever occur.
 sub tap_report_create
 {
         my ($self, $testrun, $report) = @_;
-        my @report = @$report;
-        my $run = model->resultset('Testrun')->search({id=>$testrun})->first();
-        my $hostname = model('HardwareDB')->resultset('Systems')->search({lid => $run->hardwaredb_systems_id})->first->systemname;
+        my @report   = @$report;
+        my $run      = model->resultset('Testrun')->search({id=>$testrun})->first();
+        my $host     = model('HardwareDB')->resultset('Systems')->search({lid => $run->hardwaredb_systems_id});
+        my $hostname = $host->first->systemname if $host;
+        $hostname = $hostname // 'No hostname set';
         my $message;
         my $topic = $run->topic_name() || $run->shortname();
         $topic =~ s/\s+/-/g;
