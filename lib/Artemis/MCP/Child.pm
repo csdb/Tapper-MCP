@@ -185,6 +185,9 @@ sub set_prc_state
                 if ($max_reboot) {
                         $prc_state->[$i]->{max_reboot} = $max_reboot;
                         $prc_state->[$i]->{reboot}     = $self->mcp_info->get_boot_timeout($i);
+                        for (my $j = 0; $j <= $max_reboot; $j++) {
+                                push @{$prc_state->[$i]->{timeouts}}, $self->mcp_info->get_testprogram_timeouts($i);
+                        }
                 }
                 $prc_state->[$i]->{start} = $self->mcp_info->get_boot_timeout($i);
                 push @{$prc_state->[$i]->{timeouts}}, $self->mcp_info->get_testprogram_timeouts($i);
@@ -293,6 +296,11 @@ sub time_reduce
                         $boot_timeout = min($boot_timeout, $prc_state->[$i]->{start});
 
                 } elsif ($prc_state->[$i]->{timeouts}->[0]) {
+                        # testprogram is finished, take it off timeout array
+                        if ($prc_state->[$i]->{timeouts}->[0] eq 'flag') {
+                                shift @{$prc_state->[$i]->{timeouts}};
+                                next if not $prc_state->[$i]->{timeouts}->[0];
+                        }
                         if (($prc_state->[$i]->{timeouts}->[0] - $elapsed) <= 0) {
                                 shift @{$prc_state->[$i]->{timeouts}};
                                 $result->{error} = 1;
@@ -406,6 +414,7 @@ sub update_prc_state
                 }
                 when ('end-testprogram') {
                         shift @{$prc_state->[$number]->{testprograms}};
+                        $prc_state->[$number]->{timeouts}->[0] = 'flag';   # signal time_reduce that this testprogram is finished
                         $result->{msg} = "Testprogram $msg->{testprogram} in guest $number" if $number != 0;
                         $result->{msg} = "Testprogram $msg->{testprogram} in PRC 0" if $number == 0;
                         push (@{$prc_state->[$number]->{results}}, $result);
