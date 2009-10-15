@@ -34,7 +34,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
 
         method produce(Any $job, HashRef $produce) {
 
-                my $pkg_dir     = Config->subconfig->{package_dir};
+                my $pkg_dir     = Config->subconfig->{paths}{package_dir};
                 my $arch        = $produce->{arch} // 'x86_64';
                 my $kernel_path = $pkg_dir."/kernel";
                 my @kernelfiles = sort younger <$kernel_path/$arch/*>;
@@ -42,29 +42,29 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
                         error => 'No kernel files found',
                        } if not @kernelfiles;
                 my $kernelbuild = pop @kernelfiles;
-                my $kernel_version = $self->get_version($kernelbuild);
-                if ($kernel_version->{error}) {
-                        return $kernel_version;
+                my $retval  = $self->get_version($kernelbuild);
+                if ($retval->{error}) {
+                        return $retval;
                 }
+                my $kernel_version = $retval->{version};
+                my ($kernel_major_version) = $kernel_version =~ m/(2\.\d{1,2}\.\d{1,2})/;
                 ($kernelbuild)  = $kernelbuild =~ m|$pkg_dir/(kernel/$arch/.+)$|;
                 
 
-                my $retval = [
-                              {
-                               precondition_type => 'package', 
-                               filename => $kernelbuild,
-                              }, 
-                              {
-                               precondition_type => 'exec',
-                               filename =>  '/bin/gen_initrd.sh',
-                               options => [ $kernel_version->{version} ],
-                              }
-                             ]
-                              
-;
-
+                $retval = [
+                           {
+                            precondition_type => 'package', 
+                            filename => $kernelbuild,
+                           }, 
+                           {
+                            precondition_type => 'exec',
+                            filename =>  '/bin/gen_initrd.sh',
+                            options => [ $kernel_version ],
+                           }
+                          ];
 
                 return {
+                        topic => "kernel-$kernel_major_version-reboot",
                         precondition_yaml => Dump(@$retval),
                        };
         }
