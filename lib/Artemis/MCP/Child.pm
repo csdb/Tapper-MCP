@@ -270,7 +270,7 @@ sub time_reduce
  PRC:
         for (my $i=0; $i<=$#{$prc_state}; $i++) {
                 my $result;
-                if ($prc_state->[$i]->{start} != 0) {
+                if ($prc_state->[$i]->{start} and $prc_state->[$i]->{start} != 0) {
                         if (($prc_state->[$i]->{start} - $elapsed) <= 0) {
                                 $prc_state->[$i]->{start} = 0;
                                 delete $prc_state->[$i]->{timeouts};
@@ -299,7 +299,7 @@ sub time_reduce
                         # testprogram is finished, take it off timeout array
                         if ($prc_state->[$i]->{timeouts}->[0] eq 'flag') {
                                 shift @{$prc_state->[$i]->{timeouts}};
-                                next if not $prc_state->[$i]->{timeouts}->[0];
+                                next;
                         }
                         if (($prc_state->[$i]->{timeouts}->[0] - $elapsed) <= 0) {
                                 shift @{$prc_state->[$i]->{timeouts}};
@@ -347,7 +347,7 @@ sub time_reduce
                 }
 
                 my $newtimeout = $prc_state->[$i]->{end};
-                $newtimeout    = $prc_state->[$i]->{timeouts}->[0] if $prc_state->[$i]->{timeouts}->[0];
+                $newtimeout    = $prc_state->[$i]->{timeouts}->[0] if $prc_state->[$i]->{timeouts}->[0] and not $prc_state->[$i]->{timeouts}->[0] ~~ 'flag';
                 $newtimeout    = $prc_state->[$i]->{reboot} if ($prc_state->[$i]->{reboot} and not $newtimeout);
                 $test_timeout  = $newtimeout if not defined($test_timeout);
                 $test_timeout  = min($test_timeout, $newtimeout)
@@ -430,6 +430,7 @@ sub update_prc_state
                                 delete($prc_state->[$number]->{reboot});
                         }
                         $result->{msg} = "Reboot $msg->{count}";
+                        $prc_state->[$number]->{start} = $prc_state->[$number]->{reboot};
                         push (@{$prc_state->[$number]->{results}}, $result);
 
                 }
