@@ -16,7 +16,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
         }
 
 
-        method get_next_queue()
+        method lookup_next_queue()
         {
                 my $vft;
                 my $queue;
@@ -43,6 +43,15 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
                                 $queue = $q;
                         }
                 }
+                return $queue;
+        }
+
+
+
+        method get_next_queue()
+        {
+                my $vft;
+                my $queue = $self->lookup_next_queue();
                 $self->update_queue($queue);
                 return $queue;
         }
