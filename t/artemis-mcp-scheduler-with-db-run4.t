@@ -62,7 +62,7 @@ $bound_host->update();
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "no job since all hosts in use");
 is($scheduler->merged_queue->length, 3, "merged_queue full");
-is($scheduler->algorithm->lookup_next_queue()->name, 'KVM', 'Next queue will be KVM');
+is($scheduler->algorithm->lookup_next_queue()->name, 'Kernel', 'Next queue will be KVM');
 is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged because free host not bound to next queue");
 
 $bound_host = model("TestrunDB")->resultset("Host")->find(11);
@@ -72,7 +72,13 @@ $bound_host->update();
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "no job since all hosts in use");
 is($scheduler->merged_queue->length, 3, "merged_queue full");
-is($scheduler->algorithm->lookup_next_queue()->name, 'KVM', 'Next queue will be KVM');
+is($scheduler->algorithm->lookup_next_queue()->name, 'Kernel', 'Next queue will be KVM');
 is($scheduler->merged_queue->wanted_length, 4, "increases wanted_length because free host matches next queue");
+
+$next_job = $scheduler->get_next_job();
+is($next_job, undef, "no job since all hosts in use");
+is($scheduler->merged_queue->length, 4, "merged_queue full");
+is($scheduler->algorithm->lookup_next_queue()->name, 'Xen', 'Next queue will be KVM');
+is($scheduler->merged_queue->wanted_length, 5, "increases wanted_length because free host matches next queue");
 
 done_testing();

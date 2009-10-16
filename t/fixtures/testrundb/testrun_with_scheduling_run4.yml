@@ -563,5 +563,5 @@
   name: bound2kvm
   data:
     id: 2
-    queue_id: 2
+    queue_id: 1
     host_id: 11
