@@ -40,6 +40,11 @@ class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
                 die "Interface update_queue not implemented";
         }
 
+        method lookup_next_queue() {
+                # interface
+                die "Interface lookup_next_queue not implemented";
+        }
+
         method get_next_queue() {
                 # interface
                 die "Interface get_next_queue not implemented";
