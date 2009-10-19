@@ -5,6 +5,7 @@ use 5.010;
 class Artemis::MCP::Scheduler::Controller
 {
         use Artemis::MCP::Scheduler::TestRequest;
+        use Perl6::Junction qw/ any /;
         use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::MergedQueue';
@@ -56,15 +57,26 @@ class Artemis::MCP::Scheduler::Controller
         #                                                             my $count_queues       = scalar @{$self->algorithm->queues};
         #                                                             $self->merged_queue->wanted_length ($count_queues) if $self->merged_queue->wanted_length <= $count_queues;
 
-        method adapt_merged_queue_length(Any $job) {
+        method adapt_merged_queue_length(Any $job, ArrayRef $free_hosts) {
                 if (not $job) {
                         # increase merged_queue length if no job found,
-                        if (($self->merged_queue->wanted_length - $self->merged_queue->length < 1) # not longer than current length + 1
-                            and
-                            ($self->merged_queue->length < 2 * $self->algorithm->queue_count) # not longer than 2 queuecount to prevent flooding when only bound hosts available
-                           )
-                        { 
-                                $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 );
+                        if ($self->merged_queue->wanted_length - $self->merged_queue->length < 1) # not longer than current length + 1
+                        {
+                                my $lookup_queue = $self->algorithm->lookup_next_queue();
+                                my $queuehosts   = $lookup_queue->queuehosts;
+
+                                if ( grep {$_->{host}->queuehosts->count == 0 } @$free_hosts   ) { # increase if at least one host is free for all queues
+                                        $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 );
+
+                                } elsif ($queuehosts->count) {                                     # increase if at least one host is bound to next queue
+                                        my @queuehosts = map {$_->host->name}         $queuehosts->all;
+                                        my @free_hosts = map {$_->{host}->name} @$free_hosts;
+                                        if (any(@queuehosts) eq any(@free_hosts)) {
+                                                $self->merged_queue->wanted_length( $self->merged_queue->wanted_length + 1 );
+                                        }
+                                } else {
+                                        $self->algorithm->get_next_queue;
+                                }
                         }
                 } else {
                         # count down merged_queue again on success,
@@ -84,7 +96,7 @@ class Artemis::MCP::Scheduler::Controller
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
                         return if not ($free_hosts and @$free_hosts);
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
-                        $self->adapt_merged_queue_length($job);
+                        $self->adapt_merged_queue_length($job, $free_hosts);
                         my $error=$job->produce_preconditions() if $job;
                         if ($error) {
                                 my $net    = Artemis::MCP::Net->new();

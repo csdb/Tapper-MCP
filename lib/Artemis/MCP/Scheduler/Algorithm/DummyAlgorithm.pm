@@ -8,23 +8,38 @@ role Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm {
 
         has current_queue => (is => "rw");
 
-        method get_next_queue()
+        method get_new_pos($Q)
         {
-                my @Q = sort keys %{$self->queues};
-
+                my @Q = @$Q;
                 my %Q = map { $Q[$_] => $_ } 0..$#Q;
 
                 if (not $self->current_queue) {
-                        $self->current_queue( $self->queues->{$Q[0]} );
-                        return $self->current_queue;
+                        return 0;
                 }
 
                 my $cur_name = $self->current_queue->name;
                 my $new_pos = (($Q{$cur_name} || 0) + 1) % @Q;
+                return $new_pos;
 
-                $self->current_queue( $self->queues->{$Q[$new_pos]} );
+        }
+
+        method lookup_next_queue()
+        {
+                my @Q = sort keys %{$self->queues};
+                my $pos = $self->get_new_pos(\@Q);
+
+                return $self->queues->{$Q[$pos]};
+        }
+
+        method get_next_queue()
+        {
+                my @Q = sort keys %{$self->queues};
+                my $pos = $self->get_new_pos(\@Q);
+
+                $self->current_queue( $self->queues->{$Q[$pos]} );
                 return $self->current_queue;
         }
+
 }
 
 1; # End of Artemis::MCP::Scheduler::Algorithm::WFQ

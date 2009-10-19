@@ -37,6 +37,7 @@ my $builder = $build_class->new
                   'Artemis::Model'             => '2.010014',
                   'Artemis::Schema'            => '2.010057',
                   'Artemis::Exception'         => '0.010006',
+                  'Perl6::Junction'            => 0,
                   'Carp'                       => 0,
                   'Data::Dumper'               => 0,
                   'Devel::Backtrace'           => 0,
