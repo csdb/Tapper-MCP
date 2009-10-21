@@ -37,7 +37,7 @@ class Artemis::MCP::Scheduler::Controller
                 }
 
                 # fill up to wanted merged_queue length, only accept shorter merged_queue if no queue has jobs to offer
-                while($count_missing_jobs)
+                while($count_missing_jobs > 0)
                 {
                         my $queue = $self->algorithm->get_next_queue();
                         my $testrun_rs = $queue->queued_testruns;
@@ -86,6 +86,28 @@ class Artemis::MCP::Scheduler::Controller
                 }
         }
 
+        method overfill_merged_queue()
+        {
+                my $queue_rs = model('TestrunDB')->resultset('Queue');
+                my %queues;
+                foreach my $queue( $queue_rs->all ) {
+                        $queues{$queue->name} = $queue;
+                }
+                
+                my $jobs = $self->merged_queue->get_testrequests;
+                foreach my $tr( $jobs->all() ) {
+                        delete($queues{$tr->queue->name}) if defined $queues{$tr->queue->name};
+                }
+                
+                foreach my $queue_name (keys %queues) {
+                        my $queue      = $queues{$queue_name};
+                        my $testrun_rs = $queue->queued_testruns;
+                        my $job        = $testrun_rs->first;
+                        $self->merged_queue->add($job) if $job;
+                }
+        }
+
+
         method get_next_job(Any %args) {
                 my ($queue, $job);
 
@@ -96,7 +118,8 @@ class Artemis::MCP::Scheduler::Controller
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
                         return if not ($free_hosts and @$free_hosts);
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
-                        $self->adapt_merged_queue_length($job, $free_hosts);
+#                        $self->adapt_merged_queue_length($job, $free_hosts);
+                        $self->overfill_merged_queue() if not $job;
                         my $error=$job->produce_preconditions() if $job;
                         if ($error) {
                                 my $net    = Artemis::MCP::Net->new();
