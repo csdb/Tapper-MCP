@@ -204,7 +204,8 @@ information when the test run is finished and the child process ends.
                         {
                                 if ($self->child->{$this_child}->{pid} == $dead_pid) {
                                         $self->log->debug("$this_child finished");
-                                        $self->console_close($self->child->{$this_child}->{console});
+                                        $self->scheduler->mark_job_as_finished( $self->child->{$this_child}->{job} );
+                                        $self->console_close( $self->child->{$this_child}->{console} );
                                         delete $self->child->{$this_child};
                                         $self->dead_child($self->dead_child - 1);
                                         last CHILDREN_CHECK;
@@ -275,8 +276,6 @@ Run the tests that are due.
                         my $child = Artemis::MCP::Child->new( $id );
                         my $retval = $child->runtest_handling( $system );
 
-                        $self->scheduler->mark_job_as_finished($job);
-                          
                         if ($retval) {
                                 $self->log->error("An error occured while trying to run testrun $id on $system: $retval");
                         } else {
@@ -290,6 +289,7 @@ Run the tests that are due.
                         $self->child->{$system}->{pid}      = $pid;
                         $self->child->{$system}->{test_run} = $id;
                         $self->child->{$system}->{console}  = $console;
+                        $self->child->{$system}->{job}      = $job;
                 }
                 return 0;
 
