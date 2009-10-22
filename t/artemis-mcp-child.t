@@ -268,11 +268,6 @@ our @testconfigs;
 $mock_conf->mock('write_config',sub{my ($self, $config, $file) = @_; push @testconfigs, {config => $config, file => $file}; return 0;});
 $child      = Artemis::MCP::Child->new(100);
 my $config  = $child->generate_configs('bullock',12);
-is_deeply($testconfigs[1], {config => {'precondition_type' => 'testprogram',
-                                       'program' => '/bin/uname_tap.sh',
-                                       'runtime' => 30,
-                                       'timeout' => 90},
-                            file => "bullock-test-prc0"}, 'Create configs for autoinstall');
 
 done_testing();
 
