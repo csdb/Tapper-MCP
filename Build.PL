@@ -53,6 +53,7 @@ my $builder = $build_class->new
                   'MooseX::Traits'             => "0",
                   #'MooseX::Method::Signatures' => "0.16",
                   'Socket'                     => 0,
+                  'Template'                   => 0,
                   'YAML'                       => 0,
                   'parent'                     => 0,
                   'aliased'                    => 0,
