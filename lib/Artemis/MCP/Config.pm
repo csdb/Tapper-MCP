@@ -7,12 +7,12 @@ use File::Basename;
 use Moose;
 use Socket;
 use Sys::Hostname;
+use Template;
 use YAML;
 
 use Artemis::Model 'model';
 use Artemis::Config;
 use Artemis::MCP::Info;
-use Sys::Hostname;
 
 extends 'Artemis::MCP::Control';
 
@@ -320,26 +320,36 @@ Parse precondition autoinstall and change config accordingly.
 sub parse_autoinstall
 {
         my ($self, $config, $autoinstall) = @_;
-        my $file = $autoinstall->{filename}
-            or die Artemis::Exception::Param->new
-                (msg => 'autoinstall does not have a value for filename');
 
-        if (-e $file)
-        {
-                $config->{installer_grub} = $file;
-        }
-        elsif (-e $self->cfg->{paths}{autoinstall}{grubfiles}.$file)
-        {
-                $config->{installer_grub} = $self->cfg->{paths}{autoinstall}{grubfiles}.$file;
-        }
-        else
-        {
-                return "Can't find autoinstaller for $file";
+        if ($autoinstall->{grub_text}) {
+                $config->{installer_grub} = $autoinstall->{grub_text};
+        } elsif ($autoinstall->{grub_file}) {
+                open my $fh, "<", $autoinstall->{grub_file} or return "Can not open grub file ( ".$autoinstall->{grub_file}." ):$!";
+                $config->{installer_grub} = do {local $\; <$fh>};
+                close $fh;
+        } else {
+                return "Can not find autoinstaller grub config";
         }
 
         $config->{autoinstall} = 1;
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
+        my $macros;
+        {
+                my $artemis_host=$config->{mcp_host};
+                my $artemis_port=$config->{mcp_port};
+                my $packed_ip = gethostbyname($artemis_host);
+                if (not defined $packed_ip) {
+                        return "Can not get an IP address for artemis_host ($artemis_host): $!";
+                }
+                my $artemis_ip=inet_ntoa($packed_ip);
+                my $artemis_environment = Artemis::Config::_getenv();
+                $macros = { ARTEMIS_OPTIONS => "artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment" };
+        }
+        my $tt = new Template();
+        my $ttapplied;
+        $tt->process(\$config->{installer_grub}, $macros, \$ttapplied) or return "Can not replace artemis options in autoinstall grub config: ".$tt->error();
+        $config->{installer_grub} = $ttapplied;
         return $config;
 }
 
