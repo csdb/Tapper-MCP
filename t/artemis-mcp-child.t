@@ -21,7 +21,7 @@ use Artemis::MCP::Info;
 use Artemis::MCP::Child;
 
 
-use Test::More tests => 22;
+use Test::More;
 
 sub msg_send
 {
@@ -274,6 +274,7 @@ is_deeply($testconfigs[1], {config => {'precondition_type' => 'testprogram',
                                        'timeout' => 90},
                             file => "bullock-test-prc0"}, 'Create configs for autoinstall');
 
+done_testing();
 
 
 
