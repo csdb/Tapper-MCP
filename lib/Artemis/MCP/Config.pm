@@ -526,7 +526,7 @@ sub write_config
         $cfg_file = $self->cfg->{paths}{localdata_path}.$cfg_file if not $cfg_file =~ m(/);
         open (my $file, ">", $cfg_file)
           or return "Can't open config file $cfg_file for writing: $!";
-        say $file $cfg;
+        print $file $cfg;
         close $file;
         return 0;
 }
