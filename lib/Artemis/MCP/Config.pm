@@ -3,6 +3,7 @@ package Artemis::MCP::Config;
 use strict;
 use warnings;
 
+use 5.010;
 use File::Basename;
 use Moose;
 use Socket;
@@ -477,6 +478,8 @@ sub get_test_config
 {
         my ($self) = @_;
         my $retval;
+        
+        
         for (my $i=0; $i<=$self->mcp_info->get_prc_count(); $i++) {
                 push @$retval, $self->mcp_info->get_testprograms($i);
         }
@@ -521,10 +524,10 @@ sub write_config
         my ($self, $config, $cfg_file) = @_;
         my $cfg = YAML::Dump($config);
         $cfg_file = $self->cfg->{paths}{localdata_path}.$cfg_file if not $cfg_file =~ m(/);
-        open (FILE, ">", $cfg_file)
+        open (my $file, ">", $cfg_file)
           or return "Can't open config file $cfg_file for writing: $!";
-        print FILE $cfg;
-        close FILE;
+        say $file $cfg;
+        close $file;
         return 0;
 }
 
