@@ -226,8 +226,11 @@ sub wait_for_systeminstaller
         if (not $msg->{state} eq "start-install") {
                 return qq(MCP expected state start-install but remote system is in state $msg->{state});
         }
-        $remote->write_grub_file($config->{hostname},
-                                 "title Boot from first hard disc\n\tchainloader (hd0)+1") if $config->{autoinstall};
+        if ($config->{autoinstall}) {
+                $remote->write_grub_file($config->{hostname},
+                                         "title Boot from first hard disc\n\tchainloader (hd0)+1");
+
+        }
 
         $self->log->debug("Installation started for testrun ".$self->testrun);
 
@@ -549,8 +552,8 @@ sub runtest_handling
 
         $retval = $self->set_hardwaredb_systems_id($hostname);
         return $retval if $retval;
-        
-        my $srv=IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
+
+        my $srv    = IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
         my $remote = new Artemis::MCP::Net;
         my $net    = Artemis::MCP::Net->new();
@@ -558,13 +561,13 @@ sub runtest_handling
         # check if $srv really knows sockport(), because in case of a test
         # IO::Socket::INET is overwritten to read from a file
         my $port = 0;
-        $port = $srv->sockport if $srv->can('sockport');
+        $port    = $srv->sockport if $srv->can('sockport');
 
         my $config = $self->generate_configs($hostname, $port);
         return $config if ref $config ne 'HASH';
 
         $self->log->debug("Write grub file for $hostname");
-        $retval    = $remote->write_grub_file($hostname, $config->{installer_grub});
+        $retval = $remote->write_grub_file($hostname, $config->{installer_grub});
         return $retval if $retval;
 
 
