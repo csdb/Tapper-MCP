@@ -4,6 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
+use Hash::Merge::Simple 'merge';
 use IO::Select;
 use IO::Socket::INET;
 use List::Util qw(min max);
@@ -521,10 +522,19 @@ sub generate_configs
         return $retval if $retval;
 
         if ($config->{autoinstall}) {
+                my $common_config = $producer->get_common_config();
+                $common_config->{hostname} = $hostname;  # allows guest systems to know their host system name
+                
                 my $testconfigs = $producer->get_test_config();
                 return $testconfigs if not ref $testconfigs eq 'ARRAY';
+
                 for (my $i=0; $i<= $#{$testconfigs}; $i++ ){
-                        $retval = $producer->write_config($testconfigs->[$i], "$hostname-test-prc$i");
+                        my $prc_config = merge($common_config, $testconfigs->[$i]);
+                        $prc_config->{guest_number} = $i;
+                        my $suffix = "test";
+                        $suffix   .= "-prc$i" unless $i==0;
+
+                        $retval = $producer->write_config($prc_config, "$hostname-$suffix");
                 }
         }
         $self->mcp_info($producer->get_mcp_info());
