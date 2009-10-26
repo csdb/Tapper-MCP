@@ -6,6 +6,7 @@ use strict;
 our $VERSION = '2.000052';
 
 
+
 use Artemis::Config;
 use Artemis::Exception;
 use Moose;
