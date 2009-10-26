@@ -43,7 +43,7 @@
       repository: /tftp/farnold/
       grub_text: |
          title opensuse 11.2
-         kernel /tftpboot/kernel autoyast=bare.cfg [% ARTEMIS_OPTIONS %]
+         kernel /tftpboot/kernel autoyast=bare.cfg $ARTEMIS_OPTIONS
          initrd /tftpboot/initrd
 
 - schema: Precondition
