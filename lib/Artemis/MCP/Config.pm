@@ -8,7 +8,6 @@ use File::Basename;
 use Moose;
 use Socket;
 use Sys::Hostname;
-use Template;
 use YAML;
 
 use Artemis::Model 'model';
@@ -345,12 +344,8 @@ sub parse_autoinstall
                 }
                 my $artemis_ip=inet_ntoa($packed_ip);
                 my $artemis_environment = Artemis::Config::_getenv();
-                $macros = { ARTEMIS_OPTIONS => "artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment" };
+                $config->{installer_grub} =~ s|\$ARTEMIS_OPTIONS|artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment|g
         }
-        my $tt = new Template();
-        my $ttapplied;
-        $tt->process(\$config->{installer_grub}, $macros, \$ttapplied) or return "Can not replace artemis options in autoinstall grub config: ".$tt->error();
-        $config->{installer_grub} = $ttapplied;
         return $config;
 }
 
