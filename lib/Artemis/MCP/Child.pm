@@ -514,15 +514,15 @@ sub generate_configs
         my $producer = Artemis::MCP::Config->new($self->testrun);
 
         $self->log->debug("Create install config for $hostname");
-        my $config   = $producer->create_config();
+        my $config   = $producer->create_config($port);
         return $config if not ref($config) eq 'HASH';
 
-        $config->{mcp_port}        = $port;
         $retval                    = $producer->write_config($config, "$hostname-install");
         return $retval if $retval;
 
         if ($config->{autoinstall}) {
                 my $common_config = $producer->get_common_config();
+                $common_config->{mcp_port} = $port;
                 $common_config->{hostname} = $hostname;  # allows guest systems to know their host system name
 
                 my $testconfigs = $producer->get_test_config();
