@@ -101,7 +101,7 @@ my $child      = Artemis::MCP::Child->new($testrun);
 my $retval = $child->runtest_handling('dickstone');
 is($retval, 17, 'runtesthandling returns because of mocked hwreport');
 
-my $filename = Artemis::Config::subconfig->{paths}{localdata_path}."/dickstone-test";
+my $filename = Artemis::Config::subconfig->{paths}{localdata_path}."/dickstone-test-prc0";
 ok(-r $filename, 'test config file exists and can be opened');
 
 my $testconfig = LoadFile($filename);
