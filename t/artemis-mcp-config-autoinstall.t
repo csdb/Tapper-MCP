@@ -55,7 +55,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 my $producer = Artemis::MCP::Config->new(1);
 isa_ok($producer, "Artemis::MCP::Config", 'Producer object created');
 
-my $config = $producer->create_config();
+my $config = $producer->create_config(12);
 is(ref($config),'HASH', 'Config created');
 
 
@@ -68,7 +68,7 @@ my $artemis_ip   = inet_ntoa($packed_ip);
 ok(defined $config->{installer_grub}, 'Grub for installer set');
 is($config->{installer_grub}, 
    "title opensuse 11.2\n".
-   "kernel /tftpboot/kernel autoyast=bare.cfg artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=1337 artemis_environment=test\n".
+   "kernel /tftpboot/kernel autoyast=bare.cfg artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=12 artemis_environment=test\n".
    "initrd /tftpboot/initrd\n",
    'Expected value for installer grub config');
 
@@ -91,7 +91,7 @@ $mock_net->mock('write_grub_file',sub{return 0;});
 $mock_net->mock('hw_report_send',sub{return 17;});
 my $mock_conf = new Test::MockModule('Artemis::MCP::Config');
 my $mock_inet = new Test::MockModule('IO::Socket::INET');
-
+$mock_inet->mock('new', sub{my $inet = bless {sockport => sub {return 12;}}; return $inet});
 
 my $testrun    = 1;
 my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
