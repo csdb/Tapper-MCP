@@ -218,7 +218,7 @@ sub wait_for_systeminstaller
 {
         my ($self, $fh, $config, $remote) = @_;
 
-        my $timeout = $self->cfg->{times}{boot_timeout} || 0;
+        my $timeout = $self->mcp_info->get_installer_timeout() || $self->cfg->{times}{boot_timeout};
 
         my $msg = $self->get_message($fh, $timeout);
         return $msg if not ref($msg) eq 'HASH';
