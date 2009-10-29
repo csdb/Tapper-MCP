@@ -294,8 +294,6 @@ and internal information set.
 sub parse_testprogram
 {
         my ($self, $config, $testprogram) = @_;
-        my $prc_config;
-        $prc_config = $config->{prcs}->[0] if $config->{prcs};
         no warnings 'uninitialized';
         push @{$config->{prcs}->[0]->{config}->{testprogram_list}}, $testprogram;
         $self->mcp_info->add_testprogram(0, $testprogram);
@@ -431,6 +429,7 @@ sub get_common_config
         $config->{times}                     = $self->cfg->{times};
         $config->{files}                     = $self->cfg->{files};
         $config->{mcp_host}                  = Sys::Hostname::hostname() || $self->cfg->{mcp_host};
+        $config->{mcp_server}                = $config->{mcp_host};
         $config->{mcp_port}                  = $self->cfg->{mcp_port};
         $config->{report_server}             = $self->cfg->{report_server};
         $config->{report_port}               = $self->cfg->{report_port};
@@ -476,7 +475,7 @@ sub get_test_config
         
         
         for (my $i=0; $i<=$self->mcp_info->get_prc_count(); $i++) {
-                push @$retval, $self->mcp_info->get_testprograms($i);
+                push @$retval, {testprogram_list => [ $self->mcp_info->get_testprograms($i) ]};
         }
         return $retval;
 }
