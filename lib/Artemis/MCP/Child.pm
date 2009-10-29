@@ -534,6 +534,7 @@ sub generate_configs
                         my $suffix = "test-prc$i";
 
                         $retval = $producer->write_config($prc_config, "$hostname-$suffix");
+                        return $retval if $retval;
                 }
         }
         $self->mcp_info($producer->get_mcp_info());
