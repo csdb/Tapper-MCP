@@ -24,7 +24,6 @@ class Artemis::MCP::Scheduler::Controller
 
         method BUILD {
                 $self->merged_queue->wanted_length( $self->algorithm->queue_count );
-                #$self->fill_merged_queue();
         }
 
         method fill_merged_queue()
@@ -51,11 +50,6 @@ class Artemis::MCP::Scheduler::Controller
                         last if not %queues;
                 }
         }
-
-        # TODO: wenn fits() nichts liefert       --> wanted_length++, damit potentielle neue Kandidaten reinkommen
-        # TODO: beim Rausnehmem aus merged_queue --> wanted_length--, nur, wenn nicht kleiner als count_queues
-        #                                                             my $count_queues       = scalar @{$self->algorithm->queues};
-        #                                                             $self->merged_queue->wanted_length ($count_queues) if $self->merged_queue->wanted_length <= $count_queues;
 
         method adapt_merged_queue_length(Any $job, ArrayRef $free_hosts) {
                 if (not $job) {
@@ -112,13 +106,11 @@ class Artemis::MCP::Scheduler::Controller
                 my ($queue, $job);
 
                 do {
-                        use Data::Dumper;
 
                         $self->fill_merged_queue;
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
                         return if not ($free_hosts and @$free_hosts);
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
-#                        $self->adapt_merged_queue_length($job, $free_hosts);
                         $self->overfill_merged_queue() if not $job;
                         my $error=$job->produce_preconditions() if $job;
                         if ($error) {
@@ -130,14 +122,7 @@ class Artemis::MCP::Scheduler::Controller
 
                 } while (not $job and $args{try_until_found});
 
-                # TODO: reduce merged_queue length because we increase it when nothing is found to
-                # prevent high priority jobs with tight host requirements to block up the merged queue
-                #
-                # $self->merged_queue_length($self->merged_queue_length - 1);
-                # $self->merged_queue_length ($cur_count_queues)
-                #    if $self->merged_queue_length <= $cur_count_queues;
-
-                return $job;    # MCP maintains list of free hosts
+                return $job;
         }
 
         method mark_job_as_running ($job) {
