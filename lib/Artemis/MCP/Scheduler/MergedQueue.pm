@@ -43,8 +43,10 @@ class Artemis::MCP::Scheduler::MergedQueue
                 $job->mergedqueue_seq($max_seq + 1);
                 $job->update;
                 if ($job->testrun->scenario_element and not $is_subtestrun) {
+                ELEMENT:
                         foreach my $element ($job->testrun->scenario_element->peer_elements) {
                                 my $peer_job = $element->testrun->testrun_scheduling;
+                                next ELEMENT if $peer_job->id == $job->id;
                                 $self->add($peer_job, 1);
                         }
                 }
