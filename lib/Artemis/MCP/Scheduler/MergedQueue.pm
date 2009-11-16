@@ -34,7 +34,7 @@ class Artemis::MCP::Scheduler::MergedQueue
                 return 0;
         }
 
-        method add($job)
+        method add($job, $is_subtestrun?)
         {
                 my $max_seq = $self->_max_seq;
                 if ($job->auto_rerun) {
@@ -42,6 +42,12 @@ class Artemis::MCP::Scheduler::MergedQueue
                 }
                 $job->mergedqueue_seq($max_seq + 1);
                 $job->update;
+                if ($job->testrun->scenario_element and not $is_subtestrun) {
+                        foreach my $element ($job->testrun->scenario_element->peer_elements) {
+                                my $peer_job = $element->testrun->testrun_scheduling;
+                                $self->add($peer_job, 1);
+                        }
+                }
         }
 
         method get_testrequests # get_jobs
