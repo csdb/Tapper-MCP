@@ -44,5 +44,7 @@ is($scheduler->merged_queue->length, 0, "merged_queue is empty at start");
 $scheduler->merged_queue->add($tr->testrun_scheduling);
 is($scheduler->merged_queue->length, 2, "2 elements in merged_queue after adding scenario");
 
+my @id = map { $_->testrun->id} $scheduler->merged_queue->get_testrequests->all;
+is_deeply( [ @id ], [ 1001, 1002 ], 'Testruns in Merged queue');
 
 done_testing();
