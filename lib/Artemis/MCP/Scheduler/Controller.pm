@@ -119,7 +119,9 @@ class Artemis::MCP::Scheduler::Controller
                                 $self->mark_job_as_finished($job);
                                 return;
                         }
-
+                        if ($job and $job->testrun->scenario_element) {
+                                $self->mark_job_as_running($job);
+                        }
                 } while (not $job and $args{try_until_found});
 
                 return $job;
