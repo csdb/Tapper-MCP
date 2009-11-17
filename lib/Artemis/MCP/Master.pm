@@ -257,7 +257,6 @@ Run the tests that are due.
                 my ($self, $job) = @_;
                 $self->log->debug('run_due_test');
 
-        SYSTEM:
                 my $system = $job->host->name;
                 my $id = $job->testrun->id;
 
@@ -324,8 +323,10 @@ itself is put outside of function to allow testing.
                 }
 
                 if (not @ready) {
-                        while ( my $job = $self->scheduler->get_next_job() ) {
-                                $self->run_due_tests($job);
+                        while ( my @jobs = $self->scheduler->get_next_job() ) {
+                                foreach my $job (@jobs) {
+                                        $self->run_due_tests($job);
+                                }
                         }
                 }
         }
