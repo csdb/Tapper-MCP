@@ -547,13 +547,13 @@
     id: 1
     scenario_id: 1
     testrun_id: 1001
-    is_fitted: ~
+    is_fitted: 0
 
 - schema: ScenarioElement
-  name: aaa_interdep
+  name: aaa2_interdep
   data:
     id: 2
     scenario_id: 1
     testrun_id: 1002
-    is_fitted: ~
+    is_fitted: 0
       
