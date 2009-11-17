@@ -68,13 +68,13 @@ class Artemis::MCP::Scheduler::MergedQueue
 
         method get_first_fitting($free_hosts) {
                 my $jobs = $self->get_testrequests;
-                while (my $jobs = $jobs->next()) {
+                while (my $job = $jobs->next()) {
                         if (my $host = $job->fits($free_hosts)) {
                                 $job->host_id ($host->id);
 
-                                if ($job->scenario_element) {
-                                        $job->scenario_element->is_fitted(1);
-                                        $job->scenario_element->update();
+                                if ($job->testrun->scenario_element) {
+                                        $job->testrun->scenario_element->is_fitted(1);
+                                        $job->testrun->scenario_element->update();
                                 }
                          
                                 return $job;
