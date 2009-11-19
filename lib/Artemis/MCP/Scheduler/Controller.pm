@@ -105,7 +105,7 @@ class Artemis::MCP::Scheduler::Controller
         method get_next_job(Any %args) {
                 my ($queue, $job);
 
-                do {
+                do {{
 
                         $self->fill_merged_queue;
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
@@ -121,10 +121,17 @@ class Artemis::MCP::Scheduler::Controller
                         }
                         if ($job and $job->testrun->scenario_element) {
                                 $self->mark_job_as_running($job);
+                                if ($job->testrun->scenario_element->peers_need_fitting > 0) {
+                                        # do not return this job already
+                                        $job = undef;
+                                        next;
+                                } else {
+                                        return map{$_->testrun->testrun_scheduling} $job->testrun->scenario_element->peer_elements->all;
+                                }
                         }
-                } while (not $job and $args{try_until_found});
+                }} while (not $job and $args{try_until_found});
 
-                return $job;
+                return $job || () ;
         }
 
         method mark_job_as_running ($job) {
