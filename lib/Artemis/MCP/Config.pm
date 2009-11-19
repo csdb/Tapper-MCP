@@ -5,6 +5,8 @@ use warnings;
 
 use 5.010;
 use File::Basename;
+use Fcntl;
+use LockFile::Simple;
 use Moose;
 use Socket;
 use Sys::Hostname;
@@ -437,6 +439,20 @@ sub get_common_config
         $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server}
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun;
+        
+        if ($search->scenario_element) {
+                $config->{scenario_id} = $search->scenario_element->scenario_id;
+                $config->{files}{sync_file} = $config->{paths}{sync_path}."/$config->{scenario_id}/syncfile";
+                if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL) == 0) {
+                        print $fh $search->scenario_element->peer_elements->count;
+                        close $fh;
+                }               # else trust the creator
+                
+
+        }
+
+
+
         return ($config)
 }
 
