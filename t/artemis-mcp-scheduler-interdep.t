@@ -47,4 +47,12 @@ is($scheduler->merged_queue->length, 2, "2 elements in merged_queue after adding
 my @id = map { $_->testrun->id} $scheduler->merged_queue->get_testrequests->all;
 is_deeply( [ @id ], [ 1001, 1002 ], 'Testruns in Merged queue');
 
+my @next_jobs   = $scheduler->get_next_job();
+is(scalar @next_jobs, 0, 'Hold job back until scenario is fully fitted');
+
+my @next_jobs   = $scheduler->get_next_job();
+is(scalar @next_jobs, 2, 'Return all jobs when scenario is fully fitted');
+
+is($next_jobs[0]->testrun->scenario_element->peer_elements, 2, 'Number of peers including $self');
+
 done_testing();
