@@ -6,6 +6,7 @@ use warnings;
 use 5.010;
 use File::Basename;
 use Fcntl;
+use File::Path::Tiny;
 use LockFile::Simple;
 use Moose;
 use Socket;
@@ -442,8 +443,14 @@ sub get_common_config
         
         if ($search->scenario_element) {
                 $config->{scenario_id} = $search->scenario_element->scenario_id;
-                $config->{files}{sync_file} = $config->{paths}{sync_path}."/$config->{scenario_id}/syncfile";
-                if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL) == 0) {
+                my $path = $config->{paths}{sync_path}."/$config->{scenario_id}/";
+                $config->{files}{sync_file} = "$path/syncfile";
+                if (not -d $path) {
+                        if (not File::Path::Tiny::mk($path)) {
+                                return "Could not make path '$path': $!";
+                        }
+                }
+                if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL |O_RDWR )) {
                         print $fh $search->scenario_element->peer_elements->count;
                         close $fh;
                 }               # else trust the creator
@@ -451,9 +458,7 @@ sub get_common_config
 
         }
 
-
-
-        return ($config)
+        return ($config);
 }
 
 
