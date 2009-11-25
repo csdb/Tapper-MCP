@@ -298,7 +298,7 @@ sub time_reduce
                         }
                         $boot_timeout = $prc_state->[$i]->{start} if not defined($boot_timeout);
                         $boot_timeout = min($boot_timeout, $prc_state->[$i]->{start});
-
+                        
                 } elsif ($prc_state->[$i]->{timeouts}->[0]) {
                         # testprogram is finished, take it off timeout array
                         if ($prc_state->[$i]->{timeouts}->[0] eq 'flag') {
@@ -406,6 +406,13 @@ sub update_prc_state
                         $result->{msg} = "Test in guest $number finished" if $number != 0;
                         push (@{$prc_state->[$number]->{results}}, $result);
                         $to_stop--;
+                }
+                when ('sync')
+                {
+                        $prc_state->[$number]->{start} = $self->mcp_info->get_boot_timeout($number);
+                        $result->{msg} = "Started syncing with peers";
+                        push (@{$prc_state->[$number]->{results}}, $result);
+
                 }
                 when ('error-testprogram') {
                         pop @{$prc_state->[$number]->{timeouts}};
