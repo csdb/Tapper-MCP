@@ -443,11 +443,11 @@ sub get_common_config
         
         if ($search->scenario_element) {
                 $config->{scenario_id} = $search->scenario_element->scenario_id;
-                my $path = $config->{paths}{sync_path}."/$config->{scenario_id}/";
+                my $path = $config->{paths}{sync_path}."/".$config->{scenario_id}."/";
                 $config->{files}{sync_file} = "$path/syncfile";
                 if (not -d $path) {
                         if (not File::Path::Tiny::mk($path)) {
-                                return "Could not make path '$path': $!";
+                                return "Could not make path '$path': $!" if not -d $path; # path could exists now due to race condition
                         }
                 }
                 if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL |O_RDWR )) {
