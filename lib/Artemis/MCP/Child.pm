@@ -414,6 +414,12 @@ sub update_prc_state
                         push (@{$prc_state->[$number]->{results}}, $result);
 
                 }
+		when ('error-guest') {
+                        $prc_state->[$number]->{start} = 0;
+                        $prc_state->[$number]->{stop} = 0;
+                        $prc_state->[$number]->{results} = {msg => "Error in guest $number: ".$msg->{error}, error => 1};
+                        $to_start--; $to_stop--;
+                }
                 when ('error-testprogram') {
                         pop @{$prc_state->[$number]->{timeouts}};
                         $result->{error}             = $msg->{error};
