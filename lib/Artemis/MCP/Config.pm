@@ -434,6 +434,7 @@ sub get_common_config
         $config->{mcp_host}                  = Sys::Hostname::hostname() || $self->cfg->{mcp_host};
         $config->{mcp_server}                = $config->{mcp_host};
         $config->{mcp_port}                  = $self->cfg->{mcp_port};
+        $config->{sync_port}                 = $self->cfg->{sync_port};
         $config->{report_server}             = $self->cfg->{report_server};
         $config->{report_port}               = $self->cfg->{report_port};
         $config->{report_api_port}           = $self->cfg->{report_api_port};
