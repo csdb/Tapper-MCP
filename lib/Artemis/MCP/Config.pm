@@ -445,19 +445,25 @@ sub get_common_config
                 $config->{scenario_id} = $search->scenario_element->scenario_id;
                 my $path = $config->{paths}{sync_path}."/".$config->{scenario_id}."/";
                 $config->{files}{sync_file} = "$path/syncfile";
-                if (not -d $path) {
-                        if (not File::Path::Tiny::mk($path)) {
-                                return "Could not make path '$path': $!" if not -d $path; # path could exists now due to race condition
+
+                if ($search->scenario_element->peer_elements->first->testrun->id == $testrun) {
+                        if (not -d $path) {
+                                if (not File::Path::Tiny::mk($path)) {
+                                        # path could exists now due to race condition
+                                        return "Could not make path '$path': $!" if not -d $path; 
+                                }
                         }
+                        my @peers = map {$_->testrun->testrun_scheduling->host->name} $search->scenario_element->peer_elements->all;
+                        if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL |O_RDWR )) {
+                                print $fh $search->scenario_element->peer_elements->count;
+                                close $fh;
+                        }       # else trust the creator
+                        eval {
+                                YAML::DumpFile($config->{files}{sync_file}, \@peers);
+                        };
+                        return $@ if $@;
                 }
-                if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL |O_RDWR )) {
-                        print $fh $search->scenario_element->peer_elements->count;
-                        close $fh;
-                }               # else trust the creator
-                
-
         }
-
         return ($config);
 }
 
