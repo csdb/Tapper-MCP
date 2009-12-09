@@ -10,6 +10,7 @@ use MRO::Compat;
 use File::Temp 'tempdir';
 use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
+use YAML;
 
 use Artemis::MCP::Scheduler::MergedQueue;
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
@@ -76,12 +77,11 @@ if (ref($config) eq 'HASH') {
 
 my $syncfile = $config->{paths}{sync_path}."/".$testrun->scenario_element->scenario_id."/syncfile";
 ok(-e $syncfile, "Syncfile $syncfile exists");
+eval
 {
-        open(my $fh, "<", $syncfile);
-        local $\;
-        my $content = <$fh>;
-        close($fh);
-        is($content, 2, 'Number of scenario elements as set in sync file');
-}
+        my $peers = YAML::LoadFile($syncfile);
+        is(ref $peers, 'ARRAY', 'Array of hosts in sync file');
+};
+fail('No valid YAML in syncfile: $@') if $@;
 
 done_testing();
