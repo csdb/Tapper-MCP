@@ -14,7 +14,6 @@ use Artemis::Model 'model';
 use Test::Fixture::DBIC::Schema;
 use Artemis::Schema::TestTools;
 use Artemis::MCP::Scheduler::PreconditionProducer::Kernel;
-use Artemis::MCP::Scheduler::Job;
 use Artemis::Config;
 
 use Test::More;
@@ -28,7 +27,9 @@ construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardware
 Artemis::Config->subconfig->{paths}{package_dir}='t/misc_files/kernel_producer/';
 qx(touch t/misc_files/kernel_producer/kernel/x86_64/kernel_file3.tar.gz);  # make sure file3 is the newest
 
-my $job          = Artemis::MCP::Scheduler::Job->new();
+my $host = bless{name => 'bullock'};
+my $job  = bless{host => $host};
+
 my $producer     = Artemis::MCP::Scheduler::PreconditionProducer::Kernel->new();
 my $precondition = $producer->produce($job, {});
 
