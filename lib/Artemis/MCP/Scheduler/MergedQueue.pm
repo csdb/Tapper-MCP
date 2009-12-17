@@ -7,7 +7,6 @@ class Artemis::MCP::Scheduler::MergedQueue
         use Artemis::Exception::Param;
 
         use Artemis::Model 'model';
-        use aliased 'Artemis::MCP::Scheduler::TestRequest';
         use aliased 'Artemis::Schema::TestrunDB::Result::TestrunScheduling';
         use Data::Dumper;
 
