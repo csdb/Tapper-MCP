@@ -5,10 +5,6 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP
         use YAML       'LoadFile';
         use Artemis::Config;
 
-        use aliased 'Artemis::MCP::Scheduler::TestRequest';
-        use aliased 'Artemis::MCP::Scheduler::Job';
-
-
         method produce(Any $job, HashRef $produce)
         {
                 my ($fh, $file) = tempfile( CLEANUP => 1 );
