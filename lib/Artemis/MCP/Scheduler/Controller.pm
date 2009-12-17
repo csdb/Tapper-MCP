@@ -4,7 +4,6 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::Controller
 {
-        use Artemis::MCP::Scheduler::TestRequest;
         use Perl6::Junction qw/ any /;
         use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
