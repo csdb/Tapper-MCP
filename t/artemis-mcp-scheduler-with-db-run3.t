@@ -7,7 +7,6 @@ use warnings;
 use Class::C3;
 use MRO::Compat;
 
-use aliased 'Artemis::MCP::Scheduler::Job';
 use aliased 'Artemis::MCP::Scheduler::Controller';
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
