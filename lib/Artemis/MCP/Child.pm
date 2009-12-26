@@ -235,16 +235,25 @@ sub wait_for_systeminstaller
 
         $self->log->debug("Installation started for testrun ".$self->testrun);
 
-        $msg=$self->get_message($fh, 0);
-        return $msg if not ref($msg) eq 'HASH';
+        while ($msg=$self->get_message($fh, 0)) {
+                return $msg if not ref($msg) eq 'HASH';
 
-        if ($msg->{state} eq 'end-install') {
-                $self->log->debug("Installation finished for testrun ".$self->testrun);
-                return 0;
-        } elsif ($msg->{state} eq 'error-install') {
-                return $msg->{error};
-        } else {
-                return  qq(MCP expected state end-install or error-install but remote system is in state "$msg->{state}");
+                given ($msg->{state})
+                {
+                        when ('end-install') {
+                                $self->log->debug("Installation finished for testrun ".$self->testrun);
+                                return 0;
+                        }
+                        when ('error-install') {
+                                return $msg->{error};
+                        }
+                        when ('warn-install') {
+                                $self->mcp_info->push_report_msg($msg->{error});
+                        }
+                        default {
+                                return  qq(MCP expected state end-install or error-install but remote system is in state "$msg->{state}");
+                        }
+                }
         }
 }
 
