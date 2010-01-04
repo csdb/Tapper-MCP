@@ -565,6 +565,19 @@ sub generate_configs
 }
 
 
+=head2 tap_report_send
+
+Wrapper around tap_report_send.
+
+=cut
+
+sub tap_report_send
+{
+        my ($self) = @_;
+
+}
+
+
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -626,7 +639,7 @@ sub runtest_handling
 
         $self->log->debug('waiting for test to finish');
         $retval              = $self->wait_for_testrun($srv);
-        ($error, $report_id) = $net->tap_report_send($self->testrun, $retval);
+        ($error, $report_id) = $self->tap_report_send($net, $retval);
         if ($error) {
                 $self->log->error($report_id);
                 return $retval;
