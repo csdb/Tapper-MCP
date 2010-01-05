@@ -7,7 +7,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP
 
         method produce(Any $job, HashRef $produce)
         {
-                my ($fh, $file) = tempfile( CLEANUP => 1 );
+                my ($fh, $file) = tempfile( UNLINK => 1 );
 
                 use Data::Dumper;
                 my $temare_path=Artemis::Config->subconfig->{paths}{temare_path};
