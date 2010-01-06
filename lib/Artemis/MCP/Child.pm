@@ -248,7 +248,7 @@ sub wait_for_systeminstaller
                                 return $msg->{error};
                         }
                         when ('warn-install') {
-                                $self->mcp_info->push_report_msg($msg->{error});
+                                $self->mcp_info->push_report_msg({error => 1, msg => $msg->{error}});
                         }
                         default {
                                 return  qq(MCP expected state end-install or error-install but remote system is in state "$msg->{state}");
@@ -569,12 +569,24 @@ sub generate_configs
 
 Wrapper around tap_report_send.
 
+@param Artemis::MC::Net object
+@param 
+
+@return success - (0, report id)
+@return error -   (1, error message)
+
 =cut
 
 sub tap_report_send
 {
-        my ($self) = @_;
-
+        my ($self, $net, $report) = @_;
+        return (1, "No valid report to send as tap") if not ref $report eq "ARRAY";
+        my $collected_report = $self->mcp_info->get_report_array();
+        if (ref($collected_report) eq "ARRAY" and  @$collected_report) {
+                unshift @$report, @$collected_report;
+        }
+        return $net->tap_report_send($self->testrun, $report);
+        
 }
 
 
@@ -628,7 +640,7 @@ sub runtest_handling
         $retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 
         if ($retval) {
-                ($error, $report_id) = $net->tap_report_send($self->testrun, [{error => 1, msg => $retval}]);
+                ($error, $report_id) = $self->tap_report_send($net, [{error => 1, msg => $retval}]);
                 if ($error) {
                         $self->log->error($report_id);
                 } else {
