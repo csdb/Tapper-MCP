@@ -28,7 +28,6 @@
     shortname: Xen
     notes: Xen test
     topic_name: Software
-    test_program: /usr/local/share/artemis/testsuites/perfmon/t/do_test.sh
 
 
 # -------------------- preconditions

@@ -28,7 +28,6 @@
     shortname: perfmon
     notes: perfmon
     topic_name: Software
-    test_program: /usr/local/share/artemis/testsuites/perfmon/t/do_test.sh
 
 - schema: Testrun
   name: lmbench
@@ -38,7 +37,6 @@
     shortname: lmbench
     notes: artemis test suite lmbench wrapper
     topic_name: Distribution
-    test_program: /usr/local/share/artemis/testsuites/lmbench/t/do_test.sh
 
 - schema: Testrun
   name: foobar
@@ -48,7 +46,6 @@
     shortname: foobar
     notes: Used to provide hardware_id
     topic_name: Software
-    test_program: /usr/local/share/artemis/testsuites/perfmon/t/do_test.sh
     hardwaredb_systems_id: 8
     wait_after_tests: 5
 
@@ -60,7 +57,6 @@
     shortname: autoinstall
     notes: this testrun only exists to test autoinstall preconditions
     topic_name: Software
-    test_program: none
     hardwaredb_systems_id: 8
     wait_after_tests: ~
 
@@ -72,7 +68,6 @@
     shortname: hw_report
     notes: testrun used to test sending hw_report
     topic_name: Software
-    test_program: none
     hardwaredb_systems_id: 12
     wait_after_tests: ~
 
