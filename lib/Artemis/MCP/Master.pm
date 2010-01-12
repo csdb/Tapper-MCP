@@ -12,6 +12,7 @@ class Artemis::MCP::Master extends Artemis::MCP
         use POSIX ":sys_wait_h";
 
 
+        use Artemis::Cmd::Testrun;
         use Artemis::MCP::Child;
         use Artemis::MCP::Net;
         use Artemis::MCP::Scheduler::Controller;
@@ -275,6 +276,11 @@ Run the tests that are due.
                         my $child = Artemis::MCP::Child->new( $id );
                         my $retval = $child->runtest_handling( $system );
 
+                        if ( ($retval or $child->rerun) and $job->testrun->rerun_on_error) {
+                                my $cmd  = Artemis::Cmd::Testrun->new();
+                                my $new_id = $cmd->rerun($id, {rerun_on_error => $job->testrun->rerun_on_error - 1});
+                                $self->log->debug("Restarted testrun $id with new id $new_id because an error occured and rerun_on_error was ".$job->testrun->rerun_on_error);
+                        }
                         if ($retval) {
                                 $self->log->error("An error occured while trying to run testrun $id on $system: $retval");
                         } else {
