@@ -16,7 +16,7 @@ use Artemis::Schema::TestTools;
 use Artemis::MCP::Master;
 
 
-use Test::More tests => 7;
+use Test::More;
 
 BEGIN { use_ok('Artemis::MCP::Master'); }
 
@@ -57,3 +57,5 @@ isa_ok($master->{readset}, 'IO::Select', 'Readset attribute');
 
 
 $retval = $master->runloop(time());
+
+done_testing();
