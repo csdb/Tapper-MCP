@@ -23,6 +23,7 @@ use constant ONE_MINUTE => 60;
 extends 'Artemis::MCP::Control';
 
 has mcp_info => (is => 'rw');
+has rerun    => (is => 'rw', default => 0);
 
 =head1 NAME
 
@@ -245,6 +246,7 @@ sub wait_for_systeminstaller
                                 return 0;
                         }
                         when ('error-install') {
+                                $self->rerun(1);
                                 return $msg->{error};
                         }
                         when ('warn-install') {
@@ -289,6 +291,7 @@ sub time_reduce
                                 delete $prc_state->[$i]->{timeouts};
                                 $prc_state->[$i]->{end}   = 0;
                                 $result->{error} = 1;
+                                $self->rerun(1);
                                 if ($prc_state->[$i]->{max_reboot}) {
                                         $result->{msg} = "reboot-test-summary\n";
                                         $result->{msg}.= "   ---\n";
@@ -317,6 +320,7 @@ sub time_reduce
                         if (($prc_state->[$i]->{timeouts}->[0] - $elapsed) <= 0) {
                                 shift @{$prc_state->[$i]->{timeouts}};
                                 $result->{error} = 1;
+                                $self->rerun(1);
                                 $result->{msg}   = "Host: Testing not finished in time, timeout reached";
                                 # avoid another if/then/else, simply overwrite error for guests
                                 $result->{msg}   = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;
@@ -330,6 +334,7 @@ sub time_reduce
                                 delete $prc_state->[$i]->{timeouts};
                                 $prc_state->[$i]->{end}   = 0;
                                 $result->{error} = 1;
+                                $self->rerun(1);
                                 $result->{msg} = "reboot-test-summary\n";
                                 $result->{msg}.= "   ---\n";
                                 $result->{msg}.= "   got:".($prc_state->[$i]->{count} || "0")."\n";
@@ -347,6 +352,7 @@ sub time_reduce
                                 $prc_state->[$i]->{end} = 0;
                                 delete $prc_state->[$i]->{timeouts};
                                 $result->{error} = 1;
+                                $self->rerun(1);
                                 $result->{msg}   = "Host: Testing not finished in time, timeout reached";
                                 # avoid another if/then/else, simply overwrite error for guests
                                 $result->{msg}   = "Guest $i: Testing not finished in time, timeout reached" if $i != 0;
@@ -424,12 +430,14 @@ sub update_prc_state
 
                 }
 		when ('error-guest') {
+                        $self->rerun(1);
                         $prc_state->[$number]->{start} = 0;
                         $prc_state->[$number]->{stop} = 0;
                         $prc_state->[$number]->{results} = {msg => "Error in guest $number: ".$msg->{error}, error => 1};
                         $to_start--; $to_stop--;
                 }
                 when ('error-testprogram') {
+                        $self->rerun(1);
                         pop @{$prc_state->[$number]->{timeouts}};
                         $result->{error}             = $msg->{error};
                         $result->{msg}               = "Error in guest $number: $msg->{error}" if $number != 0;;
