@@ -263,6 +263,7 @@
     id: 101
     testrun_id: 1001            # aaa
     queue_id: 1                 # Xen
+    host_id: 9
 
 # --- aaa2 ---
 
@@ -469,3 +470,44 @@
     testrun_id: 3003            # ccc3
     queue_id: 3                 # Kernel
 
+# -------------------- hosts --------------------
+
+- schema: Host
+  name: iring
+  data:
+    id: 5
+    name: iring
+    free: 1
+    active: 1
+
+- schema: Host
+  name: bullock
+  data:
+    id: 6
+    name: bullock
+    free: 1
+    active: 1
+
+- schema: Host
+  name: dickstone
+  data:
+    id: 7
+    name: dickstone
+    free: 1
+    active: 1
+
+- schema: Host
+  name: athene
+  data:
+    id: 8
+    name: athene
+    free: 1
+    active: 1
+
+- schema: Host
+  name: bascha
+  data:
+    id: 9
+    name: bascha
+    free: 1
+    active: 1
