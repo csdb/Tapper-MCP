@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use 5.010;
 
 # get rid of warnings
 use Class::C3;
@@ -17,11 +18,12 @@ use Artemis::MCP::Master;
 
 
 use Test::More;
+use Test::Deep;
 
 BEGIN { use_ok('Artemis::MCP::Master'); }
 
 # -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 my $mockmaster = Test::MockModule->new('Artemis::MCP::Master');
@@ -31,7 +33,7 @@ $mockmaster->mock('console_open',sub{use IO::Socket::INET;
 $mockmaster->mock('console_close',sub{return "mocked console_close";});
 
 my $mockchild = Test::MockModule->new('Artemis::MCP::Child');
-$mockchild->mock('runtest_handling',sub{return 0;});
+$mockchild->mock('runtest_handling',sub{my $self = shift @_; $self->rerun(1);return 0;});
 
 my $mockschedule = Test::MockModule->new('Artemis::MCP::Scheduler');
 $mockschedule->mock('get_next_testrun',sub{return('bullock',4)});
@@ -57,5 +59,14 @@ isa_ok($master->{readset}, 'IO::Select', 'Readset attribute');
 
 
 $retval = $master->runloop(time());
+
+my $job = model('TestrunDB')->resultset('TestrunScheduling')->find(101);
+$job->status('schedule');
+$job->testrun->rerun_on_error(2);
+my @old_test_ids = map{$_->id} model('TestrunDB')->resultset('Testrun')->all;
+$master->run_due_tests($job);
+wait();
+my @new_test_ids = map{$_->id} model('TestrunDB')->resultset('Testrun')->all;
+cmp_bag([@old_test_ids, 3004], [@new_test_ids], 'New test because of rerun_on_error, no old test deleted');
 
 done_testing();
