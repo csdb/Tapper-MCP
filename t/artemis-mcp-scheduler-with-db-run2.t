@@ -204,8 +204,9 @@ is($next_job, undef, 'No job when only available host is bound to empty queue');
 $queuehost->queue_id(3);  # kernel queue
 $queuehost->update;
 
+# do not pick ccc-kernel since it's requested host ist correctly set to iring and only yaron is free
 $next_job = $scheduler->get_next_job();
-is($next_job->testrun->shortname, "ccc-kernel", "Shortname testrun");
+is($next_job->testrun->shortname, "bound-kernel", "Shortname testrun");
 is($next_job->host->name, "yaron", "fitting host yaron");
 $scheduler->mark_job_as_running($next_job);
 $scheduler->mark_job_as_finished($next_job);
