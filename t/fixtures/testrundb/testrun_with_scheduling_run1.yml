@@ -220,6 +220,7 @@
     id: 1
     name: Xen
     priority: 300
+    active: 1
 
 - schema: Queue
   name: KVM Queue
@@ -227,6 +228,7 @@
     id: 2
     name: KVM
     priority: 200
+    active: 1
 
 - schema: Queue
   name: Kernel Queue
@@ -234,6 +236,7 @@
     id: 3
     name: Kernel
     priority: 10
+    active: 1
 
 # -------------------- "test requests" (Testruns)
 
