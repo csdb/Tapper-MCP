@@ -37,7 +37,10 @@ class Artemis::MCP::Scheduler::Controller
                 # fill up to wanted merged_queue length, only accept shorter merged_queue if no queue has jobs to offer
                 while($count_missing_jobs > 0)
                 {
-                        my $queue = $self->algorithm->get_next_queue();
+                        my $queue;
+                        do {
+                                $queue = $self->algorithm->get_next_queue();
+                        } while ($queue and not $queue->active);
                         my $testrun_rs = $queue->queued_testruns;
                         my $job   = $testrun_rs->first;
                         if ($job) {
@@ -86,12 +89,12 @@ class Artemis::MCP::Scheduler::Controller
                 foreach my $queue( $queue_rs->all ) {
                         $queues{$queue->name} = $queue;
                 }
-                
+
                 my $jobs = $self->merged_queue->get_testrequests;
                 foreach my $tr( $jobs->all() ) {
                         delete($queues{$tr->queue->name}) if defined $queues{$tr->queue->name};
                 }
-                
+
                 foreach my $queue_name (keys %queues) {
                         my $queue      = $queues{$queue_name};
                         my $testrun_rs = $queue->queued_testruns;
