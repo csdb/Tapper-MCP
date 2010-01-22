@@ -190,6 +190,9 @@ sub parse_virt_preconditions
         # put host PRC config in precondition list
         $main_prc_config->{guest_count} = $guest_number;  # main prc needs to know number of guests
         $config->{prcs}->[0] = {precondition_type => 'prc', config => $main_prc_config};
+        
+        # add HWTrack for virt
+        push @{$config->{preconditions}}, {precondition_type => 'exec', filename => '/opt/artemis/bin/artemis-testsuite-hwtrack', continue_on_error => 1 };
         return $config;
 }
 
