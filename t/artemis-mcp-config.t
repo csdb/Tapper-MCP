@@ -22,7 +22,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 my $producer = Artemis::MCP::Config->new(2);
 isa_ok($producer, "Artemis::MCP::Config", 'Producer object created');
 
-my $config = $producer->create_config();
+my $config = $producer->create_config(1235);     # expects a port number
 is(ref($config),'HASH', 'Config created');
 
 is($config->{preconditions}->[0]->{image}, "suse/suse_sles10_64b_smp_raw.tar.gz", 'first precondition is root image');
