@@ -113,7 +113,7 @@ sub parse_virt_host
                         $config = $self->parse_image_precondition($config, $virt->{host}->{root});
                 }
                 when ('autoinstall') {
-                        #                        $self->parse_autoinstall();
+                        $config = $self->parse_autoinstall($config, $virt->{host}->{root});
                 }
         }
 
