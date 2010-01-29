@@ -83,7 +83,14 @@ $producer = Artemis::MCP::Config->new(4);
 $config = $producer->create_config(1337);   # expects a port number
 is(ref($config),'HASH', 'Config created');
 
-#is($config->{preconditions}->[0]->{image}, "suse/suse_sles10_64b_smp_raw.tar.gz", 'first precondition is root image');
+my $expected_grub = qr(timeout 2
+
+title RHEL 5
+kernel /tftpboot/stable/rhel/5/x86_64/vmlinuz  console=ttyS0,115200 ks=http://bancroft/autoinstall/stable/rhel/5/x86_64/artemis-ai.ks ksdevice=eth0 noapic artemis_ip=\d{1,3}\.\d{1,3}.\d{1,3}.\d{1,3} artemis_host=$config->{mcp_host} artemis_port=1337 artemis_environment=test
+initrd /tftpboot/stable/rhel/5/x86_64/initrd.img
+);
+
+like($config->{installer_grub}, $expected_grub, 'Installer grub set by autoinstall precondition');
 
 subbagof($config->{preconditions}, [
                                     {
