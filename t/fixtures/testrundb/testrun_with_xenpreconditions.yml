@@ -58,6 +58,17 @@
     shortname: reboot
     topic_name: Misc
 
+- schema: Testrun
+  name: KVM_autoinstall
+  data:
+    id: 4
+    owner_user_id: 12
+    shortname: KVM_auto
+    notes: Install KVM using autoinstaller
+    topic_name: Software
+
+
+
 
 # -------------------- preconditions
 
@@ -102,6 +113,53 @@
            arch: linux64
          testprogram:
            execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+
+- schema: Precondition
+  name: KVM_autoinstall
+  data:
+    id: 101
+    shortname: KVM-auto
+    precondition: |
+       name: automatically generated KVM test
+       precondition_type: virt
+       host:
+         preconditions:
+         - filename: linux-2.6.23.9.tar.gz
+           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           precondition_type: package
+         - filename: kvm.tar.gz
+           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           precondition_type: package
+         - line: natrium:/vol/osrc_home/ /home nfs auto,defaults 0 0
+           precondition_type: fstab
+         root:
+           precondition_type: autoinstall
+           name: RHEL5
+           timeout: 10000
+           grub_text: |
+             timeout 2
+             
+             title RHEL 5
+             kernel /tftpboot/stable/rhel/5/x86_64/vmlinuz  console=ttyS0,115200 ks=http://bancroft/autoinstall/stable/rhel/5/x86_64/artemis-ai.ks ksdevice=eth0 noapic $ARTEMIS_OPTIONS
+             initrd /tftpboot/stable/rhel/5/x86_64/initrd.img
+       guests:
+       - config:
+           dest: /kvm/images
+           name: /bin/true
+           precondition_type: copyfile
+           protocol: local
+           exec: /usr/share/artemis/packages/mhentsc3/startkvm.pl
+         root:
+           dest: /kvm/images
+           mountfile: /kvm/images/raw.img
+           mounttype: raw
+           name: osko:/export/image_files/official_testing/redhat_rhel5u2_64b_smp_up_qcow.img
+           precondition_type: copyfile
+           protocol: nfs
+           arch: linux64
+         testprogram:
+           execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+ 
 
 - schema: Precondition
   name: installer stop
@@ -165,3 +223,11 @@
     succession: 2
 
 
+# -------------------- Preconditions for KVM_auto
+
+- schema: TestrunPrecondition
+  name: precondition for KVM_auto
+  data:
+    testrun_id: 4
+    precondition_id: 101
+    succession: 1
