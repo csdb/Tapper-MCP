@@ -343,18 +343,18 @@ sub parse_autoinstall
         $config->{autoinstall} = 1;
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
-        my $macros;
-        {
-                my $artemis_host=$config->{mcp_host};
-                my $artemis_port=$config->{mcp_port};
-                my $packed_ip = gethostbyname($artemis_host);
-                if (not defined $packed_ip) {
-                        return "Can not get an IP address for artemis_host ($artemis_host): $!";
-                }
-                my $artemis_ip=inet_ntoa($packed_ip);
-                my $artemis_environment = Artemis::Config::_getenv();
-                $config->{installer_grub} =~ s|\$ARTEMIS_OPTIONS|artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment|g
+        
+        my $artemis_host=$config->{mcp_host};
+        my $artemis_port=$config->{mcp_port};
+        my $packed_ip = gethostbyname($artemis_host);
+        if (not defined $packed_ip) {
+                return "Can not get an IP address for artemis_host ($artemis_host): $!";
         }
+        my $artemis_ip=inet_ntoa($packed_ip);
+        my $artemis_environment = Artemis::Config::_getenv();
+        $config->{installer_grub} =~ 
+          s|\$ARTEMIS_OPTIONS|artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment|g;
+        
         return $config;
 }
 
