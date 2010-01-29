@@ -6,7 +6,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::NewestPackage extends Artem
 
         use 5.010;
 
-        use aliased 'Artemis::Config';
+        use Artemis::Config;
         use File::stat;
 
         sub younger { stat($a)->mtime() <=> stat($b)->mtime() }
@@ -20,23 +20,21 @@ class Artemis::MCP::Scheduler::PreconditionProducer::NewestPackage extends Artem
                        } if not @files;
                 my $use_file = pop @files;
 
-                my $nfs = Config->subconfig->{paths}{prc_nfs_mountdir};
+                my $nfs = Artemis::Config->subconfig->{paths}{prc_nfs_mountdir};
                 return {
                         error => "$use_file not available to Installer",
                        } unless $use_file=~/^$nfs/;
 
-                $retval = [
-                           {
-                            precondition_type => 'package',
-                            filename => $use_file;
-                           }
-                          ];
+                my $retval = [{
+                               precondition_type => 'package',
+                               filename => $use_file,
+                              },];
                 return {
                         precondition_yaml => Dump(@$retval),
                        };
         }
-        
-        
+
+
 
 }
 
