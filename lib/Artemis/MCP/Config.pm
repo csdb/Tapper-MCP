@@ -94,6 +94,38 @@ sub add_guest_testprogram
 }
 
 
+=head2 parse_virt_host
+
+Parse host definition of a virt precondition and change config accordingly
+
+@param hash ref - old config
+@param hash ref - virt precondition
+
+@return hash ref - new config
+
+=cut
+
+sub parse_virt_host
+{
+        my ($self, $config, $virt) = @_;
+        given ($virt->{host}->{root}->{precondition_type}) {
+                when ('image') {
+                        $config = $self->parse_image_precondition($config, $virt->{host}->{root});
+                }
+                when ('autoinstall') {
+                        #                        $self->parse_autoinstall();
+                }
+        }
+
+        # additional preconditions for virt host
+        if ($virt->{host}->{preconditions}) {
+                push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}};
+        }
+        return $config;
+}
+
+
+
 =head2 parse_virt_preconditions
 
 Unpack a precondition virt entry into images, packages and files to be
@@ -112,36 +144,9 @@ sub parse_virt_preconditions
 
         my ($self, $config, $virt) = @_;
         my $retval;
-        my $main_prc_config;
 
-        if ($config->{prcs}) {
-                $main_prc_config = $config->{prcs}->[0];
-        }
-
-        # make sure host image is always first precondition
-        unshift @{$config->{preconditions}}, $virt->{host}->{root};
-        push @{$config->{preconditions}}, @{$virt->{host}->{preconditions}} if $virt->{host}->{preconditions};
-        push @{$config->{preconditions}}, {precondition_type => 'package',
-                                           filename => $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}},
-                                          } if  $self->cfg->{files}->{artemis_package}{$virt->{host}->{root}{arch}};
-;
-
-        # install host testprogram
-        if ($virt->{host}->{testprogram}) {
-                push @{$config->{preconditions}}, $virt->{host}->{testprogram};
-                $main_prc_config->{test_program}        = $virt->{host}->{testprogram}->{execname};
-                $main_prc_config->{parameters}          = $virt->{host}->{testprogram}->{parameters}          if $virt->{host}->{testprogram}->{parameters};
-                $main_prc_config->{timeout_testprogram} = $virt->{host}->{testprogram}->{timeout_testprogram} if $virt->{host}->{testprogram}->{timeout_testprogram};
-                return "No timeout for testprogram in virtualisation host" if not $virt->{host}->{testprogram}->{timeout_testprogram};
-                $self->mcp_info->add_testprogram(0,{
-                                                    timeout    => $virt->{host}->{testprogram}->{timeout_testprogram},
-                                                    program    => $virt->{host}->{testprogram}->{execname},
-                                                    parameters => $virt->{host}->{testprogram}->{parameters}
-                                                   });
-        }
-        push @{$main_prc_config->{timeouts}},$main_prc_config->{timeout_testprogram}; # always have a value for host, undef if no tests there
-
-
+        $config = $self->parse_virt_host($config, $virt);
+        $self->parse_testprogram($config, $virt->{host}->{testprogram}, 0) if $virt->{host}->{testprogram};
 
         my $guest_number;
         for (my $i=0; $i<=$#{$virt->{guests}}; $i++ ) {
@@ -170,11 +175,11 @@ sub parse_virt_preconditions
                 push @{$config->{preconditions}}, $guest->{root} if $guest->{root}->{precondition_type};
                 push @{$config->{preconditions}}, $guest->{config};
                 if ($guest->{config}->{svm}) {
-                        push @{$main_prc_config->{guests}}, {svm=>$guest->{config}->{svm}};
+                        push @{$config->{prcs}->[0]->{config}->{guests}}, {svm=>$guest->{config}->{svm}};
                 } elsif ($guest->{config}->{kvm}) {
-                        push @{$main_prc_config->{guests}}, {exec=>$guest->{config}->{kvm}};
+                        push @{$config->{prcs}->[0]->{config}->{guests}}, {exec=>$guest->{config}->{kvm}};
                 } elsif ($guest->{config}->{exec}) {
-                        push @{$main_prc_config->{guests}}, {exec=>$guest->{config}->{exec}};
+                        push @{$config->{prcs}->[0]->{config}->{guests}}, {exec=>$guest->{config}->{exec}};
                 }
 
                 $retval = $self->add_guest_testprogram($config, $guest, $guest_number) if $guest->{testprogram};
@@ -187,12 +192,8 @@ sub parse_virt_preconditions
                 }
 
         }
-        # put host PRC config in precondition list
-        $main_prc_config->{guest_count} = $guest_number;  # main prc needs to know number of guests
-        $config->{prcs}->[0] = {precondition_type => 'prc', config => $main_prc_config};
-        
-        # add HWTrack for virt
-        push @{$config->{preconditions}}, {precondition_type => 'exec', filename => '/opt/artemis/bin/artemis-testsuite-hwtrack', continue_on_error => 1 };
+        $config->{prcs}->[0]->{config}->{guest_count} = $guest_number;
+
         return $config;
 }
 
@@ -291,6 +292,8 @@ and internal information set.
 
 @param hash ref - config to change
 @param hash ref - precondition as hash
+@param int - prc_number, optional
+
 
 @return success - config hash
 @return error   - error string
@@ -299,10 +302,12 @@ and internal information set.
 
 sub parse_testprogram
 {
-        my ($self, $config, $testprogram) = @_;
+        my ($self, $config, $testprogram, $prc_number) = @_;
+        $prc_number //= 0;
+        return "No timeout for testprogram" if not $testprogram->{timeout};
         no warnings 'uninitialized';
-        push @{$config->{prcs}->[0]->{config}->{testprogram_list}}, $testprogram;
-        $self->mcp_info->add_testprogram(0, $testprogram);
+        push @{$config->{prcs}->[$prc_number]->{config}->{testprogram_list}}, $testprogram;
+        $self->mcp_info->add_testprogram($prc_number, $testprogram);
         use warnings;
         return $config;
 
@@ -444,7 +449,7 @@ sub get_common_config
         $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server}
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun;
-        
+
         if ($search->scenario_element) {
                 $config->{scenario_id} = $search->scenario_element->scenario_id;
                 my $path = $config->{paths}{sync_path}."/".$config->{scenario_id}."/";
@@ -454,7 +459,7 @@ sub get_common_config
                         if (not -d $path) {
                                 if (not File::Path::Tiny::mk($path)) {
                                         # path could exists now due to race condition
-                                        return "Could not make path '$path': $!" if not -d $path; 
+                                        return "Could not make path '$path': $!" if not -d $path;
                                 }
                         }
                         my @peers = map {$_->testrun->testrun_scheduling->host->name} $search->scenario_element->peer_elements->all;
@@ -503,8 +508,8 @@ sub get_test_config
 {
         my ($self) = @_;
         my $retval;
-        
-        
+
+
         for (my $i=0; $i<=$self->mcp_info->get_prc_count(); $i++) {
                 push @$retval, {testprogram_list => [ $self->mcp_info->get_testprograms($i) ]};
         }
