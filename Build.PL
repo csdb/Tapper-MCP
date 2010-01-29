@@ -28,6 +28,7 @@ my $builder = $build_class->new
                         'Artemis::Test'               => '2.010005',
                         'Cwd'                         => 0,
                         'String::Diff'                => 0,
+                        'File::Spec'                  => 0,
                        },
      requires => {
                   'perl'                       => '5.010',
