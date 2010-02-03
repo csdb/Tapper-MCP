@@ -341,6 +341,7 @@ sub parse_autoinstall
         }
 
         $config->{autoinstall} = 1;
+        $config->{paths}{base_dir} = '/';
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
         
