@@ -225,6 +225,12 @@ sub wait_for_systeminstaller
         return $msg if not ref($msg) eq 'HASH';
         return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
 
+        if ($msg->{state} eq 'quit') {
+                my $retval = "Testrun cancled while waiting for installation start";
+                $retval   .= " - ".$msg->{error} if $msg->{error};
+                return $retval;
+        }
+
         if (not $msg->{state} eq "start-install") {
                 return qq(MCP expected state start-install but remote system is in state $msg->{state});
         }
@@ -241,6 +247,11 @@ sub wait_for_systeminstaller
 
                 given ($msg->{state})
                 {
+                        when('quit') {
+                                my $retval = "Testrun cancled while waiting for installation to finish";
+                                $retval   .= " - ".$msg->{error} if $msg->{error};
+                                return $retval;
+                        }
                         when ('end-install') {
                                 $self->log->debug("Installation finished for testrun ".$self->testrun);
                                 return 0;
@@ -502,6 +513,8 @@ sub wait_for_testrun
         my $msg     = $self->get_message($fh, $timeout);
         return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
         return [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}] if $msg->{timeout};
+        return [{error=> 1, msg => "Testrun cancled while waiting for booting test machine"}] if ($msg->{state} eq 'quit');
+
         ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
 
  MESSAGE:
@@ -509,6 +522,7 @@ sub wait_for_testrun
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
+                return [{error=> 1, msg => "Testrun cancled while running tests"}] if ($msg->{state} eq 'quit');
 
                 if (not $msg->{timeout}) {
                         $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
