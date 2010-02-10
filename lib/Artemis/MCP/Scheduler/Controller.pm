@@ -6,6 +6,7 @@ class Artemis::MCP::Scheduler::Controller
 {
         use Perl6::Junction qw/ any /;
         use Artemis::Model 'model';
+        use Artemis::MCP::Net;
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::MergedQueue';
 
@@ -114,8 +115,13 @@ class Artemis::MCP::Scheduler::Controller
                         return if not ($free_hosts and @$free_hosts);
                         $job = $self->merged_queue->get_first_fitting($free_hosts);
                         $self->overfill_merged_queue() if not $job;
-                        my $error=$job->produce_preconditions() if $job;
-                        if ($error) {
+
+                        my $error;
+                        eval{
+                                $error=$job->produce_preconditions() if $job;
+                        };
+                        if ($error or $@) {
+                                $error //=$@;
                                 my $net    = Artemis::MCP::Net->new();
                                 $net->tap_report_send($job->testrun_id, [{error => 1, msg => $error}]);
                                 $self->mark_job_as_finished($job);
