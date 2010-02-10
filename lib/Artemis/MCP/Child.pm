@@ -522,7 +522,7 @@ sub wait_for_testrun
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
-                return [{error=> 1, msg => "Testrun cancled while running tests"}] if ($msg->{state} eq 'quit');
+                return [{error=> 1, msg => "Testrun cancled while running tests"}] if ($msg->{state} and $msg->{state} eq 'quit');
 
                 if (not $msg->{timeout}) {
                         $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
