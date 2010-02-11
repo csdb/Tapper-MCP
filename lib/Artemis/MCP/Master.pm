@@ -8,6 +8,7 @@ class Artemis::MCP::Master extends Artemis::MCP
         use Devel::Backtrace;
         use File::Path;
         use IO::Select;
+        use IO::Handle;
         use Log::Log4perl;
         use POSIX ":sys_wait_h";
         use UNIVERSAL;
@@ -233,7 +234,7 @@ Read console log from a handle and write it to the appropriate file.
         {
                 my ($self, $handle) = @_;
                 my ($buffer, $readsize);
-                my $timeout = 10;
+                my $timeout = 2;
                 my $maxread = 1024; # XXX configure
                 eval {
                         local $SIG{ALRM}=sub{die 'Timeout'};
@@ -241,9 +242,12 @@ Read console log from a handle and write it to the appropriate file.
                         $readsize  = sysread($handle, $buffer, $maxread);
                 };
                 sleep 0;
+                if ($@) {
+                        return ("Timeout of $timeout seconds reached while trying to read from console") 
+                          if $@=~/Timeout/;
+                        return ("Error while reading from console handle: $@");
+                }
                 
-                $self->log->error("Timeout of $timeout seconds reached while trying to read from console") 
-                  if $@=~/Timeout/;
                 return "Can't read from console:$!" if not defined $readsize;
                 
                 my $file    = $self->consolefiles->[$handle->fileno()];
@@ -335,9 +339,18 @@ itself is put outside of function to allow testing.
                 }
                 $self->handle_dead_children() if $self->dead_child;
 
+        HANDLE:
                 foreach my $handle (@ready) {
+                        if (not $handle->opened()) {
+                                $self->readset->remove($console);
+                                next HANDLE;
+                        }
+
                         my $retval = $self->consolelogfrom($handle);
-                        $self->log->error($retval) if $retval;
+                        if ($retval) {
+                                $self->log->error($retval);
+                                $self->console_close($handle);
+                        }
                 }
 
                 if (not @ready) {
