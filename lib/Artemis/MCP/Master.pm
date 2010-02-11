@@ -232,7 +232,7 @@ Read console log from a handle and write it to the appropriate file.
         sub consolelogfrom
         {
                 my ($self, $handle) = @_;
-                my ($buffer, $retval, $readsize);
+                my ($buffer, $readsize);
                 my $timeout = 10;
                 my $maxread = 1024; # XXX configure
                 eval {
@@ -248,8 +248,8 @@ Read console log from a handle and write it to the appropriate file.
                 
                 my $file    = $self->consolefiles->[$handle->fileno()];
                 return "Can't get console file:$!" if not defined $file;
-                $retval     = syswrite($file, $buffer, $retval);
-                return "Can't write console data to file :$!" if not defined $retval;
+                $readsize     = syswrite($file, $buffer, $readsize);
+                return "Can't write console data to file :$!" if not defined $readsize;
                 return 0;
         }
 
