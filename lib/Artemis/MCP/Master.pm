@@ -175,7 +175,7 @@ Close a given console connection.
         sub console_close
         {
                 my ($self, $console) = @_;
-                return 0 if not ($console and $console->can('fileno');
+                return 0 if not ($console and $console->can('fileno'));
                 close $self->consolefiles->[$console->fileno()]
                     or return "Can't close console file:$!";
                 $self->consolefiles->[$console->fileno()] = undef;
