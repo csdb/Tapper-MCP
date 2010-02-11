@@ -230,10 +230,20 @@ Read console log from a handle and write it to the appropriate file.
         sub consolelogfrom
         {
                 my ($self, $handle) = @_;
-                my $buffer;
+                my ($buffer, $retval, $readsize);
+                my $timeout = 10;
                 my $maxread = 1024; # XXX configure
-                my $retval  = sysread($handle, $buffer, $maxread);
-                return "Can't read from console:$!" if not defined $retval;
+                eval {
+                        local $SIG{ALRM}=sub{die 'Timeout'};
+                        sleep $timeout;
+                        $readsize  = sysread($handle, $buffer, $maxread);
+                };
+                sleep 0;
+                
+                $self->log->error("Timeout of $timeout seconds reached while trying to read from console") 
+                  if $@=~/Timeout/;
+                return "Can't read from console:$!" if not defined $readsize;
+                
                 my $file    = $self->consolefiles->[$handle->fileno()];
                 return "Can't get console file:$!" if not defined $file;
                 $retval     = syswrite($file, $buffer, $retval);
