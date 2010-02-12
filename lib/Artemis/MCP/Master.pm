@@ -238,10 +238,10 @@ Read console log from a handle and write it to the appropriate file.
                 my $maxread = 1024; # XXX configure
                 eval {
                         local $SIG{ALRM}=sub{die 'Timeout'};
-                        sleep $timeout;
+                        alarm $timeout;
                         $readsize  = sysread($handle, $buffer, $maxread);
                 };
-                sleep 0;
+                alarm 0;
                 if ($@) {
                         return ("Timeout of $timeout seconds reached while trying to read from console") 
                           if $@=~/Timeout/;
@@ -342,7 +342,7 @@ itself is put outside of function to allow testing.
         HANDLE:
                 foreach my $handle (@ready) {
                         if (not $handle->opened()) {
-                                $self->readset->remove($console);
+                                $self->readset->remove($handle);
                                 next HANDLE;
                         }
 
