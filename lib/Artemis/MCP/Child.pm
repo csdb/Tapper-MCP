@@ -236,7 +236,7 @@ sub wait_for_systeminstaller
         }
         if ($config->{autoinstall}) {
                 $remote->write_grub_file($config->{hostname},
-                                         "timeout 2\n\ntitle Boot from first hard disc\n\tchainloader (hd0)+1");
+                                         "timeout 2\n\ntitle Boot from first hard disc\n\tchainloader (hd0,1)+1");
 
         }
 
