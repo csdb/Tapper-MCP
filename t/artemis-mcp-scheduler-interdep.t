@@ -12,7 +12,6 @@ use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
 use YAML;
 
-use Artemis::MCP::Scheduler::MergedQueue;
 use aliased 'Artemis::MCP::Scheduler::Algorithm';
 use aliased 'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm';
 use aliased 'Artemis::MCP::Scheduler::Controller';
@@ -31,8 +30,6 @@ log4perl.appender.root.stderr = 1
 log4perl.appender.root.layout = SimpleLayout";
 Log::Log4perl->init(\$string);
 
-my $algorithm = Algorithm->new_with_traits ( traits => [DummyAlgorithm] );
-my $scheduler = Controller->new (algorithm => $algorithm);
 
 
 # -----------------------------------------------------------------------------------------------------------------
@@ -40,23 +37,31 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
+# Scheduling order: (KVM, Kernel, Xen)*
+
+my $algorithm = Algorithm->new_with_traits ( traits => [DummyAlgorithm] );
+my $scheduler = Controller->new (algorithm => $algorithm);
+
+
 my $tr = model('TestrunDB')->resultset('Testrun')->find(1001);
 ok($tr->scenario_element, 'Testrun 1001 is part of a scenario');
 is($tr->scenario_element->peer_elements->count, 2, 'Number of test runs in scenario');
 
-is($scheduler->merged_queue->length, 0, "merged_queue is empty at start");
-
-$scheduler->merged_queue->add($tr->testrun_scheduling);
-is($scheduler->merged_queue->length, 2, "2 elements in merged_queue after adding scenario");
-
-my @id = map { $_->testrun->id} $scheduler->merged_queue->get_testrequests->all;
-is_deeply( [ @id ], [ 1001, 1002 ], 'Testruns in Merged queue');
-
 my @next_jobs   = $scheduler->get_next_job();
-is(scalar @next_jobs, 0, 'Hold job back until scenario is fully fitted');
+is($next_jobs[0]->queue->name, 'KVM', 'Job is KVM job');
 
 @next_jobs   = $scheduler->get_next_job();
-is(scalar @next_jobs, 2, 'Return all jobs when scenario is fully fitted');
+is($next_jobs[0]->queue->name, 'Kernel', 'Job is Kernel job');
+
+@next_jobs   = $scheduler->get_next_job();
+is(scalar @next_jobs, 0, 'Hold Xen job back until scenario is fully fitted');
+
+@next_jobs   = $scheduler->get_next_job();
+my @job_ids  = map {$_->id} @next_jobs;
+is(scalar @next_jobs, 2, 'Priorise scenario elements when one scenario element is already matched');
+is_deeply(\@job_ids, [101, 102], 'Return all jobs when scenario is fully fitted');
+
+
 
 is($next_jobs[0]->testrun->scenario_element->peer_elements, 2, 'Number of peers including $self');
 my $dir = tempdir( CLEANUP => 1 );
@@ -83,5 +88,12 @@ eval
         is(ref $peers, 'ARRAY', 'Array of hosts in sync file');
 };
 fail('No valid YAML in syncfile: $@') if $@;
+
+@next_jobs   = $scheduler->get_next_job();
+is($next_jobs[0]->queue->name, 'KVM', 'Job is KVM job');
+
+@next_jobs   = $scheduler->get_next_job();
+is($next_jobs[0]->queue->name, 'Kernel', 'Job is Kernel job');
+
 
 done_testing();
