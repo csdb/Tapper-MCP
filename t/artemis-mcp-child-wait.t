@@ -111,14 +111,11 @@ log4perl.appender.root.layout = SimpleLayout";
         };
         is($@, '', 'Get reboot messages in time');
         is_deeply($retval, [{'msg' => 'Test in PRC 0 started', 'error' => 0 },
-                            {
-                             'msg' => 'Test in PRC 0 finished', 'error' => 0 },
-                            {
-                             'msg' => 'Test in guest 1 started', 'error' => 0},
-                            {
-                             'msg' => 'Testprogram 0 in guest 1', 'error' => 0 },
-                            {
-                             'msg' => 'Test in guest 1 finished', 'error' => 0 },], 'Successful reboot test handling');
+                            {'msg' => 'Test in PRC 0 finished', 'error' => 0 },
+                            {'msg' => 'Test in guest 1 started', 'error' => 0},
+                            {'msg' => 'Testprogram 0 in guest 1', 'error' => 0 },
+                            {'msg' => 'Test in guest 1 finished', 'error' => 0 },],
+                  'Successful reboot test handling');
 }
 ;
 done_testing();
