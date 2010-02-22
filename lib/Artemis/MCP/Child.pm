@@ -508,7 +508,7 @@ sub wait_for_testrun
         my $to_start   = scalar @$prc_state;
         my $to_stop    = $to_start;
 
-        my $timeout = $self->cfg->{times}{boot_timeout};
+        my $timeout = $self->mcp_info->get_boot_timeout(0) || $self->cfg->{times}{boot_timeout};
 
         my $msg     = $self->get_message($fh, $timeout);
         return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
