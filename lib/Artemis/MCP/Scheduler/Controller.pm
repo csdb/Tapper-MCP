@@ -4,10 +4,12 @@ use 5.010;
 
 class Artemis::MCP::Scheduler::Controller
 {
+        with 'MooseX::Log::Log4perl';
         use Perl6::Junction qw/ any /;
         use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::PrioQueue';
+        use Artemis::MCP::Net;
 
         has hostlist  => (is => 'rw', isa => 'ArrayRef');
         has prioqueue => (is => 'rw', isa => PrioQueue, default => sub { PrioQueue->new });
@@ -32,7 +34,7 @@ class Artemis::MCP::Scheduler::Controller
                         
                         my %queues;
                         my $queue_rs = model('TestrunDB')->resultset('Queue');
-                        %queues = map {$_->name, 1} $queue_rs->all;
+                        %queues = map {$_->name, $_} $queue_rs->all;
 
                 QUEUE:
                         while (1) {
@@ -41,7 +43,7 @@ class Artemis::MCP::Scheduler::Controller
                                 last QUEUE if $job = $self->prioqueue->get_first_fitting($free_hosts);
                                 
                                 
-                                my $queue = $self->algorithm->get_next_queue();
+                                my $queue = $self->algorithm->lookup_next_queue(\%queues);
                                 if ($job = $queue->get_first_fitting($free_hosts)) {
                                         if ($job->auto_rerun) {
                                                 $job->testrun->rerun;
@@ -54,6 +56,7 @@ class Artemis::MCP::Scheduler::Controller
                                                         $self->prioqueue->add($peer_job);
                                                 }
                                         }
+                                        $self->algorithm->update_queue($job->queue);
                                         last QUEUE;
                                 } else {
                                         delete $queues{$queue->name};
