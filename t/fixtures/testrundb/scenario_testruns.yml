@@ -298,13 +298,6 @@
     notes: aaa3
     topic_name: Distribution
 
-- schema: TestrunRequestedHost
-  name: aaa3-mem-8000
-  data:
-    id: 103
-    testrun_id: 1003            # aaa3
-    host_id: 9                  # bascha
-
 - schema: TestrunScheduling
   name: Xen-aaa3
   data:
@@ -327,13 +320,6 @@
     notes: bbb
     topic_name: Distribution
 
-- schema: TestrunRequestedHost
-  name: bbb-mem-8000
-  data:
-    id: 201
-    testrun_id: 2001            # bbb
-    host_id: 6                  # bullock
-
 - schema: TestrunScheduling
   name: KVM-bbb
   data:
@@ -353,13 +339,6 @@
     notes: bbb2
     topic_name: Distribution
 
-- schema: TestrunRequestedHost
-  name: bbb2-mem-8000
-  data:
-    id: 202
-    testrun_id: 2002            # bbb2
-    host_id: 6                  # bullock
-
 - schema: TestrunScheduling
   name: KVM-bbb2
   data:
@@ -378,13 +357,6 @@
     shortname: bbb3-kvm
     notes: bbb3
     topic_name: Distribution
-
-- schema: TestrunRequestedHost
-  name: bbb3-mem-8000
-  data:
-    id: 203
-    testrun_id: 2003            # bbb3
-    host_id: 6                  # bullock
 
 - schema: TestrunScheduling
   name: KVM-bbb3
@@ -407,13 +379,6 @@
     notes: ccc
     topic_name: Distribution
 
-- schema: TestrunRequestedHost
-  name: ccc-mem-8000
-  data:
-    id: 301
-    testrun_id: 3001            # ccc
-    host_id: 5                  # iring
-
 - schema: TestrunScheduling
   name: Kernel-ccc
   data:
@@ -433,13 +398,6 @@
     notes: ccc2
     topic_name: Distribution
 
-- schema: TestrunRequestedHost
-  name: ccc2-host-iring
-  data:
-    id: 302
-    testrun_id: 3002            # ccc2
-    host_id: 5                  # iring
-
 - schema: TestrunScheduling
   name: Kernel-ccc2
   data:
@@ -458,13 +416,6 @@
     shortname: ccc3-kernel
     notes: ccc3
     topic_name: Distribution
-
-- schema: TestrunRequestedHost
-  name: ccc3-mem-8000
-  data:
-    id: 303
-    testrun_id: 3003            # ccc3
-    host_id: 5                  # iring
 
 - schema: TestrunScheduling
   name: Kernel-ccc3

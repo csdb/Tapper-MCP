@@ -47,8 +47,6 @@ $next_job   = $scheduler->get_next_job();
 is($next_job->id, 201, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 2, "merged_queue with one job less");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 1");
 my $job1 = $next_job;
 
 # Job 2
@@ -60,8 +58,6 @@ $next_job   = $scheduler->get_next_job();
 is($next_job->id, 301, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 2, "merged_queue with one job less");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 2");
 my $job2 = $next_job;
 
 # Job 3
@@ -73,8 +69,6 @@ $next_job = $scheduler->get_next_job();
 is($next_job->id, 101, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 2, "merged_queue with one job less");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 2");
 my $job3 = $next_job;
 
 # Intermediate state
@@ -83,23 +77,12 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: bascha taken");
 
-my $non_scheduled_jobs = model('TestrunDB')->resultset('TestrunScheduling')->non_scheduled_jobs;
-is($non_scheduled_jobs->count, 4, "still have 4 jobs in queues but not in merged_queue");
-
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Indeed no fitting while all requested machines busy");
-is($scheduler->merged_queue->length, 3, "merged_queue filled up on last get_next_job");
-is($scheduler->merged_queue->wanted_length, 3, "incremented wanted_length after unsuccessful get_next_job");
-@queues = map {$_->queue->name} $scheduler->merged_queue->get_testrequests->all;
-cmp_bag(\@queues, ['KVM','Xen', 'Kernel'], 'All queues at least once in merged queue');
 
 # ask once again unsuccessfully
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting while all requested machines busy");
-
-# check state of merged queue BEFORE FINISH
-is($scheduler->merged_queue->length, 3, "merged_queue filled up on last get_next_job");
-is($scheduler->merged_queue->wanted_length, 3, "incremented wanted_length after unsuccessful get_next_job");
 
 # finish Job2
 $scheduler->mark_job_as_finished($job2);
@@ -108,12 +91,7 @@ is($job2->host->free, 1, "host of job2 free again");
 is($job2->host->name, "iring", "and it is indeed iring");
 is($job2->queue->name, "Kernel", "and it is a Kernel job");
 
-# check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 3, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
-
 # Job 4
-
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
@@ -122,22 +100,11 @@ is($next_job->id, 302, "next fitting host");
 is($next_job->host->name, "iring", "fitting host iring");
 is($next_job->queue->name, "Kernel", "it is a Kernel job");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 2, "merged_queue filled up");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 4");
 my $job4 = $next_job;
 
 # intermediate state
-$non_scheduled_jobs = model('TestrunDB')->resultset('TestrunScheduling')->non_scheduled_jobs;
-is($non_scheduled_jobs->count, 3, "still 3 jobs not yet in merged_queue");
-is($non_scheduled_jobs->first->id, 103, "it is the last Xen job by id");
-is($non_scheduled_jobs->first->queue->name, "Xen", "it is the last Xen job by queue-name");
-
-my @merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-my @merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
-
-is_deeply(\@merged_queue_jobs,    [ qw( KVM Xen ) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 202, 102 ],       "expected state of merged queue by id");
-
+my @non_scheduled_jobs = map {$_->id} model('TestrunDB')->resultset('TestrunScheduling')->non_scheduled_jobs->all;
+cmp_bag([ @non_scheduled_jobs ], [102, 103, 202, 203, 303], 'Jobs waiting for schedule');
 
 # finish Job 4
 $scheduler->mark_job_as_finished($job4);
@@ -147,8 +114,6 @@ is($job4->host->name, "iring", "and it is indeed iring");
 is($job4->queue->name, "Kernel", "and it is a Kernel job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 2, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 # Job 5
 
@@ -156,10 +121,6 @@ is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfe
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring available");
-$next_job = $scheduler->get_next_job();
-
-is($next_job, undef, "Again no fitting for available machines");
-is($scheduler->merged_queue->length, 4, "merged_queue filled up by overfill");
 
 $next_job = $scheduler->get_next_job();
 is($next_job->id, 303, "next fitting host");
@@ -167,16 +128,10 @@ is($next_job->host->name, "iring", "fitting host iring");
 is($next_job->queue->name, "Kernel", "it is a Kernel job");
 $scheduler->mark_job_as_running($next_job);
 
-is($scheduler->merged_queue->length, 3, "merged_queue filled up");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 5");
 my $job5 = $next_job;
 
 # check queue, no new because merged queue is full
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( KVM Xen KVM ) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 202, 102, 203 ],     "expected state of merged queue by id");
 
 
 # try an unsuccessful one
@@ -187,8 +142,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene)], "free hosts: only useless hos
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 3, "merged_queue filled up");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length increase after unsuccessful get_next_job 6");
 
 
 # Finish Job 5
@@ -200,12 +153,9 @@ is($job4->host->name, "iring", "and it is indeed iring");
 is($job4->queue->name, "Kernel", "and it is a Kernel job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 3, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 # try an unsuccessful one
 
-# although we have a free host it does not fit any of the requested hosts in merged_queue
 # but the last Xen job get slurped into merged queue
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -214,8 +164,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring avai
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 3, "merged_queue not increased since only queue in merged queue (kernel) has no testruns");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 7");
 
 
 # trying the same no-success again
@@ -226,8 +174,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring avai
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 3, "merged_queue tried to fill up and no more available");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 8");
 
 # trying the same no-success a third time
 
@@ -237,8 +183,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring avai
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 3, "merged_queue tried to fill up and no more available");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting 8");
 
 
 # Finish Job 1
@@ -250,16 +194,10 @@ is($job1->host->name, "bullock", "and it is indeed bullock");
 is($job1->queue->name, "KVM", "and it is a KVM job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 3, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 
 # check queue
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( KVM Xen KVM) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 202, 102, 203 ],     "expected state of merged queue by id");
 
 # Job 6
 
@@ -271,16 +209,10 @@ is($next_job->id, 202, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 is($next_job->queue->name, "KVM", "it is a KVM job");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 2, "merged_queue filled up");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting");
 my $job6 = $next_job;
 
 # check queue, no new because merged queue is full
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( Xen KVM) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 102, 203 ],     "expected state of merged queue by id");
 
 
 # Finish Job 3
@@ -292,16 +224,10 @@ is($job3->host->name, "bascha", "and it is indeed bascha");
 is($job3->queue->name, "Xen", "and it is a Xen job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 2, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 
 # check queue
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( Xen KVM) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 102, 203 ],     "expected state of merged queue by id");
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -320,16 +246,10 @@ is($next_job->id, 102, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 is($next_job->queue->name, "Xen", "it is a Xen job");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 2, "merged_queue filled up");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged after successful get_first_fitting");
 my $job7 = $next_job;
 
 # check queue, no new because merged queue is full
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( KVM Xen) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 203, 103 ],     "expected state of merged queue by id");
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -347,15 +267,9 @@ is($job7->host->name, "bascha", "and it is indeed bascha");
 is($job7->queue->name, "Xen", "and it is a Xen job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 2, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 # check queue
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( KVM Xen) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 203, 103 ],     "expected state of merged queue by id");
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -373,15 +287,9 @@ is($job6->host->name, "bullock", "and it is indeed bullock");
 is($job6->queue->name, "KVM", "and it is a KVM job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 2, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 # check queue
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( KVM Xen) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 203, 103 ],     "expected state of merged queue by id");
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -400,16 +308,10 @@ is($next_job->id, 203, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
 is($next_job->queue->name, "KVM", "it is a KVM job");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 1, "merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length after successful get_first_fitting");
 my $job8 = $next_job;
 
 # check queue, no new because merged queue is full
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( Xen ) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ 103 ],       "expected state of merged queue by id");
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -428,16 +330,10 @@ is($next_job->id, 103, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
 is($next_job->queue->name, "Xen", "it is a Xen job");
 $scheduler->mark_job_as_running($next_job);
-is($scheduler->merged_queue->length, 0, "merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length after successful get_first_fitting");
 my $job9 = $next_job;
 
 # check queue, no new because merged queue is full
-@merged_queue_jobs    = map { $_->queue->name } $scheduler->merged_queue->get_testrequests->all;
-@merged_queue_job_ids = map { $_->id }  $scheduler->merged_queue->get_testrequests->all;
 
-is_deeply(\@merged_queue_jobs,    [ qw( ) ], "expected state of merged queue by queue-name");
-is_deeply(\@merged_queue_job_ids, [ ],       "expected state of merged queue by id");
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
@@ -455,8 +351,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring avai
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 # try second time unsuccessfully
 
@@ -466,8 +360,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring avai
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 # try third time unsuccessfully, just to be sure
 
@@ -477,8 +369,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring)], "free hosts: iring avai
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 
 # currently running: Job 8-bullock-KVM, Job 9-bascha-Xen
@@ -492,8 +382,6 @@ is($job8->host->name, "bullock", "and it is indeed bullock");
 is($job8->queue->name, "KVM", "and it is a KVM job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 0, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
@@ -510,8 +398,6 @@ is($job9->host->name, "bascha", "and it is indeed bascha");
 is($job9->queue->name, "Xen", "and it is a Xen job");
 
 # check state of merged queue AFTER FINISH
-is($scheduler->merged_queue->length, 0, "finishing a job does not interfere with merged_queue length");
-is($scheduler->merged_queue->wanted_length, 3, "finishing a job does not interfere with merged_queue wanted_length");
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
@@ -528,8 +414,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free ho
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 # try second time unsuccessfully
 
@@ -539,8 +423,6 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free ho
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
 
-is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
 
 # try third time unsuccessfully, just to be sure
 
@@ -549,11 +431,6 @@ $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 cmp_bag(\@free_host_names, [qw(dickstone athene iring bullock bascha)], "free hosts: iring, bullock, bascha available");
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "Again no fitting for available machines");
-
-is($scheduler->merged_queue->length, 0, "merged_queue length still 0");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged although unsuccessful get but should not grow more");
-
-
 
 done_testing();
 

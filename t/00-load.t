@@ -25,7 +25,7 @@ my @modules = ('Artemis::MCP',
                'Artemis::MCP::Scheduler::Builder',
                'Artemis::MCP::Scheduler::PreconditionProducer',
                'Artemis::MCP::Scheduler::Controller',
-               'Artemis::MCP::Scheduler::MergedQueue',
+               'Artemis::MCP::Scheduler::PrioQueue',
               );
 
 plan tests => $#modules+1;
