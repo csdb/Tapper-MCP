@@ -23,9 +23,9 @@ role Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm {
 
         }
 
-        method lookup_next_queue()
+        method lookup_next_queue($queues)
         {
-                my @Q = sort keys %{$self->queues};
+                my @Q = sort keys %{$queues};
                 my $pos = $self->get_new_pos(\@Q);
 
                 return $self->queues->{$Q[$pos]};
@@ -35,9 +35,16 @@ role Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm {
         {
                 my @Q = sort keys %{$self->queues};
                 my $pos = $self->get_new_pos(\@Q);
-
-                $self->current_queue( $self->queues->{$Q[$pos]} );
+                
+                my $name = $Q[$pos];
+                $self->update_queue($self->queues->{$name});
                 return $self->current_queue;
+        }
+        
+        method update_queue($Q)
+        {
+                $self->current_queue( $self->queues->{$Q->name} );
+                return 0;
         }
 
 }

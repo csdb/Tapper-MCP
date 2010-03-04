@@ -36,12 +36,6 @@ my $free_hosts;
 my $next_job;
 my @free_host_names;
 
-#---------------------------------------------------------
-#
-#  No merged_queue increase when no free hosts
-# 
-#---------------------------------------------------------
-
 # Queue bound tests
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 while (my $host = $free_hosts->next) {
@@ -52,21 +46,8 @@ while (my $host = $free_hosts->next) {
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "No fitting since no free machines");
 
-is($scheduler->merged_queue->length, 3, "merged_queue full");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged");
-
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "No fitting since no free machines");
-
-is($scheduler->merged_queue->length, 3, "merged_queue full");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged");
-
-$next_job = $scheduler->get_next_job();
-is($next_job, undef, "No fitting since no free machines");
-
-is($scheduler->merged_queue->length, 3, "merged_queue full");
-is($scheduler->merged_queue->wanted_length, 3, "wanted_length unchanged");
-
 
 # Queue bound tests
 $free_hosts = model("TestrunDB")->resultset("Host");
