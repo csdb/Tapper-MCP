@@ -162,7 +162,7 @@ sub parse_virt_preconditions
                 return $retval if $retval;
 
                 # if we have a qcow image, we need a raw image to copy PRC stuff to
-                if ($guest->{root}{mounttype} eq 'raw') {
+                if ($guest->{root}{mounttype} and $guest->{root}{mounttype} eq 'raw') {
                         my $raw_image = {
                                          precondition_type => 'rawimage',
                                          name              => basename($guest->{mountfile}),
