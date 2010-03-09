@@ -75,6 +75,15 @@
     notes: Tests virt precondition with multiple alternatives for partition name
     topic_name: KVM
 
+- schema: Testrun
+  name: Xen_Windows
+  data:
+    id: 6
+    owner_user_id: 12
+    shortname: xen_win
+    notes: Tests virt precondition with windows guest
+    topic_name: Xen
+
 
 
 # -------------------- preconditions
@@ -239,6 +248,44 @@
          testprogram:
            execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
 
+- schema: Precondition
+  name: KVMtest
+  data:
+    id: 111
+    shortname: Xen
+    precondition: |
+      name: automatically generated Xen test
+      precondition_type: virt
+      host: 
+        root: 
+          arch: linux32
+          image: suse/suse_sles10_sp2_32b_smp_raw.tar.gz
+          mount: /
+          partition: /dev/sda2
+          precondition_type: image
+        testprogram: 
+          execname: /opt/artemis/bin/metainfo
+          runtime: 50
+          timeout_testprogram: 300
+      guests: 
+        - config: 
+            dest: /xen/images/
+            name: bancroft:/data/bancroft/artemis/live/repository/configs/xen/002-uruk-1268101895.svm
+            precondition_type: copyfile
+            protocol: nfs
+            svm: /xen/images//002-uruk-1268101895.svm
+          root: 
+            arch: linux32
+            dest: /xen/images/
+            mountfile: /xen/images/002-uruk-1268101895.img
+            mounttype: windows
+            name: osko:/export/image_files/official_testing/redhat_rhel6_alpha3_32b_qcow.img
+            precondition_type: copyfile
+            protocol: nfs
+          testprogram: 
+            execname: /opt/artemis/bin/py_reaim
+            runtime: 28800
+            timeout_testprogram: 36000
 
 
 # -------------------- "KVM" <== "KVMtest"
@@ -293,4 +340,11 @@
   data:
     testrun_id: 5
     precondition_id: 110
+    succession: 1
+
+- schema: TestrunPrecondition
+  name: precondition for KVM_auto
+  data:
+    testrun_id: 6
+    precondition_id: 111
     succession: 1
