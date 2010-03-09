@@ -162,15 +162,28 @@ sub parse_virt_preconditions
                 return $retval if $retval;
 
                 # if we have a qcow image, we need a raw image to copy PRC stuff to
-                if ($guest->{root}{mounttype} and $guest->{root}{mounttype} eq 'raw') {
-                        my $raw_image = {
-                                         precondition_type => 'rawimage',
-                                         name              => basename($guest->{mountfile}),
-                                         path              => dirname($guest->{mountfile})
-                                        };
-                        push @{$config->{preconditions}}, $raw_image;
+                no warnings 'uninitialized';
+                given($guest->{root}{mounttype})
+                {
+                        when ('raw') { 
+                                my $raw_image = {
+                                                 precondition_type => 'rawimage',
+                                                 name              => basename($guest->{mountfile}),
+                                                 path              => dirname($guest->{mountfile})
+                                                };
+                                push @{$config->{preconditions}}, $raw_image;
+                        }
+                        when ('windows') {
+                                my $raw_image = {
+                                                 precondition_type => 'copyfile',
+                                                 name              => $self->cfg->{files}{windows_test_image},
+                                                 dest              => $guest->{mountfile},
+                                                 type              => 'nfs',
+                                                };
+                                push @{$config->{preconditions}}, $raw_image;
+                        }
                 }
-
+                use warnings;
 
                 push @{$config->{preconditions}}, $guest->{root} if $guest->{root}->{precondition_type};
                 push @{$config->{preconditions}}, $guest->{config};
