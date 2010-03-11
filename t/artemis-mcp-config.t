@@ -144,14 +144,14 @@ is(ref($config),'HASH', 'Config created');
 cmp_deeply($config->{preconditions},
            supersetof({'dest'              => '/xen/images/002-uruk-1268101895.img',
                        'name'              => 'osko:/export/image_files/official_testing/windows_test.img',
-                       'type'              => 'nfs',
+                       'protocol'          => 'nfs',
                        'precondition_type' => 'copyfile'},
                       {
                        'config' => {
                                     testprogram_list => [
                                                          {
                                                           'runtime'  => '50',
-                                                          'execname' => '/opt/artemis/bin/metainfo',
+                                                          'program' => '/opt/artemis/bin/metainfo',
                                                           'timeout'  => '300',
                                                          },
                                                         ],
