@@ -92,34 +92,31 @@ initrd /tftpboot/stable/rhel/5/x86_64/initrd.img
 
 like($config->{installer_grub}, $expected_grub, 'Installer grub set by autoinstall precondition');
 
-subbagof($config->{preconditions}, [
-                                    {
-                                     precondition_type => 'package',
-                                     filename => "artemisutils/opt-artemis64.tar.gz",
-                                    },
-                                    {
-                                     'artemis_package' => 'artemisutils/opt-artemis64.tar.gz',
-                                     'config' => {
-                                                  'runtime' => '5',
-                                                  'test_program' => '/home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh',
-                                                  'guest_number' => 1
-                                                 },
-                                     'mountpartition' => undef,
-                                     'precondition_type' => 'prc',
-                                     'mountfile' => '/kvm/images/raw.img'
-                                     },
-                                    {
-                                     'config' => {
-                                                  'guests' => [
-                                                               {
-                                                                'exec' => '/usr/share/artemis/packages/mhentsc3/startkvm.pl'
-                                                               }
-                                                              ],
-                                                  'guest_count' => 1
-                                                 },
-                                     'precondition_type' => 'prc'
-                                    }],
-         'Choosen subset of the expected preconditions');
+cmp_deeply($config->{preconditions},
+           supersetof(
+                      {
+                       'artemis_package' => 'artemisutils/opt-artemis64.tar.gz',
+                       'config' => {
+                                    'runtime' => '5',
+                                    'test_program' => '/home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh',
+                                    'guest_number' => 1
+                                   },
+                       'mountpartition' => undef,
+                       'precondition_type' => 'prc',
+                       'mountfile' => '/kvm/images/raw.img'
+                      },
+                      {
+                       'config' => {
+                                    'guests' => [
+                                                 {
+                                                  'exec' => '/usr/share/artemis/packages/mhentsc3/startkvm.pl'
+                                                 }
+                                                ],
+                                    'guest_count' => 1
+                                   },
+                       'precondition_type' => 'prc'
+                      }),
+           'Choosen subset of the expected preconditions');
 
 $producer = Artemis::MCP::Config->new(5);
 
