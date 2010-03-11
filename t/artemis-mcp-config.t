@@ -27,7 +27,7 @@ is(ref($config),'HASH', 'Config created');
 
 is($config->{preconditions}->[0]->{image}, "suse/suse_sles10_64b_smp_raw.tar.gz", 'first precondition is root image');
 
-cmp_deeply($config->{preconditions}, 
+cmp_deeply($config->{preconditions},
            supersetof({
                        precondition_type => 'package',
                        filename => "artemisutils/opt-artemis64.tar.gz",
