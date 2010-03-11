@@ -140,11 +140,27 @@ $producer = Artemis::MCP::Config->new(6);
 
 $config = $producer->create_config(1337);   # expects a port number
 is(ref($config),'HASH', 'Config created');
-cmp_deeply($config->{preconditions}, 
+
+cmp_deeply($config->{preconditions},
            supersetof({'dest' => '/xen/images/002-uruk-1268101895.img',
                        'name' => 'osko:/export/image_files/official_testing/windows_test.img',
                        'type' => 'nfs',
-                       'precondition_type' => 'copyfile'}),
+                       'precondition_type' => 'copyfile'},
+                      {
+                       'config' => {
+                                    'runtime' => '50',
+                                    'test_program' => '/opt/artemis/bin/metainfo',
+                                    'timeout_testprogram' => '300',
+                                    'guests' => [
+                                                 {
+                                                  'svm' => '/xen/images//002-uruk-1268101895.svm'
+                                                 }
+                                                ],
+                                    'guest_count' => 1
+                                   },
+                       'precondition_type' => 'prc'
+                      },
+                      ),
          'Choosen subset of the expected preconditions');
 
 done_testing();
