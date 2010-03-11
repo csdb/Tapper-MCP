@@ -146,7 +146,8 @@ sub parse_virt_preconditions
         my $retval;
 
         $config = $self->parse_virt_host($config, $virt);
-        $self->parse_testprogram($config, $virt->{host}->{testprogram}, 0) if $virt->{host}->{testprogram};
+        $config = $self->parse_testprogram($config, $virt->{host}->{testprogram}, 0) if $virt->{host}->{testprogram};
+        return $config unless ref($config) eq 'HASH';
 
         my $guest_number;
         for (my $i=0; $i<=$#{$virt->{guests}}; $i++ ) {
@@ -317,6 +318,10 @@ sub parse_testprogram
 {
         my ($self, $config, $testprogram, $prc_number) = @_;
         $prc_number //= 0;
+        if (not $testprogram->{timeout}) {
+                $testprogram->{timeout} = $testprogram->{timeout_testprogram};
+                delete $testprogram->{timeout_testprogram};
+        }
         return "No timeout for testprogram" if not $testprogram->{timeout};
         no warnings 'uninitialized';
         push @{$config->{prcs}->[$prc_number]->{config}->{testprogram_list}}, $testprogram;
