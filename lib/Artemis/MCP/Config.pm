@@ -179,7 +179,7 @@ sub parse_virt_preconditions
                                                  precondition_type => 'copyfile',
                                                  name              => $self->cfg->{files}{windows_test_image},
                                                  dest              => $guest->{mountfile},
-                                                 type              => 'nfs',
+                                                 protocol          => 'nfs',
                                                 };
                                 push @{$config->{preconditions}}, $raw_image;
                         }
@@ -321,6 +321,10 @@ sub parse_testprogram
         if (not $testprogram->{timeout}) {
                 $testprogram->{timeout} = $testprogram->{timeout_testprogram};
                 delete $testprogram->{timeout_testprogram};
+        }
+        if ($testprogram->{execname}) {
+                $testprogram->{program} = $testprogram->{execname};
+                delete $testprogram->{execname};
         }
         return "No timeout for testprogram" if not $testprogram->{timeout};
         no warnings 'uninitialized';
