@@ -189,6 +189,20 @@ eval {
 alarm(0);
 print STDERR $@ if $@;
 is($retval, 0, 'Waiting for successful installation');
+
+open $fh, "<","t/command_files/install-error-msg.txt" or die "Can't open commands file installation with error:$!";
+$closure = closure($fh);
+$mock_child->mock('net_read', $closure);
+eval{
+        local $SIG{ALRM}=sub{die 'Parsing error in get_message did not return in time';};
+        alarm(10);
+        $retval = $child->wait_for_systeminstaller($fh);
+};
+alarm(0);
+print STDERR $@ if $@;
+is($retval, "Can't mount /data/bancroft", 'Waited for installation with error');
+
+
 $mock_child->unmock('net_read');
 
 #
@@ -300,22 +314,6 @@ Tests transfered from old installer test
 ----------------------------------------------------
 
 
-open my $fh, "<","t/commands_for_installer_server/success.txt" or die "Can't open commands file for successful installation:$!";
-my $report = $srv->wait_for_systeminstaller(4, $fh);
-close $fh;
-is($report, 0, 'Waited for successful installation');
-
-
-open $fh, "<","t/commands_for_installer_server/error.txt" or die "Can't open commands file installation with error:$!";
-$report = $srv->wait_for_systeminstaller(4, $fh);
-close $fh;
-is($report, "Can't mount /data/bancroft", 'Waited for installation with error');
-
-my $hardwaredb_systems_id = model('TestrunDB')->resultset('Testrun')->search({id => 4,})->first()->hardwaredb_systems_id;
-my $hostname = $srv->get_hostname_for_hardware_id($hardwaredb_systems_id);
-is($hostname, 'bullock', 'Getting hostname');
-
-
 {
         my $mock_producer = new Test::MockModule('Artemis::MCP::Config');
         $mock_producer->mock('create_config', sub { return ("create"); });
@@ -371,17 +369,6 @@ $report = $srv->wait_for_testrun(4, $fh);
 close $fh;
 is_deeply($report, [{error => 1, msg => "Can't start xen guest described in /xen/images/001.svm"}], 'Test with errors');
 
-open $fh, "<","t/commands_for_net_server/error_with_colon.txt" or die "Can't open command file for test with colon in error string:$!";
-$report = $srv->wait_for_testrun(4, $fh);
-close $fh;
-is_deeply($report, [{error => 1, msg => "guest 1:Can't mount /data/bancroft/:No such file or directory"}], 'Test with colon in error string');
-
-pipe(my $read, my $write) or die "Can't open pipe:$!";
-$report = $srv->wait_for_testrun(4, $read);
-close $fh;
-is_deeply($report, [{error => 1, msg => "timeout for booting test system (5 seconds) reached."}], 'Test boot timeout for tests');
-
-
 open $fh, "<","t/commands_for_net_server/error2.txt" or die "Can't open commands file for test with two PRCs and one error:$!";
 $report = $srv->wait_for_testrun(4, $fh);
 close $fh;
@@ -389,5 +376,4 @@ is_deeply($report, [{error => 1,
                      msg => "tried to execute /opt/artemis/testsuite/system/bin/artemis_testsuite_system.sh ".
                             "which is not an execuable or does not exist at all"},
                     {msg => "Test on guest 2"}], 'Test with two PRCs and one error');
-
 
