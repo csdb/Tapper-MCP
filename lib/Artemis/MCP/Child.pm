@@ -242,8 +242,11 @@ sub wait_for_systeminstaller
 
         $self->log->debug("Installation started for testrun ".$self->testrun);
 
-        while ($msg=$self->get_message($fh, 0)) {
+        $timeout = $self->mcp_info->get_installer_timeout() || $self->cfg->{times}{installer_timeout};
+
+        while ($msg=$self->get_message($fh, $timeout)) {
                 return $msg if not ref($msg) eq 'HASH';
+                return "Failed to finish installation after timeout of $msg->{timeout} seconds" if $msg->{timeout};
 
                 given ($msg->{state})
                 {
