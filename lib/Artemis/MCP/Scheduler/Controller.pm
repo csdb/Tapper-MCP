@@ -37,6 +37,7 @@ class Artemis::MCP::Scheduler::Controller
                         %queues = map {$_->name, $_} $queue_rs->all;
 
                 QUEUE:
+                        my $first_choice=1;  # chosen queue was first choice
                         while (1) {
                                 # ask prioqueue everytime when in loop because new priority jobs
                                 # that got into DB between to loop runs still have highest priority
@@ -56,9 +57,10 @@ class Artemis::MCP::Scheduler::Controller
                                                         $self->prioqueue->add($peer_job);
                                                 }
                                         }
-                                        $self->algorithm->update_queue($job->queue);
+                                        $self->algorithm->update_queue($job->queue) if $first_choice;
                                         last QUEUE;
                                 } else {
+                                        $first_choice=0;
                                         delete $queues{$queue->name};
                                 }
                                 last QUEUE if not %queues;
