@@ -34,15 +34,6 @@ Artemis::MCP::Master - Wait for new testruns and start a new child when needed.
 =head1 Attributes
 
 
-=head2 hosts
-
-List of hosts this MCP may use.
-
-=cut
-
-        has hosts   => (is => 'rw', isa => 'ArrayRef', default => sub {[]});
-
-
 =head2 dead_child
 
 Number of pending dead child processes.
@@ -390,11 +381,6 @@ Create communication data structures used in MCP.
                 $self->readset ($select);
                 return "Can't create select object:$!" if not $select;
 
-                my $allhosts = model('HardwareDB')->resultset('Systems')->search({active => 1, current_owner => {like => '%artemis%'}});
-                while (my $thishost = $allhosts->next) {
-                        push(@{$self->hosts}, $thishost->systemname);
-                }
-
                 return 0;
         }
 
@@ -415,25 +401,6 @@ Set up all needed data structures then wait for new tests.
                         $self->runloop($lastrun);
                 }
 
-        }
-
-        method get_next_job() {
-                my $grace_period = 1;
-                my $job = $self->scheduler->get_next_job;
-                sleep $grace_period if not $job;
-                return $job;
-        }
-
-        method execute_job($job) {
-                return unless $job;
-        }
-
-        method execute_next_job() {
-                $self->execute_job ($self->get_next_job);
-        }
-
-        method main() {
-                $self->execute_next_job while 1;
         }
 }
 
