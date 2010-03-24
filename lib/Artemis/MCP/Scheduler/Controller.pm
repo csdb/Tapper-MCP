@@ -36,8 +36,9 @@ class Artemis::MCP::Scheduler::Controller
                         my $queue_rs = model('TestrunDB')->resultset('Queue');
                         %queues = map {$_->name, $_} $queue_rs->all;
 
-                QUEUE:
                         my $first_choice=1;  # chosen queue was first choice
+
+                QUEUE:
                         while (1) {
                                 # ask prioqueue everytime when in loop because new priority jobs
                                 # that got into DB between to loop runs still have highest priority
