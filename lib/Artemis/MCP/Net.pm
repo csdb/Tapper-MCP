@@ -394,8 +394,8 @@ sub tap_report_create
         my ($self, $testrun, $report) = @_;
         my @report   = @$report;
         my $run      = model->resultset('Testrun')->search({id=>$testrun})->first();
-        my $host     = model('HardwareDB')->resultset('Systems')->search({lid => $run->hardwaredb_systems_id});
-        my $hostname = $host->first->systemname if $host;
+        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
+        my $hostname = $host->systemname if $host and $host->count();
         $hostname = $hostname // 'No hostname set';
         my $message;
         my $topic = $run->topic_name() || $run->shortname();
