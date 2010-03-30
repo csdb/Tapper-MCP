@@ -31,7 +31,7 @@ class Artemis::MCP::Scheduler::Controller
 
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
                         return if not ($free_hosts and @$free_hosts);
-                        
+
                         my %queues;
                         my $queue_rs = model('TestrunDB')->resultset('Queue');
                         %queues = map {$_->name, $_} $queue_rs->all;
@@ -43,8 +43,8 @@ class Artemis::MCP::Scheduler::Controller
                                 # ask prioqueue everytime when in loop because new priority jobs
                                 # that got into DB between to loop runs still have highest priority
                                 last QUEUE if $job = $self->prioqueue->get_first_fitting($free_hosts);
-                                
-                                
+
+
                                 my $queue = $self->algorithm->lookup_next_queue(\%queues);
                                 if ($job = $queue->get_first_fitting($free_hosts)) {
                                         if ($job->auto_rerun) {
@@ -61,12 +61,12 @@ class Artemis::MCP::Scheduler::Controller
                                         $self->algorithm->update_queue($job->queue) if $first_choice;
                                         last QUEUE;
                                 } else {
-                                        $first_choice=0;
+                                        $first_choice=0 if $queue->queued_testruns->count;
                                         delete $queues{$queue->name};
                                 }
                                 last QUEUE if not %queues;
                         }
-                        
+
                         my $error;
                         eval{
                                  $error=$job->produce_preconditions() if $job;
