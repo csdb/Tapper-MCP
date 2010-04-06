@@ -676,6 +676,7 @@ sub runtest_handling
 
         $self->log->debug('waiting for test to finish');
         $retval              = $self->wait_for_testrun($srv);
+        unshift @$retval, {msg => "Installation finished"};
         ($error, $report_id) = $self->tap_report_send($net, $retval);
         if ($error) {
                 $self->log->error($report_id);
