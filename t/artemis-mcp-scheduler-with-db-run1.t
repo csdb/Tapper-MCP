@@ -274,7 +274,7 @@ is($job7->queue->name, "Xen", "and it is a Xen job");
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iring and bascha available");
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: dickstone athene iring bascha");
 
 # currently running: Job 6-bullock-KVM
 
@@ -294,7 +294,7 @@ is($job6->queue->name, "KVM", "and it is a KVM job");
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free hosts: iring, bascha and bullock available");
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free hosts: dickstone athene iring bascha bullock");
 
 # currently running: none
 
@@ -302,7 +302,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free ho
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free hosts: iring, bascha and bullock available");
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha bullock)], "free hosts: dickstone athene iring bascha bullock");
 $next_job = $scheduler->get_next_job();
 is($next_job->id, 203, "next fitting host");
 is($next_job->host->name, "bullock", "fitting host bullock");
@@ -310,13 +310,11 @@ is($next_job->queue->name, "KVM", "it is a KVM job");
 $scheduler->mark_job_as_running($next_job);
 my $job8 = $next_job;
 
-# check queue, no new because merged queue is full
-
 
 # check free hosts
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iring and bascha available");
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: dickstone athene iring bascha");
 
 # currently running: Job 8-bullock-KVM
 
@@ -324,7 +322,7 @@ cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha)], "free hosts: iri
 
 $free_hosts = model("TestrunDB")->resultset("Host")->free_hosts;
 @free_host_names = map { $_->name } $free_hosts->all;
-cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha )], "free hosts: iring, bascha available");
+cmp_bag(\@free_host_names, [qw(dickstone athene iring bascha )], "free hosts: dickstone athene iring bascha");
 $next_job = $scheduler->get_next_job();
 is($next_job->id, 103, "next fitting host");
 is($next_job->host->name, "bascha", "fitting host bascha");
