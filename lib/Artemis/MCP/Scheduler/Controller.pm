@@ -24,6 +24,33 @@ class Artemis::MCP::Scheduler::Controller
                          );
 
 
+=head2
+
+Check whether we need to change from scheduling white bandwidth to black bandwidth.
+
+@return black - 1
+@return white - 0
+
+=cut
+
+        method toggle_bandwith_color($free_hosts, $queue)
+        {
+                return 0 if $queue->queued_testruns->count == 0;
+                foreach my $free_host( map {$_->{host} } @$free_hosts) {
+                        if ($free_host->queuehosts->count){
+                                QUEUE_CHECK:
+                                {
+                                        foreach my $queuehost($free_host->queuehosts->all) {
+                                                return 0 if $queuehost->queue->id == $queue->id;
+                                        }
+                                }
+                        } else {
+                                return 0;
+                        }
+                }
+                return 1;
+        }
+
         method get_next_job(Any %args) {
                 my ($queue, $job);
 
@@ -36,7 +63,7 @@ class Artemis::MCP::Scheduler::Controller
                         my $queue_rs = model('TestrunDB')->resultset('Queue');
                         %queues = map {$_->name, $_} $queue_rs->all;
 
-                        my $first_choice=1;  # chosen queue was first choice
+                        my $white_bandwith=1;  # chosen queue was first choice
 
                 QUEUE:
                         while (1) {
@@ -58,11 +85,12 @@ class Artemis::MCP::Scheduler::Controller
                                                         $self->prioqueue->add($peer_job);
                                                 }
                                         }
-                                        $self->algorithm->update_queue($job->queue) if $first_choice;
+                                        $self->algorithm->update_queue($job->queue) if $white_bandwith;
                                         last QUEUE;
                                 } else {
-                                        $first_choice=0 if $queue->queued_testruns->count;
                                         delete $queues{$queue->name};
+                                        $white_bandwith=0 if $self->toggle_bandwith_color($free_hosts, $queue);
+                                        
                                 }
                                 last QUEUE if not %queues;
                         }
