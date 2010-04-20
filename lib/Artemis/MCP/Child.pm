@@ -56,9 +56,9 @@ sub set_hardwaredb_systems_id
 
         my $testrun = model('TestrunDB')->resultset('Testrun')->find($self->testrun);
         return "Testrun with id ".$self->testrun." not found" if not $testrun;
-        my $host = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1});
+        my $host = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1})->first;
         return "Can not find $hostname in hardware db, databases out of sync" if not $host;
-        $testrun->hardwaredb_systems_id($host->first->lid);
+        $testrun->hardwaredb_systems_id($host->lid);
         $testrun->update();
         return 0;
 }
