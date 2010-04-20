@@ -43,6 +43,43 @@ Artemis::MCP::Config - Generate config for a certain test run
 
 =cut
 
+=head2 parse_simnow_preconditions
+
+Parse a simnow precondition.
+
+@param hash ref - config
+@param hash ref - simnow precondition
+
+@return success - 0
+
+=cut
+
+sub parse_simnow_preconditions
+{
+        my ($self, $config, $precondition) = @_;
+        $self->mcp_info->is_simnow(1);
+        return $config;
+}
+
+=head2 parse_simnow_preconditions
+
+Parse a simnow precondition.
+
+@param hash ref - config
+@param hash ref - hint precondition
+
+@return success - 0
+
+=cut
+
+sub parse_hint_preconditions
+{
+        my ($self, $config, $precondition) = @_;
+        $self->mcp_info->is_simnow(1) if $precondition->{simnow};
+        return $config;
+}
+
+
 =head2 add_guest_testprogram
 
 Add a testprogram for a given guest to the config.
@@ -166,7 +203,7 @@ sub parse_virt_preconditions
                 no warnings 'uninitialized';
                 given($guest->{root}{mounttype})
                 {
-                        when ('raw') { 
+                        when ('raw') {
                                 my $raw_image = {
                                                  precondition_type => 'rawimage',
                                                  name              => basename($guest->{mountfile}),
@@ -366,7 +403,7 @@ sub parse_autoinstall
         $config->{paths}{base_dir} = '/';
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
-        
+
         my $artemis_host=$config->{mcp_host};
         my $artemis_port=$config->{mcp_port};
         my $packed_ip = gethostbyname($artemis_host);
@@ -375,9 +412,9 @@ sub parse_autoinstall
         }
         my $artemis_ip=inet_ntoa($packed_ip);
         my $artemis_environment = Artemis::Config::_getenv();
-        $config->{installer_grub} =~ 
+        $config->{installer_grub} =~
           s|\$ARTEMIS_OPTIONS|artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment|g;
-        
+
         return $config;
 }
 
@@ -423,6 +460,12 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'testprogram') {
                         $config = $self->parse_testprogram($config, $precondition->precondition_as_hash);
+                }
+                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'simnow' ) {
+                        $config=$self->parse_simnow_preconditions($config, $precondition->precondition_as_hash);
+                }
+                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'hint' ) {
+                        $config=$self->parse_hint_preconditions($config, $precondition->precondition_as_hash);
                 }
                 else {
                         push @{$config->{preconditions}}, $precondition->precondition_as_hash;
