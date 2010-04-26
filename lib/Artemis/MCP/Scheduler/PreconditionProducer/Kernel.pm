@@ -49,13 +49,13 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
                 my $kernel_version = $retval->{version};
                 my ($kernel_major_version) = $kernel_version =~ m/(2\.\d{1,2}\.\d{1,2})/;
                 ($kernelbuild)  = $kernelbuild =~ m|$pkg_dir/(kernel/$arch/.+)$|;
-                
+
 
                 $retval = [
                            {
-                            precondition_type => 'package', 
+                            precondition_type => 'package',
                             filename => $kernelbuild,
-                           }, 
+                           },
                            {
                             precondition_type => 'exec',
                             filename =>  '/bin/gen_initrd.sh',
@@ -64,12 +64,12 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
                           ];
 
                 return {
-                        topic => "kernel-$kernel_major_version-reboot",
+                        topic => $produce->{topic} // "kernel-$kernel_major_version-reboot",
                         precondition_yaml => Dump(@$retval),
                        };
         }
-        
-        
+
+
 
 }
 
