@@ -564,7 +564,7 @@ sub generate_configs
         my $config   = $producer->create_config($port);
         return $config if not ref($config) eq 'HASH';
 
-        $retval                    = $producer->write_config($config, "$hostname-install");
+        $retval = $producer->write_config($config, "$hostname-install");
         return $retval if $retval;
 
         if ($config->{autoinstall}) {
@@ -614,7 +614,6 @@ sub tap_report_send
         
 }
 
-
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -648,19 +647,24 @@ sub runtest_handling
         my $config = $self->generate_configs($hostname, $port);
         return $config if ref $config ne 'HASH';
 
-        $self->log->debug("Write grub file for $hostname");
-        $retval = $remote->write_grub_file($hostname, $config->{installer_grub});
-        return $retval if $retval;
-
-
-
-        $self->log->debug("rebooting $hostname");
-        $retval = $remote->reboot_system($hostname);
-        return $retval if $retval;
-
         my ($report_id, $error);
-        $error = $net->hw_report_send($self->testrun);
-        return $error if $error;
+
+        if ($self->mcp_info->is_simnow) {
+                $self->log->debug("Starting Simnow on $hostname");
+                $retval = $net->start_simnow($hostname);
+                return $retval if $retval;
+        } else {
+                $self->log->debug("Write grub file for $hostname");
+                $retval = $remote->write_grub_file($hostname, $config->{installer_grub});
+                return $retval if $retval;
+
+                $self->log->debug("rebooting $hostname");
+                $retval = $remote->reboot_system($hostname);
+                return $retval if $retval;
+
+                $error = $net->hw_report_send($self->testrun);
+                return $error if $error;
+        }
 
         $retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 

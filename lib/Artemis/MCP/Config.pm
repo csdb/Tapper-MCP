@@ -75,7 +75,11 @@ Parse a simnow precondition.
 sub parse_hint_preconditions
 {
         my ($self, $config, $precondition) = @_;
-        $self->mcp_info->is_simnow(1) if $precondition->{simnow};
+        if ($precondition->{simnow}) {
+                $self->mcp_info->is_simnow(1);
+                $config->{paths}{base_dir}='/';
+        }
+        push @{$config->{preconditions}}, {precondition_type => 'simnow_backend'};
         return $config;
 }
 

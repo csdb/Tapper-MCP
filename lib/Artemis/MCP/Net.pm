@@ -106,6 +106,34 @@ sub conserver_disconnect
 }
 
 
+=head2 start_simnow
+
+Start a simnow installation on given host. Installer is supposed to
+start the simnow controller in turn.
+
+@param string - hostname
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub start_simnow
+{
+        my ($self, $hostname) = @_;
+
+        my $simnow_installer = $self->cfg->{files}{simnow_installer};
+        my $server = Sys::Hostname::hostname() || $self->cfg->{mcp_host};
+        my $retval = Net::SSH::ssh("root\@$hostname",$simnow_installer, "--host=$server");
+        return "Can not start simnow installer: $!" if $retval;
+
+
+        $self->log->info("Simnow installation started on $hostname.");
+        return 0;
+
+}
+
+
 =head2 reboot_system
 
 Reboot the named system. First we try to do it softly, if that does not

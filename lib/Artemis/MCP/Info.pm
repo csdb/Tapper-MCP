@@ -251,6 +251,21 @@ sub get_report_array
 }
 
 
+=head2 is_simnow
+
+Setter and getter for is_simnow
+
+=cut
+
+sub is_simnow
+{
+        my ($self, $is_simnow) = @_;
+        $self->mcp_info->{simnow} = 1 if $is_simnow;
+        return $self->mcp_info->{simnow} // 0;
+}
+
+
+
 1;
 
 =head1 AUTHOR
