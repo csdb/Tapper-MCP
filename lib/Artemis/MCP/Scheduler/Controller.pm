@@ -59,9 +59,8 @@ Check whether we need to change from scheduling white bandwidth to black bandwid
                         my $free_hosts = Artemis::Model::free_hosts_with_features();
                         return if not ($free_hosts and @$free_hosts);
 
-                        my %queues;
-                        my $queue_rs = model('TestrunDB')->resultset('Queue');
-                        %queues = map {$_->name, $_} $queue_rs->all;
+
+                        my $queues = model('TestrunDB')->resultset('Queue')->official_queuelist();
 
                         my $white_bandwith=1;  # chosen queue was first choice
 
@@ -72,7 +71,7 @@ Check whether we need to change from scheduling white bandwidth to black bandwid
                                 last QUEUE if $job = $self->prioqueue->get_first_fitting($free_hosts);
 
 
-                                my $queue = $self->algorithm->lookup_next_queue(\%queues);
+                                my $queue = $self->algorithm->lookup_next_queue($queues);
                                 if ($job = $queue->get_first_fitting($free_hosts)) {
                                         if ($job->auto_rerun) {
                                                 $job->testrun->rerun;
@@ -88,11 +87,11 @@ Check whether we need to change from scheduling white bandwidth to black bandwid
                                         $self->algorithm->update_queue($job->queue) if $white_bandwith;
                                         last QUEUE;
                                 } else {
-                                        delete $queues{$queue->name};
+                                        delete $queues->{$queue->name};
                                         $white_bandwith=0 if $self->toggle_bandwith_color($free_hosts, $queue);
-                                        
+
                                 }
-                                last QUEUE if not %queues;
+                                last QUEUE if not %$queues;
                         }
 
                         my $error;
