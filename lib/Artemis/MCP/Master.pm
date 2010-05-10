@@ -3,7 +3,7 @@ use MooseX::Declare;
 
 
 
-class Artemis::MCP::Master extends Artemis::MCP 
+class Artemis::MCP::Master extends Artemis::MCP
 {
         use Devel::Backtrace;
         use File::Path;
@@ -77,7 +77,7 @@ Associated Scheduler object.
 
 =head1 FUNCTIONS
 
-=cut 
+=cut
 
 sub BUILD
 {
@@ -234,13 +234,13 @@ Read console log from a handle and write it to the appropriate file.
                 };
                 alarm 0;
                 if ($@) {
-                        return ("Timeout of $timeout seconds reached while trying to read from console") 
+                        return ("Timeout of $timeout seconds reached while trying to read from console")
                           if $@=~/Timeout/;
                         return ("Error while reading from console handle: $@");
                 }
-                
+
                 return "Can't read from console:$!" if not defined $readsize;
-                
+
                 my $file    = $self->consolefiles->[$handle->fileno()];
                 return "Can't get console file:$!" if not defined $file;
                 $readsize     = syswrite($file, $buffer, $readsize);
@@ -276,7 +276,7 @@ Run the tests that are due.
 
                 my $pid = fork();
                 die "fork failed: $!" if (not defined $pid);
-                
+
                 # hello child
                 if ($pid == 0) {
 
@@ -305,11 +305,15 @@ Run the tests that are due.
                         exit 0;
                 } else {
                         my $console = $self->console_open($system, $id);
-                        $self->log->error($console) if not ref($console) eq 'IO::Socket::INET';
+
+                        if (ref($console) eq 'IO::Socket::INET') {
+                                $self->child->{$system}->{console}  = $console;
+                        } else {
+                                $self->log->info("Can not open console on $system");
+                        }
 
                         $self->child->{$system}->{pid}      = $pid;
                         $self->child->{$system}->{test_run} = $id;
-                        $self->child->{$system}->{console}  = $console;
                         $self->child->{$system}->{job}      = $job;
                 }
                 return 0;
