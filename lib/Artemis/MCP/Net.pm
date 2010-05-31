@@ -156,38 +156,38 @@ sub reboot_system
 	$self->log->debug("Trying to reboot $host.");
 
 	# ssh returns 0 in case of success
-        $self->log->info("Try reboot via Net::SSH");  # usually for the nfsrooted system
-	if (not Net::SSH::ssh("root\@$host","reboot"))
-        {
-		$self->log->info("$host rebooted.");
-		return 0;
-	}
+        # $self->log->info("Try reboot via Net::SSH");  # usually for the nfsrooted system
+	# if (not Net::SSH::ssh("root\@$host","reboot"))
+        # {
+	# 	$self->log->info("$host rebooted.");
+	# 	return 0;
+	# }
         # Net::SSH::Expect doesn't work correctly atm
-# 	else {
-#                 $self->log->info("Try reboot via Net::SSH::Expect"); # usually for the installed host/dom0 system
-#                 my $ssh = new Net::SSH::Expect( host     => $host,
-#                                                 password => 'xyzxyz',
-#                                                 user     => 'root',
-#                                                 raw_pty  => 1 );
+	# else {
+        #         $self->log->info("Try reboot via Net::SSH::Expect"); # usually for the installed host/dom0 system
+        #         my $ssh = new Net::SSH::Expect( host     => $host,
+        #                                         password => 'xyzxyz',
+        #                                         user     => 'root',
+        #                                         raw_pty  => 1 );
 
 
-#                 # Try login, with timeout
-#                 my $login_output;
-#                 eval {
-#                         $SIG{ALRM} = sub{ die("timeout in login") };
-#                         alarm(10);
-#                         $login_output = $ssh->login();
-#                 };
-#                 alarm(0);
+        #         # Try login, with timeout
+        #         my $login_output;
+        #         eval {
+        #                 $SIG{ALRM} = sub{ die("timeout in login") };
+        #                 alarm(10);
+        #                 $login_output = $ssh->login();
+        #         };
+        #         alarm(0);
 
-#                 if ($login_output and $login_output !~ /ogin:/)
-#                 {
-#                         $self->log->info("Logged in. Try exec reboot");
-#                         $ssh->exec("stty raw -echo");
-#                         $ssh->exec("reboot");
-#                         return 0;
-#                 }
-        else # trigger reset switch
+        #         if ($login_output and $login_output !~ /ogin:/)
+        #         {
+        #                 $self->log->info("Logged in. Try exec reboot");
+        #                 $ssh->exec("stty raw -echo");
+        #                 $ssh->exec("reboot");
+        #                 return 0;
+        #         }
+        # else trigger reset switch
         {
                 $self->log->info("Try reboot via reset switch");
                 my $cmd = $self->cfg->{osrc_rst}." -f $host";
