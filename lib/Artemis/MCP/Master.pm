@@ -132,19 +132,28 @@ failure.
                 my ($self, $system, $testrunid) = @_;
                 return "Incomplete data given to function console_open" if not $system and defined($testrunid);
 
-                my $net = Artemis::MCP::Net->new();
-                my $console = $net->conserver_connect($system);
-                return $console if not ref $console eq 'IO::Socket::INET';
-                $console->blocking(0);
-                $self->readset->add($console);
                 my $path = $self->cfg->{paths}{output_dir}."/$testrunid/";
-
                 File::Path::mkpath($path, {error => \my $retval}) if not -d $path;
                 foreach my $diag (@$retval) {
                         my ($file, $message) = each %$diag;
                         return "general error: $message\n" if $file eq '';
                         return "Can't create $file: $message";
                 }
+
+                my $net = Artemis::MCP::Net->new();
+                my $console;
+                eval{
+                        local $SIG{ALRM} = sub { die 'Timeout'; };
+                        alarm (5);
+                        $console = $net->conserver_connect($system);
+                };
+                alarm 0;
+                return "Unable to open console for $system after 5 seconds" if $@;
+
+                return $console if not ref $console eq 'IO::Socket::INET';
+                $console->blocking(0);
+                $self->readset->add($console);
+
 
                 $path .= "console";
                 open(my $fh,">",$path) or return "Can't open console log file $path for test on host $system:$!";
