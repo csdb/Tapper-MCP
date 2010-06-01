@@ -15,7 +15,7 @@ use Artemis::Model 'model';
 use Artemis::Schema::TestTools;
 
 use Artemis::MCP::Master;
-
+use File::Temp;
 
 use Test::More;
 use Test::Deep;
@@ -26,6 +26,7 @@ BEGIN { use_ok('Artemis::MCP::Master'); }
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
+
 my $mockmaster = Test::MockModule->new('Artemis::MCP::Master');
 $mockmaster->mock('console_open',sub{use IO::Socket::INET;
                                      my $sock = IO::Socket::INET->new(Listen=>0);
@@ -69,4 +70,13 @@ wait();
 my @new_test_ids = map{$_->id} model('TestrunDB')->resultset('Testrun')->all;
 cmp_bag([@old_test_ids, 3004], [@new_test_ids], 'New test because of rerun_on_error, no old test deleted');
 
+$mockmaster->unmock('console_open');
+my $mocknet = Test::MockModule->new('Artemis::MCP::Net');
+
+my $outdir = File::Temp::tempdir(CLEANUP => 1);
+$master->cfg->{paths}{output_dir} = $outdir;
+$mocknet->mock('conserver_connect', sub {sleep 10;});
+$retval = $master->console_open('bascha', 1234);
+is($retval, 'Unable to open console for bascha after 5 seconds', 'Timeout for console_open');
+ok(-d "$outdir/1234", 'Output dir created');
 done_testing();
