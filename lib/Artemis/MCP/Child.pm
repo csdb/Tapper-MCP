@@ -499,7 +499,7 @@ for easier testing.
 @param int - testrun id
 @param file handle - read from this handle
 
-@return reference to report array
+@return hash { report_array => reference to report array, prc_state => $prc_state }
 
 =cut
 
@@ -514,9 +514,9 @@ sub wait_for_testrun
         my $timeout = $self->mcp_info->get_boot_timeout(0) || $self->cfg->{times}{boot_timeout};
 
         my $msg     = $self->get_message($fh, $timeout);
-        return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
-        return [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}] if $msg->{timeout};
-        return [{error=> 1, msg => "Testrun cancled while waiting for booting test machine"}] if ($msg->{state} eq 'quit');
+        return { report_array => [{error=> 1, msg => $msg}]} if not ref($msg) eq 'HASH';
+        return { report_array => [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}]} if $msg->{timeout};
+        return { report_array => [{error=> 1, msg => "Testrun cancled while waiting for booting test machine"}]} if ($msg->{state} eq 'quit');
 
         ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
 
@@ -538,7 +538,9 @@ sub wait_for_testrun
         for (my $i = 0; $i <= $#{$prc_state}; $i++) {
                 push @report_array, @{$prc_state->[$i]->{results}};
         }
-        return \@report_array;
+        return { report_array => \@report_array,
+                 prc_state    => $prc_state,
+               };
 }
 
 
