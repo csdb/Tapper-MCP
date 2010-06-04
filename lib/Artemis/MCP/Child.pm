@@ -605,14 +605,13 @@ Wrapper around tap_report_send.
 
 sub tap_report_send
 {
-        my ($self, $net, $reportlines) = @_;
+        my ($self, $net, $reportlines, $headerlines) = @_;
         return (1, "No valid report to send as tap") if not ref $reportlines eq "ARRAY";
         my $collected_report = $self->mcp_info->get_report_array();
         if (ref($collected_report) eq "ARRAY" and  @$collected_report) {
                 unshift @$reportlines, @$collected_report;
         }
 
-        my $headerlines = $net->suite_headerlines($self->testrun);
         return $net->tap_report_send($self->testrun, $reportlines, $headerlines);
 }
 
@@ -685,7 +684,10 @@ sub runtest_handling
 
         my $reportlines = $waittestrun_retval->{report_array};
         unshift @$reportlines, {msg => "Installation finished"};
-        ($error, $report_id) = $self->tap_report_send($net, $reportlines);
+
+        my $suite_headerlines = $net->suite_headerlines($self->testrun);
+        ($error, $report_id) = $self->tap_report_send($net, $reportlines, $suite_headerlines);
+
         if ($error) {
                 $self->log->error($report_id);
                 return $waittestrun_retval;
