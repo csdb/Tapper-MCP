@@ -409,9 +409,9 @@ sub suite_headerlines {
         my ($self, $testrun_id) = @_;
 
         my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
-        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
         my $topic = $run->topic_name() || $run->shortname();
         $topic =~ s/\s+/-/g;
+        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
         my $hostname = $host->systemname if $host;
         $hostname = $hostname // 'No hostname set';
 

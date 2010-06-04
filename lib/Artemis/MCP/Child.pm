@@ -615,6 +615,32 @@ sub tap_report_send
         return $net->tap_report_send($self->testrun, $reportlines, $headerlines);
 }
 
+sub tap_reports_prc_state {
+        my ($self, $net, $prc_state) = @_;
+
+        my $testrun_id = $self->testrun;
+        my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
+        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
+        my $hostname = $host->systemname if $host;
+        $hostname = $hostname // 'No hostname set';
+
+        foreach (my $i=0; $i < @$prc_state; $i++) {
+                my $results = $prc_state->[$i]->{results};
+
+                my $headerlines = [
+                                   "# Artemis-reportgroup-testrun: $testrun_id",
+                                   "# Artemis-suite-name: Guest-Overview-$i",
+                                   "# Artemis-suite-version: 1.0",
+                                   "# Artemis-machine-name: $hostname",
+                                   "# Artemis-section: prc-state-details",
+                                   "# Artemis-reportgroup-primary: 1",
+                                  ];
+                my $reportlines = $results;
+                print STDERR "prc_state: ", Dumper($results);
+                my ($error, $report_id) = $self->tap_report_send($net, $reportlines, $headerlines);
+        }
+}
+
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -684,6 +710,8 @@ sub runtest_handling
 
         my $reportlines = $waittestrun_retval->{report_array};
         unshift @$reportlines, {msg => "Installation finished"};
+
+        $self->tap_reports_prc_state($net, $waittestrun_retval->{prc_state});
 
         my $suite_headerlines = $net->suite_headerlines($self->testrun);
         ($error, $report_id) = $self->tap_report_send($net, $reportlines, $suite_headerlines);
