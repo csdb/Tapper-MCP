@@ -242,8 +242,8 @@ if ($pid==0) {
         };
         is($@, '', 'Get reboot messages in time');
         waitpid($pid,0);
-        diag "prc_state:    ", Dumper($res->{prc_state});
-        diag "report_array: ", Dumper($res->{report_array});
+        # diag "prc_state:    ", Dumper($res->{prc_state});
+        # diag "report_array: ", Dumper($res->{report_array});
         is_deeply($retval, [{'msg' => 'Test in PRC 0 started', 'error' => 0 },
                             {'msg' => 'Reboot 0', 'error' => 0 },
                             {'msg' => 'Reboot 1', 'error' => 0 },
@@ -257,8 +257,8 @@ if ($pid==0) {
 
 my $res = $child->wait_for_testrun($pipe);
 $retval = $res->{report_array};
-diag "prc_state:    ", Dumper($res->{prc_state});
-diag "report_array: ", Dumper($res->{report_array});
+# diag "prc_state:    ", Dumper($res->{prc_state});
+# diag "report_array: ", Dumper($res->{report_array});
 is_deeply($retval,[{msg => "Failed to boot test machine after timeout of $timeout seconds", error => 1}] , 'wait_for_testrun detects timeout while booting test machine');
 
 #''''''''''''''''''''''''''''''''''''#
