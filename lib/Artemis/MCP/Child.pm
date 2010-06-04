@@ -606,13 +606,13 @@ Wrapper around tap_report_send.
 
 sub tap_report_send
 {
-        my ($self, $net, $report) = @_;
-        return (1, "No valid report to send as tap") if not ref $report eq "ARRAY";
+        my ($self, $net, $reportlist) = @_;
+        return (1, "No valid report to send as tap") if not ref $reportlist eq "ARRAY";
         my $collected_report = $self->mcp_info->get_report_array();
         if (ref($collected_report) eq "ARRAY" and  @$collected_report) {
-                unshift @$report, @$collected_report;
+                unshift @$reportlist, @$collected_report;
         }
-        return $net->tap_report_send($self->testrun, $report);
+        return $net->tap_report_send($self->testrun, $reportlist);
         
 }
 
