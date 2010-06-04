@@ -671,7 +671,7 @@ sub runtest_handling
         $retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 
         if ($retval) {
-                ($error, $report_id) = $self->tap_report_send($net, [{error => 1, msg => $retval}]);
+                ($error, $report_id) = $self->tap_report_send($net, {report_array => [{error => 1, msg => $retval}]});
                 if ($error) {
                         $self->log->error($report_id);
                 } else {
@@ -682,7 +682,7 @@ sub runtest_handling
 
         $self->log->debug('waiting for test to finish');
         $retval              = $self->wait_for_testrun($srv);
-        unshift @$retval, {msg => "Installation finished"};
+        unshift @{$retval->{report_array}}, {msg => "Installation finished"};
         ($error, $report_id) = $self->tap_report_send($net, $retval);
         if ($error) {
                 $self->log->error($report_id);
