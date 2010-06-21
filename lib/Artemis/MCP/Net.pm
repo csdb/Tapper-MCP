@@ -390,6 +390,7 @@ protocol.
 
 @param int   - test run id
 @param array -  report array
+@param array - header lines
 
 @return success - (0, report id)
 @return error   - (1, error string)
@@ -398,12 +399,32 @@ protocol.
 
 sub tap_report_send
 {
-        my ($self, $testrun, $report) = @_;
-        my $tap = $self->tap_report_create($testrun, $report);
+        my ($self, $testrun, $reportlines, $headerlines) = @_;
+        my $tap = $self->tap_report_create($testrun, $reportlines, $headerlines);
         $self->log->debug($tap);
         return $self->tap_report_away($tap);
 }
 
+sub suite_headerlines {
+        my ($self, $testrun_id) = @_;
+
+        my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
+        my $topic = $run->topic_name() || $run->shortname();
+        $topic =~ s/\s+/-/g;
+        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
+        my $hostname = $host->systemname if $host;
+        $hostname = $hostname // 'No hostname set';
+
+        my $headerlines = [
+                           "# Artemis-reportgroup-testrun: $testrun_id",
+                           "# Artemis-suite-name: Topic-$topic",
+                           "# Artemis-suite-version: 1.0",
+                           "# Artemis-machine-name: $hostname",
+                           "# Artemis-section: MCP overview",
+                           "# Artemis-reportgroup-primary: 1",
+                          ];
+        return $headerlines;
+}
 
 =head2 tap_report_create
 
@@ -411,7 +432,8 @@ Create a report string from a report in array form. Since the function only
 does data transformation, no error should ever occur.
 
 @param int   - test run id
-@param array -  report array
+@param array - report array
+@param array - header lines
 
 @return report string
 
@@ -419,29 +441,21 @@ does data transformation, no error should ever occur.
 
 sub tap_report_create
 {
-        my ($self, $testrun, $report) = @_;
-        my @report   = @$report;
-        my $run      = model->resultset('Testrun')->search({id=>$testrun})->first();
-        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
-        my $hostname = $host->systemname if $host;
-        $hostname = $hostname // 'No hostname set';
+        my ($self, $testrun, $reportlines, $headerlines) = @_;
+        my @reportlines  = @$reportlines;
         my $message;
-        my $topic = $run->topic_name() || $run->shortname();
-        $topic =~ s/\s+/-/g;
-        $message .= "1..".($#report+1)."\n";
-        $message .= "# Artemis-reportgroup-testrun: $testrun\n";
-        $message .= "# Artemis-suite-name: Topic-$topic\n";
-        $message .= "# Artemis-suite-version: 1.0\n";
-        $message .= "# Artemis-machine-name: $hostname\n";
-        $message .= "# Artemis-section: MCP overview\n";
-        $message .= "# Artemis-reportgroup-primary: 1\n";
+        $message .= "1..".($#reportlines+1)."\n";
 
-        # @report starts with 0, reports start with 1
-        for (my $i=1; $i<=$#report+1; $i++) {
+        foreach my $l (map { chomp; $_ } @$headerlines) {
+                $message .= "$l\n";
+        }
+
+        # @reportlines starts with 0, reports start with 1
+        for (my $i=1; $i<=$#reportlines+1; $i++) {
                 # check if == 0, but == fails if $report[$i-1] contains a string
-                $message .= "not " if $report[$i-1]->{error};
+                $message .= "not " if $reportlines[$i-1]->{error};
                 $message .="ok $i - ";
-                $message .= $report[$i-1]->{msg} if $report[$i-1]->{msg};
+                $message .= $reportlines[$i-1]->{msg} if $reportlines[$i-1]->{msg};
                 $message .="\n";
         }
         return ($message);

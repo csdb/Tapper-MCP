@@ -42,7 +42,8 @@ Log::Log4perl->init(\$string);
 my $retval;
 my $srv = new Artemis::MCP::Net;
 
-my $report_string = $srv->tap_report_create(4, [{msg => "Test on guest 1"},{error => 1, msg => "error"}]);
+my $headerlines = $srv->suite_headerlines(4);
+my $report_string = $srv->tap_report_create(4, [{msg => "Test on guest 1"},{error => 1, msg => "error"}], $headerlines);
 my $expect_string = '1..2
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software

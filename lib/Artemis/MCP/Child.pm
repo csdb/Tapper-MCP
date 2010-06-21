@@ -499,7 +499,7 @@ for easier testing.
 @param int - testrun id
 @param file handle - read from this handle
 
-@return reference to report array
+@return hash { report_array => reference to report array, prc_state => $prc_state }
 
 =cut
 
@@ -514,9 +514,9 @@ sub wait_for_testrun
         my $timeout = $self->mcp_info->get_boot_timeout(0) || $self->cfg->{times}{boot_timeout};
 
         my $msg     = $self->get_message($fh, $timeout);
-        return [{error=> 1, msg => $msg}] if not ref($msg) eq 'HASH';
-        return [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}] if $msg->{timeout};
-        return [{error=> 1, msg => "Testrun cancled while waiting for booting test machine"}] if ($msg->{state} eq 'quit');
+        return { report_array => [{error=> 1, msg => $msg}]} if not ref($msg) eq 'HASH';
+        return { report_array => [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}]} if $msg->{timeout};
+        return { report_array => [{error=> 1, msg => "Testrun cancled while waiting for booting test machine"}]} if ($msg->{state} eq 'quit');
 
         ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
 
@@ -538,7 +538,9 @@ sub wait_for_testrun
         for (my $i = 0; $i <= $#{$prc_state}; $i++) {
                 push @report_array, @{$prc_state->[$i]->{results}};
         }
-        return \@report_array;
+        return { report_array => \@report_array,
+                 prc_state    => $prc_state,
+               };
 }
 
 
@@ -589,7 +591,6 @@ sub generate_configs
         return $config;
 }
 
-
 =head2 tap_report_send
 
 Wrapper around tap_report_send.
@@ -604,14 +605,40 @@ Wrapper around tap_report_send.
 
 sub tap_report_send
 {
-        my ($self, $net, $report) = @_;
-        return (1, "No valid report to send as tap") if not ref $report eq "ARRAY";
+        my ($self, $net, $reportlines, $headerlines) = @_;
+        return (1, "No valid report to send as tap") if not ref $reportlines eq "ARRAY";
         my $collected_report = $self->mcp_info->get_report_array();
         if (ref($collected_report) eq "ARRAY" and  @$collected_report) {
-                unshift @$report, @$collected_report;
+                unshift @$reportlines, @$collected_report;
         }
-        return $net->tap_report_send($self->testrun, $report);
-        
+
+        return $net->tap_report_send($self->testrun, $reportlines, $headerlines);
+}
+
+sub tap_reports_prc_state {
+        my ($self, $net, $prc_state) = @_;
+
+        my $testrun_id = $self->testrun;
+        my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
+        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
+        my $hostname = $host->systemname if $host;
+        $hostname = $hostname // 'No hostname set';
+
+        foreach (my $i=0; $i < @$prc_state; $i++) {
+                my $results = $prc_state->[$i]->{results};
+
+                my $headerlines = [
+                                   "# Artemis-reportgroup-testrun: $testrun_id",
+                                   "# Artemis-suite-name: Guest-Overview-$i",
+                                   "# Artemis-suite-version: 1.0",
+                                   "# Artemis-machine-name: $hostname",
+                                   "# Artemis-section: prc-state-details",
+                                   "# Artemis-reportgroup-primary: 1",
+                                  ];
+                my $reportlines = $results;
+                print STDERR "prc_state: ", Dumper($results);
+                my ($error, $report_id) = $self->tap_report_send($net, $reportlines, $headerlines);
+        }
 }
 
 =head2 runtest_handling
@@ -629,10 +656,10 @@ sub runtest_handling
 {
 
         my  ($self, $hostname) = @_;
-        my $retval;
+        #my $retval;
 
-        $retval = $self->set_hardwaredb_systems_id($hostname);
-        return $retval if $retval;
+        my $hwdb_retval = $self->set_hardwaredb_systems_id($hostname);
+        return $hwdb_retval if $hwdb_retval;
 
         my $srv    = IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
@@ -651,44 +678,51 @@ sub runtest_handling
 
         if ($self->mcp_info->is_simnow) {
                 $self->log->debug("Starting Simnow on $hostname");
-                $retval = $net->start_simnow($hostname);
-                return $retval if $retval;
+                my $simnow_retval = $net->start_simnow($hostname);
+                return $simnow_retval if $simnow_retval;
         } else {
                 $self->log->debug("Write grub file for $hostname");
-                $retval = $remote->write_grub_file($hostname, $config->{installer_grub});
-                return $retval if $retval;
+                my $grub_retval = $remote->write_grub_file($hostname, $config->{installer_grub});
+                return $grub_retval if $grub_retval;
 
                 $self->log->debug("rebooting $hostname");
-                $retval = $remote->reboot_system($hostname);
-                return $retval if $retval;
+                my $reboot_retval = $remote->reboot_system($hostname);
+                return $reboot_retval if $reboot_retval;
 
                 $error = $net->hw_report_send($self->testrun);
                 return $error if $error;
         }
 
-        $retval = $self->wait_for_systeminstaller($srv, $config, $remote);
+        my $sysinstall_retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 
-        if ($retval) {
-                ($error, $report_id) = $self->tap_report_send($net, [{error => 1, msg => $retval}]);
+        if ($sysinstall_retval) {
+                ($error, $report_id) = $self->tap_report_send($net, [{error => 1, msg => $sysinstall_retval}]);
                 if ($error) {
                         $self->log->error($report_id);
                 } else {
                         $net->upload_files($report_id, $self->testrun);
                 }
-                return $retval;
+                return $sysinstall_retval;
         }
 
         $self->log->debug('waiting for test to finish');
-        $retval              = $self->wait_for_testrun($srv);
-        unshift @$retval, {msg => "Installation finished"};
-        ($error, $report_id) = $self->tap_report_send($net, $retval);
+        my $waittestrun_retval              = $self->wait_for_testrun($srv);
+
+        my $reportlines = $waittestrun_retval->{report_array};
+        unshift @$reportlines, {msg => "Installation finished"};
+
+        $self->tap_reports_prc_state($net, $waittestrun_retval->{prc_state});
+
+        my $suite_headerlines = $net->suite_headerlines($self->testrun);
+        ($error, $report_id) = $self->tap_report_send($net, $reportlines, $suite_headerlines);
+
         if ($error) {
                 $self->log->error($report_id);
-                return $retval;
+                return $waittestrun_retval;
         }
 
-        $retval = $net->upload_files($report_id, $self->testrun);
-        return $retval if $retval;
+        my $upload_retval = $net->upload_files($report_id, $self->testrun);
+        return $upload_retval if $upload_retval;
         return 0;
 
 }
