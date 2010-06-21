@@ -78,6 +78,7 @@ sub parse_hint_preconditions
         if ($precondition->{simnow}) {
                 $self->mcp_info->is_simnow(1);
                 $config->{paths}{base_dir}='/';
+                $config->{files}{simnow_script} = $precondition->{script} if $precondition->{script};
         }
         push @{$config->{preconditions}}, {precondition_type => 'simnow_backend'};
         return $config;
