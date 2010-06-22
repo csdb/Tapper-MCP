@@ -101,3 +101,10 @@
     testrun_id: 1
     precondition_id: 3
     succession: 3
+
+- schema: TestrunPrecondition
+  name: 4rd simnow
+  data:
+    testrun_id: 1
+    precondition_id: 4
+    succession: 4
