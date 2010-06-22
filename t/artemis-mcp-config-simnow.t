@@ -58,6 +58,7 @@ isa_ok($producer, "Artemis::MCP::Config", 'Producer object created');
 my $config = $producer->create_config(12);
 is(ref($config),'HASH', 'Config created');
 
-is(int @{$config->{preconditions}}, 3, '3 preconditions for simnow');
+is(int @{$config->{preconditions}}, 4, '3 preconditions for simnow');
+is($config->{files}{simnow_script}, 'family10_sles10_xen.simnow', 'Simnow script set');
 
 done_testing();
