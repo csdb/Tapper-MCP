@@ -69,6 +69,16 @@
       mountpartition: p1
       precondition_type: prc
 
+- schema: Precondition
+  name: hint_simnow
+  data:
+    id: 4
+    shortname: hint_simnow
+    precondition: |
+      precondition_type: hint
+      simnow: 1
+      script: family10_sles10_xen.simnow
+
 # -------------------- 
 
 - schema: TestrunPrecondition
