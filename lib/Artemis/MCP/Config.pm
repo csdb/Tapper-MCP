@@ -6,7 +6,7 @@ use warnings;
 use 5.010;
 use File::Basename;
 use Fcntl;
-use File::Path::Tiny;
+use File::Path;
 use LockFile::Simple;
 use Moose;
 use Socket;
@@ -528,9 +528,15 @@ sub get_common_config
 
                 if ($search->scenario_element->peer_elements->first->testrun->id == $testrun) {
                         if (not -d $path) {
-                                if (not File::Path::Tiny::mk($path)) {
-                                        # path could exists now due to race condition
-                                        return "Could not make path '$path': $!" if not -d $path;
+                                File::Path::mkpath($path, {error => \my $retval});
+                        ERROR:
+                                foreach my $diag (@$retval) {
+                                        my ($file, $message) = each %$diag;
+                                        #  $file might have been created by other scenario element between -d and mkpath
+                                        # in this case ignore the error
+                                        next ERROR if -d $file;
+                                        return "general error: $message\n" if $file eq '';
+                                        return "Can't create $file: $message";
                                 }
                         }
                         my @peers = map {$_->testrun->testrun_scheduling->host->name} $search->scenario_element->peer_elements->all;
