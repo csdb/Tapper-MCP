@@ -22,7 +22,7 @@ use Test::Deep;
 
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling_features.yml' );
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
+construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems_features.yml' );
 # --------------------------------------------------------------------------------
 
 # --------------------------------------------------
