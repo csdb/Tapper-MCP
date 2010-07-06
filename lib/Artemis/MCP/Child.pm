@@ -633,7 +633,7 @@ sub tap_reports_prc_state {
                                    "# Artemis-suite-version: 1.0",
                                    "# Artemis-machine-name: $hostname",
                                    "# Artemis-section: prc-state-details",
-                                   "# Artemis-reportgroup-primary: 1",
+                                   "# Artemis-reportgroup-primary: 0",
                                   ];
                 my $reportlines = $results;
                 print STDERR "prc_state: ", Dumper($results);
