@@ -369,6 +369,11 @@ itself is put outside of function to allow testing.
                 if (not @ready) {
                         while ( my @jobs = $self->scheduler->get_next_job() ) {
                                 foreach my $job (@jobs) {
+                                        # (WORKAROUND) try to avoid to
+                                        # children being started close
+                                        # to each other and trying to
+                                        # reset simulataneously
+                                        sleep 2;
                                         $self->run_due_tests($job);
                                 }
                         }

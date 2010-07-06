@@ -17,7 +17,8 @@ class Artemis::MCP::Scheduler::PrioQueue
                       select => [ { max => 'prioqueue_seq' } ],
                       as     => [ 'max_seq' ], }
                     )->first;
-                return $job_with_max_seq->get_column('max_seq') if $job_with_max_seq;
+                return $job_with_max_seq->get_column('max_seq')
+                  if defined $job_with_max_seq->get_column('max_seq');
                 return 0;
         }
 
@@ -52,7 +53,7 @@ class Artemis::MCP::Scheduler::PrioQueue
                                         $job->testrun->scenario_element->is_fitted(1);
                                         $job->testrun->scenario_element->update();
                                 }
-                         
+
                                 return $job;
                         }
                 }

@@ -636,7 +636,6 @@ sub tap_reports_prc_state {
                                    "# Artemis-reportgroup-primary: 0",
                                   ];
                 my $reportlines = $results;
-                print STDERR "prc_state: ", Dumper($results);
                 my ($error, $report_id) = $self->tap_report_send($net, $reportlines, $headerlines);
         }
 }
@@ -695,8 +694,9 @@ sub runtest_handling
 
         my $sysinstall_retval = $self->wait_for_systeminstaller($srv, $config, $remote);
 
+        my $suite_headerlines = $net->suite_headerlines($self->testrun);
         if ($sysinstall_retval) {
-                ($error, $report_id) = $self->tap_report_send($net, [{error => 1, msg => $sysinstall_retval}]);
+                ($error, $report_id) = $self->tap_report_send($net, [{error => 1, msg => $sysinstall_retval}], $suite_headerlines);
                 if ($error) {
                         $self->log->error($report_id);
                 } else {
@@ -713,7 +713,6 @@ sub runtest_handling
 
         $self->tap_reports_prc_state($net, $waittestrun_retval->{prc_state});
 
-        my $suite_headerlines = $net->suite_headerlines($self->testrun);
         ($error, $report_id) = $self->tap_report_send($net, $reportlines, $suite_headerlines);
 
         if ($error) {
