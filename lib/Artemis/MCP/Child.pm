@@ -624,12 +624,14 @@ sub tap_reports_prc_state {
         my $hostname = $host->systemname if $host;
         $hostname = $hostname // 'No hostname set';
 
+
         foreach (my $i=0; $i < @$prc_state; $i++) {
                 my $results = $prc_state->[$i]->{results};
+                my $suitename =  ($i > 0) ? "Guest-Overview-$i" : "PRC0-Overview";
 
                 my $headerlines = [
                                    "# Artemis-reportgroup-testrun: $testrun_id",
-                                   "# Artemis-suite-name: Guest-Overview-$i",
+                                   "# Artemis-suite-name: $suitename",
                                    "# Artemis-suite-version: 1.0",
                                    "# Artemis-machine-name: $hostname",
                                    "# Artemis-section: prc-state-details",
