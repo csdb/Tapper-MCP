@@ -292,7 +292,7 @@ timeout 2
 
 title Test
      tftpserver $tftp_server
-     kernel $kernel console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host artemis_ip=$artemis_ip
+     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host artemis_ip=$artemis_ip
 END
         }
 	print GRUBFILE $text;
