@@ -293,27 +293,3 @@ $child      = Artemis::MCP::Child->new(100);
 my $config  = $child->generate_configs('bullock',12);
 
 done_testing();
-
-
-
-__END__
-                Überlegungen zum Test
-                =====================
-
-Mockfunktionen, immer:
-* Reboot
-* IO::Socket::INET->new()
-
-
-Normaler Ablauf Live:
-* Socket erstellen - muss jeweils geöffnetes Filehandle zurückliefern
-* install - wenn Fehler, dann TAP-Report -> mocken
-** create config
-** write config - tempfile schreiben oder mocken?
-** write_grub_file - mocken oder umschreiben
-** reboot - definitiv mocken
-* wait_for_testrun
-* tap_report -> immer noch mocken
-* upload_files -> mocken
-
--> nach jedem state Ergebnis prüfen -> 9 Tests + Tests ob Mocking gewirkt hat
