@@ -227,7 +227,7 @@ sub wait_for_systeminstaller
 
         if ($msg->{state} eq 'quit') {
                 my $retval = "Testrun cancled while waiting for installation start";
-                $retval   .= " - ".$msg->{error} if $msg->{error};
+                $retval   .= "\n# ".$msg->{error} if $msg->{error};
                 return $retval;
         }
 
@@ -525,7 +525,11 @@ sub wait_for_testrun
                 my $lastrun = time();
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
-                return [{error=> 1, msg => "Testrun cancled while running tests"}] if ($msg->{state} and $msg->{state} eq 'quit');
+                if (($msg->{state} and $msg->{state} eq 'quit')) {
+                        my $retval = {error=> 1, msg => "Testrun cancled while running tests"};
+                        $retval->{comment} = $msg->{error} if $msg->{error};
+                        return [ $retval ];
+                }
 
                 if (not $msg->{timeout}) {
                         $self->log->debug(qq(state $msg->{state} in PRC $msg->{prc_number}, last PRC is $#$prc_state));
@@ -664,7 +668,6 @@ sub runtest_handling
 
         my $srv    = IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
-        my $remote = new Artemis::MCP::Net;
         my $net    = Artemis::MCP::Net->new();
 
         # check if $srv really knows sockport(), because in case of a test
@@ -683,18 +686,18 @@ sub runtest_handling
                 return $simnow_retval if $simnow_retval;
         } else {
                 $self->log->debug("Write grub file for $hostname");
-                my $grub_retval = $remote->write_grub_file($hostname, $config->{installer_grub});
+                my $grub_retval = $net->write_grub_file($hostname, $config->{installer_grub});
                 return $grub_retval if $grub_retval;
 
                 $self->log->debug("rebooting $hostname");
-                my $reboot_retval = $remote->reboot_system($hostname);
+                my $reboot_retval = $net->reboot_system($hostname);
                 return $reboot_retval if $reboot_retval;
 
                 $error = $net->hw_report_send($self->testrun);
                 return $error if $error;
         }
 
-        my $sysinstall_retval = $self->wait_for_systeminstaller($srv, $config, $remote);
+        my $sysinstall_retval = $self->wait_for_systeminstaller($srv, $config, $net);
 
         my $suite_headerlines = $net->suite_headerlines($self->testrun);
         if ($sysinstall_retval) {
