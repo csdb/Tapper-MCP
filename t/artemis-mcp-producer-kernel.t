@@ -43,4 +43,26 @@ is( $yaml[0]->{filename}, 'kernel/x86_64/kernel_file3.tar.gz', 'Precondition 1/ 
 is( $yaml[1]->{precondition_type}, 'exec', 'Precondition 2/ precondition type');
 is( $yaml[1]->{options}->[0], '2.6.29-file3', 'Precondition 2/ options');
 
+# enforce date order
+qx(touch -d "010101" t/misc_files/kernel_producer/kernel/stable/i686/kernel-2.6.31-dontuse.tar.gz);
+qx(touch -d "020202" t/misc_files/kernel_producer/kernel/stable/i686/kernel-2.6.31-use.tar.gz);
+qx(touch -d "030303" t/misc_files/kernel_producer/kernel/stable/i686/kernel-2.6.32-dontuse.tar.gz);
+
+$precondition = $producer->produce($job,
+                                   { precondition_type => 'produce',
+                                     producer => 'Kernel',
+                                     arch=> 'i686',
+                                     version=> '2.6.31',
+                                     stable => 1,
+                                   });
+is(ref $precondition, 'HASH', 'Producer / returned hash');
+
+
+@yaml = Load($precondition->{precondition_yaml});
+is( $yaml[0]->{precondition_type}, 'package', 'Precondition 1 / precondition type');
+is( $yaml[0]->{filename}, 'kernel/stable/i686/kernel-2.6.31-use.tar.gz', 'Precondition 1/ file name');
+
+is( $yaml[1]->{precondition_type}, 'exec', 'Precondition 2/ precondition type');
+is( $yaml[1]->{options}->[0], '2.6.31-file2', 'Precondition 2/ options');
+
 done_testing();
