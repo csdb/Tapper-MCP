@@ -226,7 +226,7 @@ sub wait_for_systeminstaller
         return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
 
         if ($msg->{state} eq 'quit') {
-                my $retval = "Testrun cancled while waiting for installation start";
+                my $retval = "Testrun canceled while waiting for installation start";
                 $retval   .= "\n# ".$msg->{error} if $msg->{error};
                 return $retval;
         }
@@ -251,7 +251,7 @@ sub wait_for_systeminstaller
                 given ($msg->{state})
                 {
                         when('quit') {
-                                my $retval = "Testrun cancled while waiting for installation start";
+                                my $retval = "Testrun canceled while waiting for installation start";
                                 $retval   .= "\n# ".$msg->{error} if $msg->{error};
                                 return $retval;
                         }
@@ -517,7 +517,7 @@ sub wait_for_testrun
         return { report_array => [{error=> 1, msg => $msg}]} if not ref($msg) eq 'HASH';
         return { report_array => [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}]} if $msg->{timeout};
         if (($msg->{state} eq 'quit')) {
-                my $retval = {error=> 1, msg => "Testrun cancled while running tests"};
+                my $retval = {error=> 1, msg => "Testrun canceled while running tests"};
                 $retval->{comment} = $msg->{error} if $msg->{error};
                 return {report_array => [ $retval ], prc_state => $prc_state};
         }
@@ -530,7 +530,7 @@ sub wait_for_testrun
                 $msg=$self->get_message($fh, $timeout);
                 return $msg if not ref($msg) eq 'HASH';
                 if (($msg->{state} and $msg->{state} eq 'quit')) {
-                        my $retval = {error=> 1, msg => "Testrun cancled while running tests"};
+                        my $retval = {error=> 1, msg => "Testrun canceled while running tests"};
                         $retval->{comment} = $msg->{error} if $msg->{error};
                         return {report_array => [ $retval ], prc_state => $prc_state};
                 }
