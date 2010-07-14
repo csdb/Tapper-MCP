@@ -251,8 +251,8 @@ sub wait_for_systeminstaller
                 given ($msg->{state})
                 {
                         when('quit') {
-                                my $retval = "Testrun cancled while waiting for installation to finish";
-                                $retval   .= " - ".$msg->{error} if $msg->{error};
+                                my $retval = "Testrun cancled while waiting for installation start";
+                                $retval   .= "\n# ".$msg->{error} if $msg->{error};
                                 return $retval;
                         }
                         when ('end-install') {
@@ -324,7 +324,7 @@ sub time_reduce
                         }
                         $boot_timeout = $prc_state->[$i]->{start} if not defined($boot_timeout);
                         $boot_timeout = min($boot_timeout, $prc_state->[$i]->{start});
-                        
+
                 } elsif ($prc_state->[$i]->{timeouts}->[0]) {
                         # testprogram is finished, take it off timeout array
                         if ($prc_state->[$i]->{timeouts}->[0] eq 'flag') {
@@ -516,7 +516,11 @@ sub wait_for_testrun
         my $msg     = $self->get_message($fh, $timeout);
         return { report_array => [{error=> 1, msg => $msg}]} if not ref($msg) eq 'HASH';
         return { report_array => [{error=> 1, msg => "Failed to boot test machine after timeout of $msg->{timeout} seconds"}]} if $msg->{timeout};
-        return { report_array => [{error=> 1, msg => "Testrun cancled while waiting for booting test machine"}]} if ($msg->{state} eq 'quit');
+        if (($msg->{state} eq 'quit')) {
+                my $retval = {error=> 1, msg => "Testrun cancled while running tests"};
+                $retval->{comment} = $msg->{error} if $msg->{error};
+                return {report_array => [ $retval ], prc_state => $prc_state};
+        }
 
         ($prc_state, $to_start, $to_stop) = $self->update_prc_state($msg, $prc_state, $to_start, $to_stop);
 
@@ -528,7 +532,7 @@ sub wait_for_testrun
                 if (($msg->{state} and $msg->{state} eq 'quit')) {
                         my $retval = {error=> 1, msg => "Testrun cancled while running tests"};
                         $retval->{comment} = $msg->{error} if $msg->{error};
-                        return [ $retval ];
+                        return {report_array => [ $retval ], prc_state => $prc_state};
                 }
 
                 if (not $msg->{timeout}) {
@@ -600,7 +604,7 @@ sub generate_configs
 Wrapper around tap_report_send.
 
 @param Artemis::MC::Net object
-@param 
+@param
 
 @return success - (0, report id)
 @return error -   (1, error message)
@@ -627,7 +631,7 @@ sub tap_reports_prc_state {
         my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
         my $hostname = $host->systemname if $host;
         $hostname = $hostname // 'No hostname set';
-
+        $prc_state ||= [];
 
         foreach (my $i=0; $i < @$prc_state; $i++) {
                 my $results = $prc_state->[$i]->{results};
