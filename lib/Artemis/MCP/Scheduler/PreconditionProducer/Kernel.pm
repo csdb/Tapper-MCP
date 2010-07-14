@@ -35,9 +35,16 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
         method produce(Any $job, HashRef $produce) {
 
                 my $pkg_dir     = Config->subconfig->{paths}{package_dir};
-                my $arch        = $produce->{arch} // 'x86_64';
+                
+                # project may be x86_64, stable/x86_64, ...
+                my $project        = $produce->{arch} // 'x86_64';
                 my $kernel_path = $pkg_dir."/kernel";
-                my @kernelfiles = sort younger <$kernel_path/$arch/*>;
+                $project           = "stable/$project" if $produce->{stable};
+
+
+                my $version     = '*';
+                $version       .= "$produce->{version}*" if $produce->{version};
+                my @kernelfiles = sort younger <$kernel_path/$project/$version>;
                 return {
                         error => 'No kernel files found',
                        } if not @kernelfiles;
@@ -48,7 +55,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Kernel extends Artemis::MCP
                 }
                 my $kernel_version = $retval->{version};
                 my ($kernel_major_version) = $kernel_version =~ m/(2\.\d{1,2}\.\d{1,2})/;
-                ($kernelbuild)  = $kernelbuild =~ m|$pkg_dir/(kernel/$arch/.+)$|;
+                ($kernelbuild)  = $kernelbuild =~ m|$pkg_dir/(kernel/$project/.+)$|;
 
 
                 $retval = [
