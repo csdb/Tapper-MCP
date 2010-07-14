@@ -457,6 +457,9 @@ sub tap_report_create
                 $message .="ok $i - ";
                 $message .= $reportlines[$i-1]->{msg} if $reportlines[$i-1]->{msg};
                 $message .="\n";
+
+                $message .= "# ".$reportlines[$i-1]->{comment}."\n"
+                  if $reportlines[$i-1]->{comment};
         }
         return ($message);
 }
