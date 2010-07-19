@@ -290,7 +290,11 @@ Run the tests that are due.
                 if ($pid == 0) {
 
                         my $child = Artemis::MCP::Child->new( $id );
-                        my $retval = $child->runtest_handling( $system );
+                        my $retval;
+                        eval {
+                                $retval = $child->runtest_handling( $system );
+                        };
+                        $retval = $@ if $@;
 
                         if ( ($retval or $child->rerun) and $job->testrun->rerun_on_error) {
                                 my $cmd  = Artemis::Cmd::Testrun->new();
