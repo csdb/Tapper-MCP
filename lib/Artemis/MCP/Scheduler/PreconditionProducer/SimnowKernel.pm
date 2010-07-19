@@ -37,7 +37,10 @@ class Artemis::MCP::Scheduler::PreconditionProducer::SimnowKernel extends Artemi
                 my $pkg_dir     = Config->subconfig->{paths}{package_dir};
                 my $arch        = 'simnow';
                 my $kernel_path = $pkg_dir."/kernel";
-                my @kernelfiles = sort younger <$kernel_path/$arch/*>;
+                my $version     = '*';
+                $version       .= "$produce->{version}*" if $produce->{version};
+
+                my @kernelfiles = sort younger <$kernel_path/$arch/$version>;
                 return {
                         error => 'No kernel files found',
                        } if not @kernelfiles;
