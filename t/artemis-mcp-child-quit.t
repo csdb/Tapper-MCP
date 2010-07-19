@@ -125,7 +125,7 @@ is($tap_report, '1..1
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
-not ok 1 - Testrun cancled while waiting for installation start
+not ok 1 - Testrun canceled while waiting for installation start
 # killed by admin
 ', 'Report for quit during installation');
 
@@ -162,7 +162,7 @@ is($tap_report, '1..2
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
 ok 1 - Installation finished
-not ok 2 - Testrun cancled while running tests
+not ok 2 - Testrun canceled while running tests
 # killed by admin
 ', 'Report for quit during installation');
 
