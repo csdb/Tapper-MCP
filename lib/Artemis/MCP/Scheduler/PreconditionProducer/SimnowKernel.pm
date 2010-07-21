@@ -69,9 +69,15 @@ class Artemis::MCP::Scheduler::PreconditionProducer::SimnowKernel extends Artemi
                             mountpartition => 'p1',
                            }
                           ];
-
+                my $topic = $produce->{topic};
+                if (not defined $topic) {
+                        $topic  = "Simnow-kernel-";
+                        $topic .= $produce->{version}."-" if $produce->{version};
+                        $topic .= $kernel_major_version;
+                }
                 return {
-                        topic => $produce->{topic} // "Simnow-kernel-$kernel_major_version",
+                        
+                        topic =>  $topic,
                         precondition_yaml => Dump(@$retval),
                        };
         }
