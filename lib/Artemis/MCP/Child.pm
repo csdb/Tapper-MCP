@@ -658,6 +658,8 @@ sub tap_reports_prc_state {
 Start testrun and wait for completion.
 
 @param string - system name
+@param bool   - revive mode?
+
 
 @return success - 0
 @return error   - error string
