@@ -129,6 +129,7 @@
            arch: linux64
          testprogram:
            execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+           timeout_testprogram: 36000
 
 - schema: Precondition
   name: KVM_autoinstall
@@ -175,7 +176,8 @@
            arch: linux64
          testprogram:
            execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
- 
+           timeout_testprogram: 36000
+
 
 - schema: Precondition
   name: installer stop
@@ -247,6 +249,7 @@
            arch: linux64
          testprogram:
            execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+           timeout_testprogram: 36000
 
 - schema: Precondition
   name: KVMtest
