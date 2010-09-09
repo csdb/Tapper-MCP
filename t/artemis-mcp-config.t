@@ -33,15 +33,10 @@ cmp_deeply($config->{preconditions},
                        filename => "artemisutils/opt-artemis64.tar.gz",
                       },
                       {
-                       'artemis_package' => 'artemisutils/opt-artemis64.tar.gz',
-                       'config' => {
-                                    'runtime' => '5',
-                                    'test_program' => '/home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh',
-                                    'guest_number' => 1
-                                   },
-                       'mountpartition' => undef,
-                       'precondition_type' => 'prc',
-                       'mountfile' => '/kvm/images/raw.img'
+                       precondition_type => 'package',
+                       filename => 'artemisutils/opt-artemis64.tar.gz',
+                       mountpartition => undef,
+                       mountfile => '/kvm/images/raw.img'
                       },
                       {
                        'config' => {
@@ -53,17 +48,31 @@ cmp_deeply($config->{preconditions},
                                     'guest_count' => 1
                                    },
                        'precondition_type' => 'prc'
-                      }),
+                      },
+                      {
+                       'config' => {
+                                    testprogram_list => [
+                                                         {
+                                                         'runtime' => '5',
+                                                         'program' => '/home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh',
+                                                         'timeout' => 36000,
+                                                         },
+                                                        ],
+                                    'guest_number' => 1,
+                                   },
+                       'mountpartition' => undef,
+                       'precondition_type' => 'prc',
+                       'mountfile' => '/kvm/images/raw.img'
+                      },),
            'Choosen subset of the expected preconditions');
 
 is($config->{installer_stop}, 1, 'installer_stop');
 
 
-
 my $info = $producer->get_mcp_info();
 isa_ok($info, 'Artemis::MCP::Info', 'mcp_info');
 my @timeout = $info->get_testprogram_timeouts(1);
-is_deeply(\@timeout,[15],'Timeout for testprogram in PRC 1');
+is_deeply(\@timeout,[36000],'Timeout for testprogram in PRC 1');
 
 $producer = Artemis::MCP::Config->new(3);
 $config = $producer->create_config();
@@ -95,11 +104,21 @@ like($config->{installer_grub}, $expected_grub, 'Installer grub set by autoinsta
 cmp_deeply($config->{preconditions},
            supersetof(
                       {
-                       'artemis_package' => 'artemisutils/opt-artemis64.tar.gz',
+                       precondition_type => 'package',
+                       filename => "artemisutils/opt-artemis64.tar.gz",
+                       'mountpartition' => undef,
+                       'mountfile' => '/kvm/images/raw.img'
+                     },
+                      {
                        'config' => {
-                                    'runtime' => '5',
-                                    'test_program' => '/home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh',
-                                    'guest_number' => 1
+                                    testprogram_list => [
+                                                         {
+                                                          runtime => '5',
+                                                          program => '/home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh',
+                                                          timeout => 36000,
+                                                         },
+                                                        ],
+                                    'guest_number' => 1,
                                    },
                        'mountpartition' => undef,
                        'precondition_type' => 'prc',
@@ -145,7 +164,14 @@ cmp_deeply($config->{preconditions},
            supersetof({'dest'              => '/xen/images/002-uruk-1268101895.img',
                        'name'              => 'osko:/export/image_files/official_testing/windows_test.img',
                        'protocol'          => 'nfs',
-                       'precondition_type' => 'copyfile'},
+                       'precondition_type' => 'copyfile'
+                      },
+                      {
+                       precondition_type => 'package',
+                       filename => 'artemisutils/opt-artemis32.tar.gz',
+                       mountpartition => undef,
+                       'mountfile' => '/xen/images/002-uruk-1268101895.img'
+                      },
                       {
                        'config' => {
                                     testprogram_list => [
@@ -153,7 +179,15 @@ cmp_deeply($config->{preconditions},
                                                           'runtime'  => '50',
                                                           'program' => '/opt/artemis/bin/metainfo',
                                                           'timeout'  => '300',
+                                                          'parameters' => [
+                                                                           '--foo=some bar'
+                                                                          ],
                                                          },
+                                                         {
+                                                          'runtime' => '1200',
+                                                          'timeout' => '1800',
+                                                          'program' => '/opt/artemis/bin/py_kvm_unit'
+                                                         }
                                                         ],
                                     'guests'         => [
                                                          {
@@ -164,6 +198,22 @@ cmp_deeply($config->{preconditions},
                                    },
                        'precondition_type' => 'prc'
                       },
+                      {
+                       'config' => {
+                                    testprogram_list => [
+                                                         {
+                                                          'runtime' => '28800',
+                                                          'program' => '/opt/artemis/bin/py_reaim',
+                                                          'timeout' => '36000',
+                                                          }
+                                                        ],
+                                    'guest_number' => 1
+                                   },
+                       'mountpartition' => undef,
+                       'precondition_type' => 'prc',
+                       'mountfile' => '/xen/images/002-uruk-1268101895.img'
+                      },
+
                      ),
            'Choosen subset of the expected preconditions');
 
