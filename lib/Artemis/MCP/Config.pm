@@ -85,53 +85,70 @@ sub parse_hint_preconditions
 }
 
 
-=head2 add_guest_testprogram
+=head2 add_artemis_package_for_guest
 
-Add a testprogram for a given guest to the config.
+Add opt artemis package to guest
 
 @param hash ref - config
 @param hash ref - guest
+@param int - guest number
+
 
 @return success - new config (hash ref)
 @return error   - error string
 
 =cut
 
-sub add_guest_testprogram
+sub add_artemis_package_for_guest
 {
 
         my ($self, $config, $guest, $guest_number) = @_;
-        my $prc_config->{precondition_type} = 'prc';
+        my $artemis_package->{precondition_type} = '';
 
-        $prc_config->{artemis_package} = $self->cfg->{files}->{artemis_package}{$guest->{root}{arch}};
-#        return "can't detect architecture of one guest number $guest->{guest_number} so I can't install PRC" if not $prc_config->{artemis_package};
+        my $guest_arch                        = $guest->{root}{arch};
+        $artemis_package->{filename}          = $self->cfg->{files}->{artemis_package}{$guest_arch};
 
-        # put guest test program in guest prc config
-        $prc_config->{mountpartition}         = $guest->{mountpartition};
-        $prc_config->{mountfile}              = $guest->{mountfile} if $guest->{mountfile};
-        $prc_config->{config}->{test_program} = $guest->{testprogram}->{execname};
-        $prc_config->{config}->{parameters}   = $guest->{testprogram}->{parameters}
-          if $guest->{testprogram}->{parameters};
-        $prc_config->{config}->{guest_number} = $guest_number;
-        $prc_config->{config}->{runtime}      = $guest->{testprogram}->{runtime} || $self->cfg->{times}{test_runtime_default};
+        $artemis_package->{precondition_type} = 'package';
+        $artemis_package->{mountpartition}    = $guest->{mountpartition};
+        $artemis_package->{mountfile}         = $guest->{mountfile} if $guest->{mountfile};
 
-        my $timeout;
-        if ($guest->{testprogram}->{timeout_testprogram}) {
-                $timeout = $guest->{testprogram}->{timeout_testprogram};
-                $prc_config->{config}->{timeout_testprogram} = $guest->{testprogram}->{timeout_testprogram};
-        } else {
-                $timeout = $self->cfg->{times}{test_runtime_default} * $MODIFIER;
-        }
-        my $retval = $self->mcp_info->add_testprogram($guest_number, {timeout => $timeout, program => $guest->{testprogram}->{execname}, parameters => $guest->{testprogram}->{parameters}} );
-        return $retval if $retval;
+        push @{$config->{preconditions}}, $artemis_package;
+        return $config;
+}
 
 
-        push @{$config->{preconditions}}, $prc_config;
+=head2 handle_guest_tests
 
-        # put guest test program in precondition list
-        $guest->{testprogram}->{mountpartition} = $guest->{mountpartition};
-        $guest->{testprogram}->{mountfile}      = $guest->{mountfile} if $guest->{mountfile};
-        push @{$config->{preconditions}}, $guest->{testprogram};
+Create guest PRC config based on guest tests.
+
+@param hash ref - old config
+@param hash ref - guest description
+@param int      - guest number
+
+@return success - new config hash ref
+@return error   - error string
+
+=cut
+
+sub handle_guest_tests
+{
+        my ($self, $config, $guest, $guest_number) = @_;
+        $config = $self->add_artemis_package_for_guest($config, $guest);
+        return $config unless ref $config eq 'HASH';
+
+        $config->{prcs}->[$guest_number]->{mountfile} = $guest->{mountfile};
+        $config->{prcs}->[$guest_number]->{mountpartition} = $guest->{mountpartition};
+        $config->{prcs}->[$guest_number]->{config}->{guest_number} = $guest_number;
+
+
+        $config = $self->parse_testprogram($config, $guest->{testprogram}, $guest_number)
+          if $guest->{testprogram};
+        return $config unless ref $config eq 'HASH';
+
+        $config = $self->parse_testprogram_list($config, $guest->{testprogram_list}, $guest_number)
+          if $guest->{testprogram_list};
+        return $config unless ref $config eq 'HASH';
+
         return $config;
 }
 
@@ -189,12 +206,12 @@ sub parse_virt_preconditions
 
         $config = $self->parse_virt_host($config, $virt);
         $config = $self->parse_testprogram($config, $virt->{host}->{testprogram}, 0) if $virt->{host}->{testprogram};
+        $config = $self->parse_testprogram_list($config, $virt->{host}->{testprogram_list}, 0) if $virt->{host}->{testprogram_list};
         return $config unless ref($config) eq 'HASH';
 
-        my $guest_number;
-        for (my $i=0; $i<=$#{$virt->{guests}}; $i++ ) {
-                my $guest = $virt->{guests}->[$i];
-                $guest_number = $i+1;
+        for (my $guest_number = 1; $guest_number <= int @{$virt->{guests}}; $guest_number++ ) {
+                my $guest = $virt->{guests}->[$guest_number-1];
+
                 $guest->{mountfile} = $guest->{root}->{mountfile};
                 $guest->{mountpartition} = $guest->{root}->{mountpartition};
                 delete $guest->{root}->{mountpartition};
@@ -238,7 +255,10 @@ sub parse_virt_preconditions
                         push @{$config->{prcs}->[0]->{config}->{guests}}, {exec=>$guest->{config}->{exec}};
                 }
 
-                $retval = $self->add_guest_testprogram($config, $guest, $guest_number) if $guest->{testprogram};
+                if ($guest->{testprogram} or $guest->{testprogram_list}) {
+                        $config = $self->handle_guest_tests($config, $guest, $guest_number);
+                        return $config unless ref $config eq 'HASH';
+                }
 
                 # put guest preconditions into precondition list
                 foreach my $guest_precondition(@{$guest->{preconditions}}) {
@@ -248,7 +268,7 @@ sub parse_virt_preconditions
                 }
 
         }
-        $config->{prcs}->[0]->{config}->{guest_count} = $guest_number;
+        $config->{prcs}->[0]->{config}->{guest_count} = int @{$virt->{guests}};
 
         return $config;
 }
@@ -360,6 +380,7 @@ sub parse_testprogram
 {
         my ($self, $config, $testprogram, $prc_number) = @_;
         $prc_number //= 0;
+
         if (not $testprogram->{timeout}) {
                 $testprogram->{timeout} = $testprogram->{timeout_testprogram};
                 delete $testprogram->{timeout_testprogram};
@@ -368,6 +389,8 @@ sub parse_testprogram
                 $testprogram->{program} = $testprogram->{execname};
                 delete $testprogram->{execname};
         }
+        $testprogram->{runtime} = $testprogram->{runtime} || $self->cfg->{times}{test_runtime_default};
+
         return "No timeout for testprogram" if not $testprogram->{timeout};
         no warnings 'uninitialized';
         push @{$config->{prcs}->[$prc_number]->{config}->{testprogram_list}}, $testprogram;
@@ -376,6 +399,33 @@ sub parse_testprogram
         return $config;
 
 }
+
+=head2 parse_testprogram_list
+
+Handle testprogram list precondition. Puts testprograms to config and
+internal information set.
+
+@param hash ref - config to change
+@param hash ref - precondition as hash
+@param int - prc_number, optional
+
+
+@return success - config hash
+@return error   - error string
+
+=cut
+
+sub parse_testprogram_list
+{
+        my ($self, $config, $testprogram_list, $prc_number) = @_;
+
+        return $config unless ref $testprogram_list eq 'ARRAY';
+        foreach my $testprogram (@$testprogram_list) {
+                $config = $self->parse_testprogram($config, $testprogram, $prc_number);
+        }
+        return $config;
+}
+
 
 
 =head2 parse_autoinstall
@@ -465,6 +515,9 @@ sub get_install_config
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'testprogram') {
                         $config = $self->parse_testprogram($config, $precondition->precondition_as_hash);
+                }
+                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'testprogram_list') {
+                        $config = $self->parse_testprogram_list($config, $precondition->precondition_as_hash);
                 }
                 elsif ($precondition->precondition_as_hash->{precondition_type} eq 'simnow' ) {
                         $config=$self->parse_simnow_preconditions($config, $precondition->precondition_as_hash);
