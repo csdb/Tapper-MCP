@@ -59,7 +59,10 @@ sub set_hardwaredb_systems_id
         my $host = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1})->first;
         return "Can not find $hostname in hardware db, databases out of sync" if not $host;
         $testrun->hardwaredb_systems_id($host->lid);
-        $testrun->update();
+        eval {
+                $testrun->update();
+        };
+        return "Can not update host_id for testrun $testrun: $@" if $@;
         return 0;
 }
 
@@ -655,6 +658,8 @@ sub tap_reports_prc_state {
 Start testrun and wait for completion.
 
 @param string - system name
+@param bool   - revive mode?
+
 
 @return success - 0
 @return error   - error string

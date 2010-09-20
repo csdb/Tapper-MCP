@@ -262,7 +262,8 @@ Read console log from a handle and write it to the appropriate file.
 
 Run the tests that are due.
 
-@param hash - containing test run ids accessible through host names
+@param TestrunScheduling - job to run
+@param boolean - are we in revive mode?
 
 @retval success - 0
 @retval error   - error string
@@ -271,7 +272,7 @@ Run the tests that are due.
 
         sub run_due_tests
         {
-                my ($self, $job) = @_;
+                my ($self, $job, $revive) = @_;
                 $self->log->debug('run_due_test');
 
                 my $system = $job->host->name;
@@ -281,7 +282,7 @@ Run the tests that are due.
                 # check if this system is already active, just for error handling
                 $self->handle_dead_children() if $self->child->{$system};
 
-                $self->scheduler->mark_job_as_running($job);
+                $self->scheduler->mark_job_as_running($job) unless $revive;
 
                 my $pid = fork();
                 die "fork failed: $!" if (not defined $pid);
@@ -406,6 +407,24 @@ Create communication data structures used in MCP.
                 return 0;
         }
 
+=head2 revive_children
+
+Restart the children that were running before MCP was shut
+down/crashed. The function expects no parameters and has no return
+values.
+
+=cut
+
+sub revive_children
+{
+        my ($self) = @_;
+        my $jobs = model->resultset('TestrunScheduling')->running;
+        foreach my $job ($jobs->all) {
+                $self->run_due_tests($job, "revive");
+        }
+}
+
+
 
 =head2 run
 
@@ -418,6 +437,7 @@ Set up all needed data structures then wait for new tests.
                 my ($self) = @_;
                 $self->set_interrupt_handlers();
                 $self->prepare_server();
+                $self->revive_children();
                 while (1) {
                         my $lastrun = time();
                         $self->runloop($lastrun);
