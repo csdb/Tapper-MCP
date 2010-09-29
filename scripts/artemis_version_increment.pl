@@ -6,8 +6,8 @@ use warnings;
 use Perl::Version;
 
 my @output;
-open (FH, "<",$ARGV[0]) or die "Can't open $ARGV[0] for reading:$!";
-while (my $line = <FH>) {
+open (my $fh, "<",$ARGV[0]) or die "Can't open $ARGV[0] for reading:$!";
+while (my $line = <$fh>) {
         if ($line =~ m/(.*\$VERSION.+)(\d\.\d+)(.*)/){
                 my $version = Perl::Version->new($2);
                 $version->inc_subversion(1);
@@ -17,8 +17,8 @@ while (my $line = <FH>) {
                 push @output, $line;
         }
 }
-close FH;
-open (FH,">",$ARGV[0]) or die "Can't open $ARGV[0] for writing:$!";
-print FH @output;
-close FH;
+close $fh;
+open ($fh,">",$ARGV[0]) or die "Can't open $ARGV[0] for writing:$!";
+print $fh @output;
+close $fh;
 
