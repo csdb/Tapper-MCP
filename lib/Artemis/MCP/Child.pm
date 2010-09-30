@@ -220,16 +220,28 @@ widely thus no timeout for installation is applied.
 
 sub wait_for_systeminstaller
 {
-        my ($self, $fh, $config, $remote) = @_;
+        my ($self, $fh, $config, $net) = @_;
 
         my $timeout = $self->mcp_info->get_installer_timeout() || $self->cfg->{times}{boot_timeout};
 
+        my $retval;
         my $msg = $self->get_message($fh, $timeout);
         return $msg if not ref($msg) eq 'HASH';
-        return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
+
+        # maybe we tried to reboot with ssh which is quite unreliable
+        # try reset again and this time take no prisoners
+        if ($msg->{timeout}) {
+                $retval = $net->reboot_system($config->{hostname}, 'hard');
+                return $retval if $retval;
+
+                $msg = $self->get_message($fh, $timeout);
+                return $msg if not ref($msg) eq 'HASH';
+                return "Failed to boot Installer after timeout of $msg->{timeout} seconds" if $msg->{timeout};
+        }
+
 
         if ($msg->{state} eq 'quit') {
-                my $retval = "Testrun canceled while waiting for installation start";
+                $retval = "Testrun canceled while waiting for installation start";
                 $retval   .= "\n# ".$msg->{error} if $msg->{error};
                 return $retval;
         }
@@ -238,7 +250,7 @@ sub wait_for_systeminstaller
                 return qq(MCP expected state start-install but remote system is in state $msg->{state});
         }
         if ($config->{autoinstall}) {
-                $remote->write_grub_file($config->{hostname},
+                $net->write_grub_file($config->{hostname},
                                          "timeout 2\n\ntitle Boot from first hard disc\n\tchainloader (hd0,1)+1");
 
         }
