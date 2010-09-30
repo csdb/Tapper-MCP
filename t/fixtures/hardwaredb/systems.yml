@@ -30,6 +30,21 @@
     systemname: bullock
     revision_id: 118
 
+- schema: Systems
+  name: a system called dickstone
+  data:
+    lid: 9
+    systemname: dickstone
+    revision_id: 119
+
+- schema: Systems
+  name: a system called dickstone
+  data:
+    lid: 10
+    systemname: athene
+    revision_id: 120
+
+
 # ------ revision
 
 - schema: Revision
@@ -82,6 +97,22 @@
     component_type: ram
     component_id: 3216
 
+- schema: Revision
+  name: dickstone RAM
+  data:
+    lid: 1001
+    revision_id: 119
+    component_type: ram
+    component_id: 3217
+
+- schema: Revision
+  name: dickstone RAM
+  data:
+    lid: 1002
+    revision_id: 120
+    component_type: ram
+    component_id: 3218
+
 
 
 # ----- CPU
@@ -130,6 +161,20 @@
   name: RAM3
   data:
     lid: 3216
+    size_mbyte: 234
+    vendor: Kingston
+
+- schema: Ram
+  name: RAM3
+  data:
+    lid: 3217
+    size_mbyte: 234
+    vendor: Kingston
+
+- schema: Ram
+  name: RAM3
+  data:
+    lid: 3218
     size_mbyte: 234
     vendor: Kingston
 
