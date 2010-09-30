@@ -42,31 +42,32 @@ while (my $host = $free_hosts->next) {
         $host->free(0);
         $host->update;
 }
-
 $next_job = $scheduler->get_next_job();
 is($next_job, undef, "No fitting since no free machines");
 
-$next_job = $scheduler->get_next_job();
-is($next_job, undef, "No fitting since no free machines");
 
 # Queue bound tests
-$free_hosts = model("TestrunDB")->resultset("Host");
-while (my $host = $free_hosts->next) {
+my $all_hosts = model("TestrunDB")->resultset("Host");
+while (my $host = $all_hosts->next) {
         $host->free(1);
         $host->update;
 }
 
+####################################################################################
+#                                                                                  #
+# prepare testruns. Each testrun requests a host with feature 'more than 5GB RAM'. #
+# Delete all requested hosts to make sure they don't interfere with this test.     #
+#                                                                                  #
+####################################################################################
+my $requested_host_rs = model('TestrunDB')->resultset('TestrunRequestedHost');
+foreach my $requested_host($requested_host_rs->all) {
+        $requested_host->delete();
+}
 my $testrun_rs = model('TestrunDB')->resultset('Testrun');
 while (my $tr = $testrun_rs->next()) {
         my $feature=model('TestrunDB')->resultset('TestrunRequestedFeature')->new({testrun_id => $tr->id, feature => 'mem > 5000'});
         $feature->insert;
-        if ($tr->testrun_scheduling) {
-                my $host_rs = model('TestrunDB')->resultset('TestrunRequestedHost');
-                foreach my $host($host_rs->all) {
-                        $host->delete();
-                }
-        }
-};
+}
 
 $next_job = $scheduler->get_next_job();
 is($next_job->host->name, "iring", "fitting host iring");
