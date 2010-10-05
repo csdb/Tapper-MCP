@@ -495,9 +495,6 @@ sub get_install_config
         my $retval = $self->mcp_info->add_prc(0, $self->cfg->{times}{boot_timeout});
         return $retval if $retval;
 
-        # always have a PRC0 even without any test programs
-        $config->{prcs}->[0] = {testprogram_list => []};
-
         foreach my $precondition ($search->ordered_preconditions) {
                 # make sure installing the root partition is always the first precondition
                 if ($precondition->precondition_as_hash->{precondition_type} eq 'image' ) {
