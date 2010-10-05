@@ -1,5 +1,7 @@
 ---
-
+# This fixture is currently only used by MCP::Config unit test.
+# Since these tests need to check a lot, its better not to reuse
+# it for other tests to make sure config tests don't interfere.
 # -------------------- users
 
 - schema: User
