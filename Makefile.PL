@@ -8,6 +8,7 @@ all_from 'lib/Artemis/MCP.pm';
 author   'OSRC SysInt Team <osrc-sysint@elbe.amd.com>';
 
 build_requires 'Test::Fixture::DBIC::Schema' => 0;
+build_requires 'Test::Perl::Critic'          => 0;
 build_requires 'Test::MockModule'            => 0;
 build_requires 'Test::More'                  => 0;
 build_requires 'Artemis::Test'               => '2.010005';
