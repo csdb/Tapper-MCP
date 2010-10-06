@@ -26,3 +26,6 @@ MANIFEST
 META.yml
 MYMETA.yml
 t/file_upload/4/console
+inc/
+Makefile
+
