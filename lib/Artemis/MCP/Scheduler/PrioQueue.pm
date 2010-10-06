@@ -2,6 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::PrioQueue
 {
         use Artemis::Exception::Param;
@@ -31,7 +32,7 @@ class Artemis::MCP::Scheduler::PrioQueue
 
         method get_testrequests # get_jobs
         {
-                no strict 'refs';
+                no strict 'refs'; ## no critic (ProhibitNoStrict)
                 my $testrequests_rs = model('TestrunDB')->resultset('TestrunScheduling')->search
                     ({
                       prioqueue_seq => { '>', 0 }
@@ -63,7 +64,7 @@ class Artemis::MCP::Scheduler::PrioQueue
 
 {
         # help the CPAN indexer
-        package Artemis::MCP::Scheduler::Queue;
+        package Artemis::MCP::Scheduler::PrioQueue;
         our $VERSION = '0.01';
 }
 
@@ -71,7 +72,7 @@ __END__
 
 =head1 NAME
 
-Artemis::MCP::Scheduler::Queue - Object for test queue abstraction
+Artemis::MCP::Scheduler::PrioQueue - Object for test queue abstraction
 
 =head1 SYNOPSIS
 

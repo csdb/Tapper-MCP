@@ -2,6 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::MergedQueue
 {
         use Artemis::Exception::Param;
@@ -53,7 +54,7 @@ class Artemis::MCP::Scheduler::MergedQueue
 
         method get_testrequests # get_jobs
         {
-                no strict 'refs';
+                no strict 'refs'; ## no critic (ProhibitNoStrict)
                 my $testrequests_rs = model('TestrunDB')->resultset('TestrunScheduling')->search
                     ({
                       mergedqueue_seq => { '>', 0 }
@@ -85,7 +86,7 @@ class Artemis::MCP::Scheduler::MergedQueue
 
 {
         # help the CPAN indexer
-        package Artemis::MCP::Scheduler::Queue;
+        package Artemis::MCP::Scheduler::MergedQueue;
         our $VERSION = '0.01';
 }
 

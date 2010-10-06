@@ -41,7 +41,7 @@ sub get_hostname_from_refreshed_testrun
         my ($self, $testrun) = @_;
         if (not $testrun->hardwaredb_systems_id)
         {
-                return undef;
+                return;
         }
 
         my $system = model('HardwareDB')->resultset('Systems')->search({ lid => $testrun->hardwaredb_systems_id })->first;

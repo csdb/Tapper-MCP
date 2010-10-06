@@ -1,12 +1,13 @@
 use MooseX::Declare;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::PreconditionProducer {
         #
 }
 
 {
         # just for CPAN
-        package Artemis::MCP::Scheduler::Producer;
+        package Artemis::MCP::Scheduler::PreconditionProducer;
         our $VERSION = '0.01';
 }
 
@@ -16,7 +17,7 @@ __END__
 
 =head1 NAME
 
-Artemis::MCP::Scheduler::Producer - Generate Testruns
+Artemis::MCP::Scheduler::PreconditionProducer - Generate Testruns
 
 =head1 SYNOPSIS
 

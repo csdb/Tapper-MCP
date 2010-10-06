@@ -1,5 +1,6 @@
 use MooseX::Declare;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer
   extends Artemis::MCP::Scheduler::PreconditionProducer
 {
@@ -16,7 +17,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer
 
 {
         # help the CPAN indexer
-        package Artemis::MCP::Scheduler::Producer::DummyProducer;
+        package Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer;
         our $VERSION = '0.01';
 }
 
@@ -27,7 +28,7 @@ __END__
 
 =head1 NAME
 
-Artemis::MCP::Scheduler::PreconditionProducer::Temare - Wraps the existing temare producer
+Artemis::MCP::Scheduler::PreconditionProducer::DummyProducer - Dummy producer for testing
 
 =head1 SYNOPSIS
 
@@ -42,7 +43,7 @@ Maik Hentsche, C<< <maik.hentsche at amd.com> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Maik Hentsche, all rights reserved.
+Copyright 2010 Maik Hentsche, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

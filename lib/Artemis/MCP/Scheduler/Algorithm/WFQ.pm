@@ -2,6 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
+## no critic (RequireUseStrict)
 role Artemis::MCP::Scheduler::Algorithm::WFQ
 {
         requires 'queues';
@@ -67,7 +68,7 @@ __END__
 
 =head1 NAME
 
-WFQ - Scheduling algorithm "Weighted Fair Queueing"
+Artemis::MCP::Scheduler::Algorithm::WFQ - Scheduling algorithm "Weighted Fair Queueing"
 
 =head1 SYNOPSIS
 

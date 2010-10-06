@@ -1,5 +1,6 @@
 use MooseX::Declare;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP::Scheduler::PreconditionProducer {
         use File::Temp 'tempfile';
         use YAML       'LoadFile';
@@ -33,7 +34,7 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP
 
 {
         # help the CPAN indexer
-        package Artemis::MCP::Scheduler::Producer::Temare;
+        package Artemis::MCP::Scheduler::PreconditionProducer::Temare;
         our $VERSION = '0.01';
 }
 

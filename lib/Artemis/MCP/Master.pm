@@ -1,8 +1,6 @@
 use MooseX::Declare;
 
-
-
-
+## no critic (RequireUseStrict)
 class Artemis::MCP::Master extends Artemis::MCP
 {
         use Devel::Backtrace;

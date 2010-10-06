@@ -85,7 +85,7 @@ sub net_read_do
         my ($self, $fh, $timeout) = @_;
         my $msg;
         my $timeout_calc = $timeout;
-        my $select = IO::Select->new() or return undef;
+        my $select = IO::Select->new() or return;
         $select->add($fh);
 
  NETREAD:
@@ -644,8 +644,9 @@ sub tap_reports_prc_state {
         my $testrun_id = $self->testrun;
         my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
         my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
-        my $hostname = $host->systemname if $host;
-        $hostname = $hostname // 'No hostname set';
+        my $hostname;
+        $hostname    = $host->systemname if $host;
+        $hostname    = $hostname // 'No hostname set';
         $prc_state ||= [];
 
         foreach (my $i=0; $i < @$prc_state; $i++) {

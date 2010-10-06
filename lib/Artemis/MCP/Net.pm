@@ -217,17 +217,17 @@ sub copy_grub_file
         $artemis_ip = inet_ntoa($artemis_ip);
 
         if (-e $source) {
-                open(GRUBFILE, "<", $source) or
+                open(my $GRUBFILE, "<", $source) or
                   return "Can open $source for reading: $!";
         }elsif (-e $self->cfg->{path}->{autoinstall}{grubfiles}.$source) {
-                open(GRUBFILE, "<", $self->cfg->{path}->{autoinstall}{grubfiles}.$source) or
+                open($GRUBFILE, "<", $self->cfg->{path}->{autoinstall}{grubfiles}.$source) or
                   return "Can open ".$self->cfg->{path}->{autoinstall}{grubfiles}.$source." for reading: $!";
         } else {
                 return "Can't find autoinstaller for $source";
         }
 
         my $text;
-        while (my $line = <GRUBFILE>) {
+        while (my $line = <$GRUBFILE>) {
                 if ($line =~ m/^\s*kernel/) {
                         $line .= " artemis_host=$artemis_host";
                         $line .= " artemis_ip=$artemis_ip";
@@ -269,7 +269,7 @@ sub write_grub_file
 	$self->log->debug("writing grub file ($artemis_host, $grub_file)");
 
 	# create the initial grub file for installation of the test system,
-	open (GRUBFILE, ">", $grub_file) or return "Can open ".$self->cfg->{paths}{grubpath}."/$system.lst for writing: $!";
+	open (my $GRUBFILE, ">", $grub_file) or return "Can open ".$self->cfg->{paths}{grubpath}."/$system.lst for writing: $!";
 
         my $tftp_server = $self->cfg->{tftp_server_address};
         my $kernel = $self->cfg->{paths}{nfskernel_path}."/bzImage";
@@ -287,8 +287,8 @@ title Test
      kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot artemis_host=$artemis_host artemis_ip=$artemis_ip
 END
         }
-	print GRUBFILE $text;
-	close GRUBFILE or return "Can't save grub file for $system:$!";
+	print $GRUBFILE $text;
+	close $GRUBFILE or return "Can't save grub file for $system:$!";
 	return(0);
 }
 
@@ -328,12 +328,12 @@ sub upload_files
                                                    PeerPort => $port);
                 return "Cannot open remote receiver $host:$port" if not $server;
 
-                open(FH, "<",$file) or do{$self->log->warn("Can't open $file:$!"); $server->close();next;};
+                open(my $FH, "<",$file) or do{$self->log->warn("Can't open $file:$!"); $server->close();next;};
                 $server->print($cmdline);
-                while (my $line = <FH>) {
+                while (my $line = <$FH>) {
                         $server->print($line);
                 }
-                close(FH);
+                close($FH);
                 $server->close();
         }
         return 0;
@@ -404,8 +404,9 @@ sub suite_headerlines {
         my $topic = $run->topic_name() || $run->shortname();
         $topic =~ s/\s+/-/g;
         my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
-        my $hostname = $host->systemname if $host;
-        $hostname = $hostname // 'No hostname set';
+        my $hostname;
+        $hostname    = $host->systemname if $host;
+        $hostname    = $hostname // 'No hostname set';
 
         my $headerlines = [
                            "# Artemis-reportgroup-testrun: $testrun_id",

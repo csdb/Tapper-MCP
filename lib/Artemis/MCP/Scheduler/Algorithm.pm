@@ -2,7 +2,7 @@ use MooseX::Declare;
 
 use 5.010;
 
-
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::Algorithm with MooseX::Traits {
 
         use Artemis::Model 'model';

@@ -1,7 +1,8 @@
- use MooseX::Declare;
+use MooseX::Declare;
 
 use 5.010;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::Controller
 {
         with 'MooseX::Log::Log4perl';

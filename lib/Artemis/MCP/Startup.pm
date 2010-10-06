@@ -8,7 +8,7 @@ use Artemis::MCP::Master;
 use Moose;
 
 
-no strict 'refs';
+no strict 'refs'; ## no critic (ProhibitNoStrict)
 
 
 =head1 NAME

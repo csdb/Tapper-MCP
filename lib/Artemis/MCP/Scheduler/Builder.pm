@@ -1,6 +1,6 @@
 use MooseX::Declare;
-
     
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::Builder {
 
 =head1 NAME

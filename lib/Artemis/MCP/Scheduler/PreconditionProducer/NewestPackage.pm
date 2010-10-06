@@ -1,5 +1,6 @@
 use MooseX::Declare;
 
+## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::PreconditionProducer::NewestPackage extends Artemis::MCP::Scheduler::PreconditionProducer
 {
         use YAML;
