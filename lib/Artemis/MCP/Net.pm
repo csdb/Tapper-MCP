@@ -167,7 +167,7 @@ sub reboot_system
                                                 raw_pty  => 1 );
                 # Try login, with timeout
                 eval {
-                        $SIG{ALRM} = sub{ die("timeout in login") };
+                        local $SIG{ALRM} = sub{ die("timeout in login") };
                         alarm(10);
                         my $login_output = $ssh->login();
                 
@@ -176,10 +176,10 @@ sub reboot_system
                                 $self->log->info("Logged in. Try exec reboot");
                                 $ssh->exec("stty raw -echo");
                                 $ssh->exec("reboot");
-                                return 0;
                         }
                 };
                 alarm(0);
+                return 0 if not $@;
         }
         
         # else trigger reset switch

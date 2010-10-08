@@ -217,4 +217,17 @@ cmp_deeply($config->{preconditions},
                      ),
            'Choosen subset of the expected preconditions');
 
+$producer = Artemis::MCP::Config->new(7);
+
+$config = $producer->create_config(1337);   # expects a port number
+is(ref($config),'HASH', 'Config created');
+
+cmp_deeply($config->{preconditions},
+           supersetof( {
+                        'testprogram_list' => [],
+                        'precondition_type' => 'prc'
+                       }
+                     ),
+           'PRC installed even without test program(s)');
+
 done_testing();

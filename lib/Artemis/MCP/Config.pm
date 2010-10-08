@@ -537,6 +537,11 @@ sub get_install_config
                         return $config;
                 }
         }
+        # always have a PRC0 even without any test programs
+        unless ($self->mcp_info->is_simnow() or $config->{prcs}) {
+                $config->{prcs}->[0] = {testprogram_list => []};
+        }
+
         while (my $prc_precondition = shift(@{$config->{prcs}})){
                 $prc_precondition->{precondition_type} = "prc";
                 push(@{$config->{preconditions}}, $prc_precondition);

@@ -1,5 +1,7 @@
 ---
-
+# This fixture is currently only used by MCP::Config unit test.
+# Since these tests need to check a lot, its better not to reuse
+# it for other tests to make sure config tests don't interfere.
 # -------------------- users
 
 - schema: User
@@ -83,6 +85,16 @@
     shortname: xen_win
     notes: Tests virt precondition with windows guest
     topic_name: Xen
+
+- schema: Testrun
+  name: kernel_no_test
+  data:
+    id: 7
+    owner_user_id: 12
+    shortname: kernel_no_test
+    notes: kernel test without test program
+    topic_name: kernel
+
 
 
 
@@ -355,4 +367,13 @@
   data:
     testrun_id: 6
     precondition_id: 111
+    succession: 1
+
+# --------- precondititions for kernel_no_test
+
+- schema: TestrunPrecondition
+  name: image for kernel_no_test
+  data:
+    testrun_id: 7
+    precondition_id: 12
     succession: 1
