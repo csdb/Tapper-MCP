@@ -181,14 +181,27 @@ sub reboot_system
                 alarm(0);
                 return 0 if not $@;
         }
-        
+
         # else trigger reset switch
-        $self->log->info("Try reboot via reset switch");
-        my $cmd = $self->cfg->{osrc_rst}." -f $host";
-        $self->log->info("trying $cmd");
-        my ($error, $retval) = $self->log_and_exec($cmd);
-        return $retval if $error;
-	return 0;
+
+        my $reset_plugin         = $self->cfg->{reset_plugin};
+        my $reset_plugin_options = $self->cfg->{reset_plugin_options};
+
+        my $reset_class = "Artemis::MCP::Net::Reset::$reset_plugin";
+        eval "use $reset_class";
+
+        if ($@) {
+                return "Could not load $reset_class";
+        } else {
+                no strict 'refs'; ## no critic
+                $self->log->info("Call $reset_class::reset_host($host)");
+                my ($error, $retval) = ${"$reset_class::reset_host"}->($self, $host, $reset_plugin_options);
+                if ($error) {
+                        $self->log->info("Error occured: ".$@);
+                        return $retval;
+                }
+                return 0;
+        }
 }
 
 
