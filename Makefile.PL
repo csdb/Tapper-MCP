@@ -6,6 +6,7 @@ use inc::Module::Install;
 name     'Artemis-MCP';
 all_from 'lib/Artemis/MCP.pm';
 author   'OSRC SysInt Team <osrc-sysint@elbe.amd.com>';
+license  'freebsd';
 
 build_requires 'Test::Fixture::DBIC::Schema' => 0;
 build_requires 'Test::Perl::Critic'          => 0;
@@ -46,7 +47,6 @@ requires 'Template'                   => 0;
 requires 'YAML'                       => 0;
 requires 'parent'                     => 0;
 requires 'aliased'                    => 0;
-
 
 WriteAll;
 
