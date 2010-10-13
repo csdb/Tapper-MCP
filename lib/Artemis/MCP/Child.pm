@@ -558,6 +558,13 @@ sub wait_for_testrun
                 ($timeout, $prc_state, $to_start, $to_stop) = $self->time_reduce(time() - $lastrun, $prc_state, $to_start, $to_stop)
         }
         my @report_array;
+
+        # I do not know, how this is possible but it does happen sometimes
+        if (not ($prc_state and ref($prc_state) eq 'ARRAY')) {
+                push @report_array, {msg => "Can't get PRC state, please inform your admin", error => 1};
+                $prc_state = [];
+        }
+
         for (my $i = 0; $i <= $#{$prc_state}; $i++) {
                 push @report_array, @{$prc_state->[$i]->{results}};
         }
