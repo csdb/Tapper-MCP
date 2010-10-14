@@ -559,14 +559,15 @@ sub wait_for_testrun
         }
         my @report_array;
 
-        # I do not know, how this is possible but it does happen sometimes
-        if (not ($prc_state and ref($prc_state) eq 'ARRAY')) {
-                push @report_array, {msg => "Can't get PRC state, please inform your admin", error => 1};
-                $prc_state = [];
-        }
-
         for (my $i = 0; $i <= $#{$prc_state}; $i++) {
-                push @report_array, @{$prc_state->[$i]->{results}};
+                if (not $prc_state->[$i]->{results}){
+                        push @report_array, { msg   => "No results for PRC$i, please inform your administrator", 
+                                              error => 1 };
+                } elsif ( ref($prc_state->[$i]->{results}) eq 'ARRAY') {
+                        push @report_array, @{$prc_state->[$i]->{results}};
+                } else {
+                        push @report_array, $prc_state->[$i]->{results};
+                }
         }
         return { report_array => \@report_array,
                  prc_state    => $prc_state,
