@@ -16,6 +16,7 @@ build_requires 'Artemis::Test'               => '2.010005';
 build_requires 'Cwd'                         => 0;
 build_requires 'String::Diff'                => 0;
 build_requires 'File::Spec'                  => 0;
+build_requires 'TryCatch'                    => "1.003";
 
 requires 'perl'                       => '5.010';
 requires 'App::Daemon'                => 0;
@@ -23,6 +24,7 @@ requires 'Artemis::Base'              => '0.010009';
 requires 'Artemis::Config'            => '2.010060';
 requires 'Artemis::Model'             => '2.010016';
 requires 'Artemis::Schema'            => '2.010093';
+requires 'Artemis::Cmd'               => '2.010031';
 requires 'Perl6::Junction'            => 0;
 requires 'Carp'                       => 0;
 requires 'Data::Dumper'               => 0;
