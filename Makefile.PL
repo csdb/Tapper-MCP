@@ -23,7 +23,6 @@ requires 'Artemis::Base'              => '0.010009';
 requires 'Artemis::Config'            => '2.010060';
 requires 'Artemis::Model'             => '2.010016';
 requires 'Artemis::Schema'            => '2.010093';
-requires 'Artemis::Exception'         => '0.010006';
 requires 'Perl6::Junction'            => 0;
 requires 'Carp'                       => 0;
 requires 'Data::Dumper'               => 0;

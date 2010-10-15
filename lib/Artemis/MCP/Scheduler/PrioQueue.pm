@@ -5,8 +5,6 @@ use 5.010;
 ## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::PrioQueue
 {
-        use Artemis::Exception::Param;
-
         use Artemis::Model 'model';
         use aliased 'Artemis::Schema::TestrunDB::Result::TestrunScheduling';
 

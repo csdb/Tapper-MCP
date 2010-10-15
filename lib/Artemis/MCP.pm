@@ -8,7 +8,6 @@ our $VERSION = '2.000124';
 
 
 use Artemis::Config;
-use Artemis::Exception;
 use Moose;
 
 extends 'Artemis::Base';
