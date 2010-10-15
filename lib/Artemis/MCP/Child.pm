@@ -9,7 +9,7 @@ use IO::Select;
 use IO::Socket::INET;
 use List::Util qw(min max);
 use Moose;
-use UNIVERSAL qw (can);
+#use UNIVERSAL;
 use YAML::Syck;
 
 use Artemis::MCP::Net;

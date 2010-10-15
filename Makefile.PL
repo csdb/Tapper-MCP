@@ -19,7 +19,7 @@ build_requires 'File::Spec'                  => 0;
 build_requires 'TryCatch'                    => "1.003";
 
 requires 'perl'                       => '5.010';
-requires 'App::Daemon'                => 0;
+#requires 'App::Daemon'                => 0;
 requires 'Artemis::Base'              => '0.010009';
 requires 'Artemis::Config'            => '2.010060';
 requires 'Artemis::Model'             => '2.010016';

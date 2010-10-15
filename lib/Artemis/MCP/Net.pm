@@ -188,7 +188,7 @@ sub reboot_system
         my $reset_plugin_options = $self->cfg->{reset_plugin_options};
 
         my $reset_class = "Artemis::MCP::Net::Reset::$reset_plugin";
-        eval "use $reset_class";
+        eval "use $reset_class"; ## no critic
 
         if ($@) {
                 return "Could not load $reset_class";
@@ -229,8 +229,9 @@ sub copy_grub_file
         return qq{Can not find IP address of "$artemis_host".} if not $artemis_ip;
         $artemis_ip = inet_ntoa($artemis_ip);
 
+        my $GRUBFILE;
         if (-e $source) {
-                open(my $GRUBFILE, "<", $source) or
+                open($GRUBFILE, "<", $source) or
                   return "Can open $source for reading: $!";
         }elsif (-e $self->cfg->{path}->{autoinstall}{grubfiles}.$source) {
                 open($GRUBFILE, "<", $self->cfg->{path}->{autoinstall}{grubfiles}.$source) or
