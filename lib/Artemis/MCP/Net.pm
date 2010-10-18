@@ -170,7 +170,7 @@ sub reboot_system
                         local $SIG{ALRM} = sub{ die("timeout in login") };
                         alarm(10);
                         my $login_output = $ssh->login();
-                
+
                         if ($login_output and $login_output !~ /ogin:/)
                         {
                                 $self->log->info("Logged in. Try exec reboot");
@@ -194,10 +194,10 @@ sub reboot_system
                 return "Could not load $reset_class";
         } else {
                 no strict 'refs'; ## no critic
-                $self->log->info("Call $reset_class::reset_host($host)");
-                my ($error, $retval) = ${"$reset_class::reset_host"}->($self, $host, $reset_plugin_options);
+                $self->log->info("Call ${reset_class}::reset_host($host)");
+                my ($error, $retval) = &{"${reset_class}::reset_host"}($self, $host, $reset_plugin_options);
                 if ($error) {
-                        $self->log->info("Error occured: ".$@);
+                        $self->log->error("Error occured: ".$retval);
                         return $retval;
                 }
                 return 0;
