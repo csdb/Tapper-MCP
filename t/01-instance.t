@@ -22,7 +22,6 @@ my @modules = ('Artemis::MCP',
                'Artemis::MCP::Scheduler::Builder',
                'Artemis::MCP::Scheduler::PreconditionProducer',
                'Artemis::MCP::Scheduler::Controller',
-               'Artemis::MCP::Scheduler::MergedQueue',
               );
 
 my @roles = (
