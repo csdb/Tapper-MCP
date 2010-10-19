@@ -8,12 +8,12 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
         requires 'queues';
 
         use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
-        use TryCatch;
         use Data::Dumper;
 
         method get_virtual_finishing_time($queue) # Queue
         {
-                return ($queue->runcount + 1.0) / $queue->priority;
+                my $prio = $queue->priority || 1;
+                return ($queue->runcount + 1.0) / $prio;
         }
 
 
