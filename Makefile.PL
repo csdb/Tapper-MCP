@@ -48,5 +48,7 @@ requires 'YAML'                       => 0;
 requires 'parent'                     => 0;
 requires 'aliased'                    => 0;
 
+install_script glob('bin/*');
+
 WriteAll;
 
