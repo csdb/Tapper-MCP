@@ -26,12 +26,8 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
                 {
                         my $this_vft;
 
-                        try {
-                             $this_vft = $self->get_virtual_finishing_time($q);
-                            }
-                            catch($e) {
-                                    die ($e->msg," at ", $e->line,"\n");
-                            }
+                        $this_vft = $self->get_virtual_finishing_time($q);
+
                         if (not defined $vft)
                         {
                                 $vft   = $this_vft;
