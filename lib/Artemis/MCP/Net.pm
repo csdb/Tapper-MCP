@@ -236,7 +236,7 @@ sub write_grub_file
 	open (my $GRUBFILE, ">", $grub_file) or return "Can open ".$self->cfg->{paths}{grubpath}."/$system.lst for writing: $!";
 
         my $tftp_server = $self->cfg->{tftp_server_address};
-        my $kernel = $self->cfg->{paths}{nfskernel_path}."/bzImage";
+        my $kernel = $self->cfg->{files}{installer_kernel};
         my $nfsroot = $self->cfg->{paths}{nfsroot};
 	if (not $text) {
                 $text = <<END;
