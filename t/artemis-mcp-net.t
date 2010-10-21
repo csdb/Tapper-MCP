@@ -19,7 +19,7 @@ use TAP::DOM;
 use Artemis::MCP::Net;
 use Artemis::Schema::TestTools;
 
-use Test::More tests => 12;
+use Test::More;
 use Test::Deep;
 
 BEGIN { use_ok('Artemis::MCP::Net'); }
@@ -95,37 +95,6 @@ SKIP:{
         $srv->conserver_disconnect($console);
 }
 
-#######################################
-#
-#        Test grub file handling
-#
-######################################
-my $cwd = cwd();
-$retval = $srv->copy_grub_file('bullock', $cwd.'/t/misc_files/source_grub.lst');
-is($retval, 0, 'copy grub file');
-
-my ($target, $source);
-{
-        open(SOURCE, "<","$cwd/t/misc_files/source_grub.lst") or die "Can't open $cwd/t/misc_files/source_grub.lst: $!";
-        local $/;
-        $source = <SOURCE>;
-        close SOURCE;
-}
-{
-        open(TARGET, "<",$srv->cfg->{paths}{grubpath}."bullock.lst") or die "Can't open ".$srv->cfg->{paths}{grubpath}."bullock.lst".": $!";
-        local $/;
-        $target = <TARGET>;
-        close TARGET;
-}
-
-my ($old_string ,$new_string) = String::Diff::diff($source, $target, remove_open => '<del>',
-             remove_close => '</del>',
-             append_open => '<ins>',
-             append_close => '</ins>', );
-unlike($old_string, qr/<del>/, 'Nothing taken away from grub file while copy');
-my $artemis_host = Sys::Hostname::hostname();
-like($new_string, qr/<ins> artemis_host=$artemis_host artemis_ip=(\d{1,3}\.){3}\d{1,3}<\/ins>/, 'Artemis host added to grub file while copy');
-
 
 
 $pid=fork();
@@ -160,3 +129,5 @@ if ($pid==0) {
 
         waitpid($pid,0);
 }
+
+done_testing();
