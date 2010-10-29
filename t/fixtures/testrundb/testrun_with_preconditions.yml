@@ -29,6 +29,14 @@
     notes: perfmon
     topic_name: Software
 
+- schema: TestrunScheduling
+  name: Xen-aaa3
+  data:
+    id: 100
+    testrun_id: 23
+    host_id: 6
+
+
 - schema: Testrun
   name: lmbench
   data:
@@ -46,6 +54,14 @@
     shortname: foobar
     topic_name: Software
     wait_after_tests: 5
+
+- schema: TestrunScheduling
+  name: Xen-aaa3
+  data:
+    id: 101
+    testrun_id: 4
+    host_id: 6
+
 
 - schema: Testrun
   name: foobar
@@ -217,3 +233,95 @@
     testrun_id: 100
     precondition_id: 102
     succession: 2
+# ------------------- Host --------------
+
+- schema: Host
+  name: iring
+  data:
+    id: 5
+    name: iring
+    free: 1
+    active: 1
+
+- schema: Host
+  name: bullock
+  data:
+    id: 6
+    name: bullock
+    free: 1
+    active: 1
+
+- schema: Host
+  name: dickstone
+  data:
+    id: 7
+    name: dickstone
+    free: 1
+    active: 1
+
+# ---------------- HostFeature ------------
+
+- schema: HostFeature
+  name: dickstone_ram
+  data:
+    id: 1
+    host_id: 7
+    entry: mem
+    value: 4096
+
+- schema: HostFeature
+  name: dickstone_vendor
+  data:
+    id: 2
+    host_id: 7
+    entry: vendor
+    value: AMD
+
+- schema: HostFeature
+  name: dickstone_cores
+  data:
+    id: 3
+    host_id: 7
+    entry: cores
+    value: 2
+
+- schema: HostFeature
+  name: dickstone_ram
+  data:
+    id: 4
+    host_id: 7
+    entry: keyword
+    value: server
+
+- schema: HostFeature
+  name: iring_ram
+  data:
+    id: 5
+    host_id: 5
+    entry: mem
+    value: 8192
+
+- schema: HostFeature
+  name: iring_vendor
+  data:
+    id: 6
+    host_id: 5
+    entry: vendor
+    value: Intel
+
+- schema: HostFeature
+  name: iring_cores
+  data:
+    id: 7
+    host_id: 5
+    entry: cores
+    value: 1
+
+- schema: HostFeature
+  name: iring_ram
+  data:
+    id: 8
+    host_id: 5
+    entry: keyword
+    value: testmachine
+
