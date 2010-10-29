@@ -57,9 +57,7 @@
     id: 4
     owner_user_id: 12
     shortname: foobar
-    notes: Used to provide hardware_id
     topic_name: Software
-    hardwaredb_systems_id: 8
     wait_after_tests: 5
 
 - schema: Testrun
@@ -70,7 +68,6 @@
     shortname: autoinstall
     notes: this testrun only exists to test autoinstall preconditions
     topic_name: Software
-    hardwaredb_systems_id: 8
     wait_after_tests: ~
 
 
