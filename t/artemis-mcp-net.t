@@ -28,7 +28,6 @@ my $hw_send_testrun_id=112;
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
 # (XXX) need to find a way to include log4perl into tests to make sure no

@@ -94,8 +94,6 @@ my $mock_inet = new Test::MockModule('IO::Socket::INET');
 $mock_inet->mock('new', sub{my $inet = bless {sockport => sub {return 12;}}; return $inet});
 
 my $testrun    = 1;
-my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
-$mock_child->mock('set_hardwaredb_systems_id',sub{return 0;});
 my $child      = Artemis::MCP::Child->new($testrun);
 
 my $retval = $child->runtest_handling('dickstone');

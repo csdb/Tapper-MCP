@@ -22,7 +22,6 @@ use YAML;
 
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling_run2.yml' );
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # --------------------------------------------------------------------------------
 
 qx(touch t/misc_files/kernel_producer/kernel/x86_64/kernel_file3.tar.gz);  # make sure file3 is the newest

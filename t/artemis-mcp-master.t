@@ -24,7 +24,6 @@ BEGIN { use_ok('Artemis::MCP::Master'); }
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_scheduling.yml' );
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
 my $mockmaster = Test::MockModule->new('Artemis::MCP::Master');

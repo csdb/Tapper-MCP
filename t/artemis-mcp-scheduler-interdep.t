@@ -34,7 +34,6 @@ Log::Log4perl->init(\$string);
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/scenario_testruns.yml' );
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
 # Scheduling order: (KVM, Kernel, Xen)*
