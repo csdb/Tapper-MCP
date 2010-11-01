@@ -9,9 +9,10 @@ use Log::Log4perl;
 BEGIN { use_ok('Artemis::MCP::Net'); }
 
 # (XXX) need to find a way to include log4perl into tests to make sure
-# no errors reported through this framework are missed
+# no errors reported through this framework are missed. Till then we ignore
+# the log messages. These are ok.
 my $string = "
-log4perl.rootLogger                               = INFO, root
+log4perl.rootLogger                               = FATAL, root
 log4perl.appender.root                            = Log::Log4perl::Appender::Screen
 log4perl.appender.root.layout                     = SimpleLayout";
 Log::Log4perl->init(\$string);
