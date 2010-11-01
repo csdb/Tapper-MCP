@@ -157,3 +157,79 @@
 
 
 
+# ---------------- HostFeature ------------
+
+- schema: HostFeature
+  name: kobold_ram
+  data:
+    id: 1
+    host_id: 101
+    entry: mem
+    value: 4096
+
+- schema: HostFeature
+  name: kobold_vendor
+  data:
+    id: 2
+    host_id: 101
+    entry: vendor
+    value: AMD
+
+- schema: HostFeature
+  name: kobold_cores
+  data:
+    id: 3
+    host_id: 101
+    entry: cores
+    value: 2
+
+- schema: HostFeature
+  name: kobold_ram
+  data:
+    id: 4
+    host_id: 101
+    entry: keyword
+    value: server
+
+
+
+- schema: HostFeature
+  name: iring_ram
+  data:
+    id: 5
+    host_id: 5
+    entry: mem
+    value: 8192
+
+- schema: HostFeature
+  name: iring_vendor
+  data:
+    id: 6
+    host_id: 5
+    entry: vendor
+    value: Intel
+
+- schema: HostFeature
+  name: iring_cores
+  data:
+    id: 7
+    host_id: 5
+    entry: cores
+    value: 1
+
+- schema: HostFeature
+  name: iring_ram
+  data:
+    id: 8
+    host_id: 5
+    entry: keyword
+    value: testmachine
+
+- schema: HostFeature
+  name: kobold_ecc
+  data:
+    id: 9
+    host_id: 101
+    entry: has_ecc
+    value: 1
+
