@@ -39,33 +39,6 @@ Artemis::MCP::Child - Control one specific testrun on MCP side
 =head1 FUNCTIONS
 
 
-=head2 set_hardwaredb_systems_id
-
-Set the actual hardwaredb_systems_id of the used test machine.
-
-@param Testrun id object - found testrun result
-
-@return success - 0
-@return error   - error string
-
-=cut
-
-sub set_hardwaredb_systems_id
-{
-        my ($self, $hostname) = @_;
-
-        my $testrun = model('TestrunDB')->resultset('Testrun')->find($self->testrun);
-        return "Testrun with id ".$self->testrun." not found" if not $testrun;
-        my $host = model('HardwareDB')->resultset('Systems')->search({systemname => $hostname, active => 1})->first;
-        return "Can not find $hostname in hardware db, databases out of sync" if not $host;
-        $testrun->hardwaredb_systems_id($host->lid);
-        eval {
-                $testrun->update();
-        };
-        return "Can not update host_id for testrun $testrun: $@" if $@;
-        return 0;
-}
-
 
 =head2 net_read_do
 
@@ -651,9 +624,11 @@ sub tap_reports_prc_state {
 
         my $testrun_id = $self->testrun;
         my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
-        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
         my $hostname;
-        $hostname    = $host->systemname if $host;
+        eval {
+                # parts of this chain may be undefined
+                $hostname = $run->testrun_scheduling->host->name;
+        };
         $hostname    = $hostname // 'No hostname set';
         $prc_state ||= [];
 
@@ -693,8 +668,6 @@ sub runtest_handling
         my  ($self, $hostname) = @_;
         #my $retval;
 
-        my $hwdb_retval = $self->set_hardwaredb_systems_id($hostname);
-        return $hwdb_retval if $hwdb_retval;
 
         my $srv    = IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
         return("Can't open socket for testrun $self->{testrun}:$!") if not $srv;
@@ -724,7 +697,7 @@ sub runtest_handling
                 return $reboot_retval if $reboot_retval;
 
                 $error = $net->hw_report_send($self->testrun);
-                return $error if $error;
+                $self->log->error($error) if $error;
         }
 
         my $sysinstall_retval = $self->wait_for_systeminstaller($srv, $config, $net);
