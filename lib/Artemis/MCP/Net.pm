@@ -16,7 +16,7 @@ use YAML;
 
 extends 'Artemis::MCP';
 
-use Artemis::Model qw(model get_hardwaredb_overview);
+use Artemis::Model qw(model get_hardware_overview);
 
 =head2 conserver_connect
 
@@ -367,9 +367,12 @@ sub suite_headerlines {
         my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
         my $topic = $run->topic_name() || $run->shortname();
         $topic =~ s/\s+/-/g;
-        my $host     = model('HardwareDB')->resultset('Systems')->find($run->hardwaredb_systems_id);
         my $hostname;
-        $hostname    = $host->systemname if $host;
+
+        eval {
+                # parts of this chain may not exists and thus thow an exception
+                $hostname = $run->testrun_scheduling->host->name;
+                };
         $hostname    = $hostname // 'No hostname set';
 
         my $headerlines = [
@@ -437,7 +440,14 @@ sub hw_report_send
 {
         my ($self, $testrun_id) = @_;
         my $run       = model->resultset('Testrun')->find($testrun_id);
-        my $data = get_hardwaredb_overview($run->hardwaredb_systems_id);
+        my $host;
+        eval {
+                # parts of this chain may be undefined
+                $host = $run->testrun_scheduling->host;
+        };
+        return qq(testrun '$testrun_id' has no host associated) unless $host;
+
+        my $data = get_hardware_overview($host->id);
         my $yaml = Dump($data);
         $yaml   .= "...\n";
         $yaml =~ s/^(.*)$/  $1/mg;  # indent
@@ -451,7 +461,7 @@ TAP Version 13
 ok 1 - Getting hardware information
 %s
 ok 2 - Sending
-", $testrun_id, $Artemis::MCP::VERSION, Artemis::Model::get_hostname_for_systems_id($run->hardwaredb_systems_id), $yaml);
+", $testrun_id, $Artemis::MCP::VERSION, $host->name, $yaml);
 
         my ($error, $error_string) = $self->tap_report_away($report);
         return $error_string if $error;
