@@ -16,6 +16,7 @@ use YAML::Syck;
 use Cwd;
 use TAP::DOM;
 
+use Artemis::MCP; # for $VERSION
 use Artemis::MCP::Net;
 use Artemis::Schema::TestTools;
 
@@ -24,7 +25,7 @@ use Test::Deep;
 
 BEGIN { use_ok('Artemis::MCP::Net'); }
 
-my $hw_send_testrun_id=112;
+my $hw_send_testrun_id=23;
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -123,8 +124,23 @@ if ($pid==0) {
         };
         is($@, '', 'Getting data from hw_report_send');
 
-        my $dom = TAP::DOM->new(tap => $content);
-        is ($dom->{lines}[3]{_children}[0]{data}{network}[0]{vendor}, 'RealTek', 'Content from hw report');
+        is($content, "
+TAP Version 13
+1..2
+# Artemis-Reportgroup-Testrun: 23
+# Artemis-Suite-Name: Hardwaredb Overview
+# Artemis-Suite-Version: $Artemis::MCP::VERSION
+# Artemis-Machine-Name: dickstone
+ok 1 - Getting hardware information
+  ---
+  cores: 2
+  keyword: server
+  mem: 4096
+  vendor: AMD
+  ...
+
+ok 2 - Sending
+", 'Hardware report received');
 
         waitpid($pid,0);
 }
