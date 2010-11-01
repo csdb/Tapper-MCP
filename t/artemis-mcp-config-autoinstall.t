@@ -76,34 +76,42 @@ is($config->{installer_grub},
 
 
 
-#''''''''''''''''''''''''''''''''''''#
-#                                    #
-#       Permanent mocking            #
-#                                    #
-#''''''''''''''''''''''''''''''''''''#
-
+#''''''''''''''''''''''''''''''''''''''''''''#
+# When autoinstall started the installation  #
+# MCP is supposed to provide a new grub file #
+# for starting from hard disc.               #
+# The following test checks whether this     #
+# file is created correctly.                 #
+#''''''''''''''''''''''''''''''''''''''''''''#
+my $grubtext;
 my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
+
 my $mock_net = new Test::MockModule('Artemis::MCP::Net');
 $mock_net->mock('reboot_system',sub{return 0;});
 $mock_net->mock('tap_report_send',sub{return 0;});
 $mock_net->mock('upload_files',sub{return 0;});
-$mock_net->mock('write_grub_file',sub{return 0;});
-$mock_net->mock('hw_report_send',sub{return 17;});
-my $mock_conf = new Test::MockModule('Artemis::MCP::Config');
+$mock_net->mock('write_grub_file',sub{(undef, undef, $grubtext) = @_;return 0;});
+$mock_net->mock('hw_report_send',sub{return 0;});
+
 my $mock_inet = new Test::MockModule('IO::Socket::INET');
 $mock_inet->mock('new', sub{my $inet = bless {sockport => sub {return 12;}}; return $inet});
+
+my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
+$mock_child->mock('get_message',sub{ return {state => 'start-install'}});
+
 
 my $testrun    = 1;
 my $child      = Artemis::MCP::Child->new($testrun);
 
 my $retval = $child->runtest_handling('dickstone');
-is($retval, 17, 'runtesthandling returns because of mocked hwreport');
+is($retval,
+   qq(MCP expected state end-install or error-install but remote system is in state "start-install"),
+   'runtesthandling returns because of mocked reboot');
 
-my $filename = Artemis::Config::subconfig->{paths}{localdata_path}."/dickstone-test-prc0";
-ok(-r $filename, 'test config file exists and can be opened');
+is ($grubtext, 'timeout 2
 
-my $testconfig = LoadFile($filename);
-is(ref $testconfig, 'HASH', 'Test config contains a hash');
-is($testconfig->{test_run}, 1, 'Testrun set in test config');
+title Boot from first hard disc
+	chainloader (hd0,1)+1',
+    'Grubfile written');
 
 done_testing();
