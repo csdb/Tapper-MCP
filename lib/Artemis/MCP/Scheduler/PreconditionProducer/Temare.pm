@@ -22,6 +22,8 @@ class Artemis::MCP::Scheduler::PreconditionProducer::Temare extends Artemis::MCP
                 return {error => $yaml} if $?;
                 
                 my $config = LoadFile($file);
+                close $fh;
+                unlink $file if -e $file;
                 my $topic = $config->{subject} || 'Misc';
                 return {
                         topic => $topic,
