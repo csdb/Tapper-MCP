@@ -80,6 +80,7 @@ Check whether we need to change from scheduling white bandwidth to black bandwid
 
 
                                 my $queue = $self->algorithm->lookup_next_queue($queues);
+                                return () unless $queue;
                                 if ($job = $queue->get_first_fitting($free_hosts)) {
                                         if ($job->auto_rerun) {
                                                 $job->testrun->rerun;
