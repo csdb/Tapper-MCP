@@ -179,7 +179,12 @@ sub reboot_system
                         }
                 };
                 alarm(0);
-                return 0 if not $@;
+                if ( $@) {
+                        $self->log->warn("SSH reboot of $host unsuccessful: $@");
+                }
+                else {
+                        return 0;
+                }
         }
 
         # else trigger reset switch
