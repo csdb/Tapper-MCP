@@ -97,10 +97,15 @@ sub conserver_disconnect
 {
         my ($self, $sock) = @_;
         if ($sock) {
-                if ($sock->can("connected") and $sock->connected()) {
-                        print ($sock "\005c.\n");
-                        <$sock>; # ignore return value, since we close the socket anyway
-                }
+                eval {
+                        local $SIG{ALRM} = sub { die 'Timeout'; };
+                        alarm (2);
+                        if ($sock->can("connected") and $sock->connected()) {
+                                print ($sock "\005c.\n");
+                                <$sock>; # ignore return value, since we close the socket anyway
+                        }
+                };
+                alarm (2);
                 $sock->close() if $sock->can("close");
         }
 }
@@ -186,7 +191,13 @@ sub reboot_system
         $self->log->info("Try reboot via reset switch");
         my $cmd = $self->cfg->{osrc_rst}." -f $host";
         $self->log->info("trying $cmd");
-        my ($error, $retval) = $self->log_and_exec($cmd);
+        my ($error, $retval);
+        eval {
+                local $SIG{ALRM} = sub{ die("Timeout") };
+                alarm(30);
+                ($error, $retval) = $self->log_and_exec($cmd);
+        };
+        alarm(0);
         return $retval if $error;
 	return 0;
 }
