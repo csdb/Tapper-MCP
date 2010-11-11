@@ -97,10 +97,15 @@ sub conserver_disconnect
 {
         my ($self, $sock) = @_;
         if ($sock) {
-                if ($sock->can("connected") and $sock->connected()) {
-                        print ($sock "\005c.\n");
-                        <$sock>; # ignore return value, since we close the socket anyway
-                }
+                eval {
+                        local $SIG{ALRM} = sub { die 'Timeout'; };
+                        alarm (2);
+                        if ($sock->can("connected") and $sock->connected()) {
+                                print ($sock "\005c.\n");
+                                <$sock>; # ignore return value, since we close the socket anyway
+                        }
+                };
+                alarm (2);
                 $sock->close() if $sock->can("close");
         }
 }

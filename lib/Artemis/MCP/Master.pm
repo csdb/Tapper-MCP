@@ -181,6 +181,7 @@ Close a given console connection.
                 $self->readset->remove($console);
                 my $net = Artemis::MCP::Net->new();
                 $net->conserver_disconnect($console);
+                alarm 0;
                 return 0;
         }
 
