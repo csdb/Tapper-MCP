@@ -1,0 +1,385 @@
+package Artemis::MCP::State;
+
+use 5.010;
+use strict;
+use warnings;
+
+use Moose;
+
+has state_details => {is => 'rw'};
+has all_states    => {started        => 1,
+                      reboot_install => 2,
+                      installing     => 3,
+                      reboot_test    => 4,
+                      testing        => 5,
+                      finished       => 6,
+                     };
+
+
+=head1 NAME
+
+Artemis::MCP::State - Keep state information for one specific test run
+
+=head1 SYNOPSIS
+
+ use Artemis::MCP::State;
+ my $state_handler = Artemis::MCP::State->new($testrun_id);
+ my $state = $state_handler->get_current_state();
+ $self->compare_given_state($state);
+
+=head1 FUNCTIONS
+
+
+
+=head2 get_current_state
+
+Returns the name of the current state.
+
+@return string - state name
+
+=cut
+
+sub get_current_state
+{
+        my ($self) = @_;
+        return $self->state_details->{current_state};
+}
+
+=head2 current_state_earlier
+
+Compare the current state to a given state name. Return -1 if the given
+state is earlier then the current, 1 if the current state is earlier
+then the given one and 0 if both are equal.
+
+@param string - state name
+
+@return current state is earlier -  1
+@return given   state is earlier - -1
+@return states are equal         -  0
+
+=cut
+
+sub compare_given_state
+{
+        my ($self, $given_state) = @_;
+        return $self->all_states->{$given_state} <=> $self->all_states($self->get_current_state);
+}
+
+=head2 get_current_timeout_span
+
+Returns the time in seconds since the next timeout hits. When multiple
+timeouts are currently running (during test with multiple PRCs) the
+lowest of these timeouts is choosen. This value can be used for sleeping
+in reads.
+
+@return int - timeout span in seconds
+
+=cut
+
+sub get_current_timeout_span
+{
+
+}
+
+=head2 state_init
+
+Initialize the state or read it back from database.
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub state_init
+{
+        my ($data, $revive) = @_;
+}
+
+=head2 update_timeouts
+
+Update the timeouts in $self->state_details structure.
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub update_timeouts
+{
+
+}
+
+
+=head2 msg-start-install
+
+Handle message start-install
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg-start-install
+{
+        my ($self, $msg) = @_;
+        if ($self->state_detail->{current_state} ne 'reboot_install'){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received start-install in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in state reboot_install"
+                };
+                $self->state_detail->{current_state} = 'finished';
+                return (1,undef);
+        }
+        
+        $self->state_detail->{current_state} = 'installing';
+        $self->state_detail->{install}->{timeout_current_date} = 
+          time + $self->state_detail->{install}->{timeout_install_span};
+        return (0, $self->state_detail->{install}->{timeout_install_span});
+}
+
+=head2 msg-end-install
+
+Handle message end-install
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg-end-install
+{
+        my ($self, $msg) = @_;
+        if ($self->state_detail->{current_state} ne 'installing'){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received end-install in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in state installing"
+                };
+                $self->state_detail->{current_state} = 'finished';
+                return (1,undef);
+        }
+        
+        $self->state_detail->{current_state}                     = 'reboot_test';
+        $self->state_detail->{prcs}->[0]->{timeout_current_date} = 
+          time + $self->state_detail->{prcs}->[0]->{timeout_boot_span};
+        return (0, $self->state_detail->{prcs}->[0]->{timeout_boot_span});
+}
+
+=head2 msg-error-install
+
+Handle message error-install
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg-error-install
+{
+        my ($self, $msg) = @_;
+        if ($self->state_detail->{current_state} ne 'installing'){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received end-install in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in state installing"
+                };
+                $self->state_detail->{current_state} = 'finished';
+        }
+
+        push @[$self->state_detail->{results}], 
+        {
+         error => 1,
+         msg   => "Installation failed: ".$msg->{error};
+        };
+        $self->state_detail->{current_state} = 'finished';
+        
+        return (1, undef);
+}
+
+=head2 msg-start-testing
+
+Handle message start-testing
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg-start-testing
+{
+        my ($self, $msg) = @_;
+
+        if (($self->state_detail->{current_state} ne 'reboot_test') and
+            ($self->state_detail->{current_state} ne 'testing')){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received start-testing in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in states reboot_test or testing"
+                };
+                $self->state_detail->{current_state} = 'finished';
+        }
+
+        my $this_prc = $self->state->{prcs}->[$msg->{prc_number}];
+        $this_prc->{number_current_test} +=1;
+        $this_prc->{timeout_current_date} = 
+          time() + $this_prc->{timeout_testprograms_span}->[$this_prc->{number_current_test}];
+        push @{$self->state_detail->{results}}, 
+        {
+         error => 0,
+         msg   => "Testprogram ".$msg->{testprogram}" finished in PRC ".$msg->{prc_number};
+        };
+
+        push @{$this_prc->{results}}, 
+        {
+         error => 0,
+         msg   => "Testprogram ".$msg->{testprogram}" finished in PRC ".$msg->{prc_number};
+        };
+
+        if ($msg->{prc_number} == 0) {
+                for ( my $i=1; $i = @{$self->state->{prcs}}; $i++) {
+                        $self->state->{prcs}->[$i]->{timeout_current_date} = 
+                          time() + $self->state->{prcs}->[$i]->{timeout_boot_span};
+                }
+        }
+
+        $self->state_detail->{current_state} = 'testing';
+        
+        return (1, undef);
+}
+
+
+=head2
+
+Update the state based on a message received from caller. The function
+returns a timeout span value that is the lowest of all currently active
+timeouts. The given message can be empty. In this case only timeouts are
+checked and updated if needed.
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub update_state
+{
+        my ($msg) = @_;
+        my ($error, $timeout_span);
+        my $now = time();
+
+        if ($msg and ref($msg) eq 'HASH') {
+                given $msg->{state} {
+                        when 'start-install'     { ($error, $timeout_span) = $self->msg-start-install($msg) };
+                        when 'end-install'       { ($error, $timeout_span) = $self->msg-end-install($msg) };
+                        when 'error-install'     { ($error, $timeout_span) = $self->msg-error-install($msg) };
+                        when 'start-testing'     { ($error, $timeout_span) = $self->msg-start-testing($msg) };
+                        when 'end-testing'       { ($error, $timeout_span) = $self->msg-end-testing($msg) };
+                        when 'error-guest'       { ($error, $timeout_span) = $self->msg-error-guest($msg) };
+                        when 'error-testprogram' { ($error, $timeout_span) = $self->msg-error-testprogram($msg) };
+                        when 'end-testprogram'   { ($error, $timeout_span) = $self->msg-end-testprogram($msg) };
+                        when 'reboot'            { ($error, $timeout_span) = $self->msg-reboot($msg) };
+                        # (TODO) add default
+        }
+
+        return $self->update_timeouts();
+
+        $state_detail =
+        { 
+          current_state => (started|reboot_install|installing|reboot_test|testing|finished|)
+          results => [
+            {success => 1, msg => "Testprogram 0 in PRC 0 finished", },
+            {success => 0, msg => "Failed to boot PRC 2 after 1200 seconds", },
+            {success => 0, msg => "Testprogram 0 in PRC 0 not finished after 1200 seconds", },
+          ],
+          install => {
+          boot_timeout_span    => 1800,
+          timeout_install_span => 800,
+          timeout_current_date => 14524510,
+          },
+          prcs    => 
+        [{ timeout_testprograms_span => [ 10, 15, 5, 17],
+           timeout_current_date      =>  14524514,
+           number_current_test       =>  2,
+           state =>  'testing',
+           results => [{success => 1, msg => undef, },
+                       {success => 0, msg => 'Timeout reached', }],
+           timeout_boot_span => 1800,
+         },
+         { timeout_testprograms_span => [ 100, 3],
+           timeout_current_date      =>  14524523,
+           number_current_test       =>  undef,
+           state =>  'boot',
+           results => undef,
+           timeout_boot_span => 1200,
+         },
+         { timeout_testprograms_span => [ 100,3],
+           timeout_current_date =>  undef,
+           number_current_test =>  undef,
+           state =>  'fail',
+           results => [{success => 'FAIL', msg => 'Boot timeout reached', },
+                      ],
+           timeout_boot_span => 1200,
+         },
+        ]
+       }
+
+
+        return ($timeout_span);
+}
+
+=head2 testrun_finished
+
+Tells caller whether the testrun is already finished or not.
+
+@return TR     finished - 1
+@return TR not finished - 0
+
+=cut
+
+sub testrun_finished
+{
+        return $self->state_details->{current_state} eq 'finished' ? 1 : 0;
+}
+
+
+
+1;
+
+=head1 AUTHOR
+
+OSRC SysInt Team, C<< <osrc-sysint at elbe.amd.com> >>
+
+=head1 BUGS
+
+None.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+ perldoc Artemis
+
+
+=head1 ACKNOWLEDGEMENTS
+
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2008 OSRC SysInt Team, all rights reserved.
+
+This program is released under the following license: restrictive
+
