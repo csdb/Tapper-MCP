@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Moose;
+use List::Util qw/min/;
 
 has state_details => {is => 'rw'};
 has all_states    => {started        => 1,
@@ -109,8 +110,29 @@ sub update_timeouts
 
 }
 
+=head2 get_min_prc_timeout
 
-=head2 msg-start-install
+Check all PRCs and return the minimum of their upcoming timeouts in
+seconds.
+
+@return timeout span for the next state change during testing
+
+=cut
+
+sub get_min_prc_timeout
+{
+        my ($self) = @_;
+        my $now = time();
+        my $timeout = $self->state->{prcs}->[0]->{timeout_current_date} - $now;
+        
+        for ( my $i=1; $i = @{$self->state->{prcs}}; $i++) {
+                $timeout = min($timeout, $self->state->{prcs}->[$i]->{timeout_current_date} - $now);
+        }
+        return $timeout;
+}
+
+
+=head2 msg_start_install
 
 Handle message start-install
 
@@ -121,7 +143,7 @@ Handle message start-install
 
 =cut
 
-sub msg-start-install
+sub msg_start_install
 {
         my ($self, $msg) = @_;
         if ($self->state_detail->{current_state} ne 'reboot_install'){
@@ -141,7 +163,7 @@ sub msg-start-install
         return (0, $self->state_detail->{install}->{timeout_install_span});
 }
 
-=head2 msg-end-install
+=head2 msg_end_install
 
 Handle message end-install
 
@@ -152,7 +174,7 @@ Handle message end-install
 
 =cut
 
-sub msg-end-install
+sub msg_end_install
 {
         my ($self, $msg) = @_;
         if ($self->state_detail->{current_state} ne 'installing'){
@@ -172,7 +194,7 @@ sub msg-end-install
         return (0, $self->state_detail->{prcs}->[0]->{timeout_boot_span});
 }
 
-=head2 msg-error-install
+=head2 msg_error_install
 
 Handle message error-install
 
@@ -183,7 +205,7 @@ Handle message error-install
 
 =cut
 
-sub msg-error-install
+sub msg_error_install
 {
         my ($self, $msg) = @_;
         if ($self->state_detail->{current_state} ne 'installing'){
@@ -199,14 +221,113 @@ sub msg-error-install
         push @[$self->state_detail->{results}], 
         {
          error => 1,
-         msg   => "Installation failed: ".$msg->{error};
+         msg   => "Installation failed: ".$msg->{error},
         };
         $self->state_detail->{current_state} = 'finished';
         
         return (1, undef);
 }
 
-=head2 msg-start-testing
+=head2 msg_error_guest
+
+Handle message error-guest
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg_error_guest
+{
+        my ($self, $msg) = @_;
+        if (($self->state_detail->{current_state} ne 'reboot_test') and
+            ($self->state_detail->{current_state} ne 'testing')){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received error-guest in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in states testing and reboot_test "
+                };
+                $self->state_detail->{current_state} = 'finished';
+                return (1, undef);
+        }
+
+        push @[$self->state_detail->{results}], 
+        {
+         error => 1,
+         msg   => "Starting PRC ".$msg->{prc_number}." failed: ".$msg->{error},
+        };
+
+        my $nr = $msg->{prc_number};
+        delete $self->state->{prcs}->[$nr]->{timeout_current_date};
+        $self->state->{prcs}->[$nr]->{state} = 'fail';
+        push @{$self->state->{prcs}->[$nr]->{state}},
+        {
+         error => 1,
+         msg   => "Starting guest failed: ".$msg->{error},
+        };
+
+        # check whether this is the last PRC we are waiting for
+        my $all_finished = 1;
+        for ( my $i=0; $i = @{$self->state->{prcs}}; $i++) {
+                if ($self->state->{prcs}->[$i]->{state} ne 'finished') {
+                        $all_finished = 0;
+                        last;
+                }
+        }
+        if ($all_finished) {
+                $self->state_detail->{current_state} = 'finished';
+                return (1, undef);
+        }
+
+        my $timeout = $self->get_min_prc_timeout();
+        
+        return (0, $timeout);
+}
+
+
+=head2 msg_start_guest
+
+Handle message start-guest
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg_start_guest
+{
+        my ($self, $msg) = @_;
+
+        if (($self->state_detail->{current_state} ne 'reboot_test') and
+            ($self->state_detail->{current_state} ne 'testing')){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received start-guest in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in states reboot_test or testing"
+                };
+                $self->state_detail->{current_state} = 'finished';
+                return (1,undef);
+        }
+
+
+        my $nr = $msg->{prc_number};
+        $self->state->{prcs}->[$nr]->{state} = 'boot';
+        $self->state->{prcs}->[$nr]->{timeout_current_date} = 
+          time() + $self->state->{prcs}->[$nr]->{timeout_boot_span};
+
+        my $timeout = $self->get_min_prc_timeout();
+        
+        $self->state_detail->{current_state} = 'testing';
+        return (0,  $timeout);
+}
+
+=head2 msg_start_testing
 
 Handle message start-testing
 
@@ -217,7 +338,7 @@ Handle message start-testing
 
 =cut
 
-sub msg-start-testing
+sub msg_start_testing
 {
         my ($self, $msg) = @_;
 
@@ -230,34 +351,53 @@ sub msg-start-testing
                  "'. This message is only allowed in states reboot_test or testing"
                 };
                 $self->state_detail->{current_state} = 'finished';
+                return (1,undef);
         }
 
-        my $this_prc = $self->state->{prcs}->[$msg->{prc_number}];
-        $this_prc->{number_current_test} +=1;
-        $this_prc->{timeout_current_date} = 
-          time() + $this_prc->{timeout_testprograms_span}->[$this_prc->{number_current_test}];
-        push @{$self->state_detail->{results}}, 
-        {
-         error => 0,
-         msg   => "Testprogram ".$msg->{testprogram}" finished in PRC ".$msg->{prc_number};
-        };
-
-        push @{$this_prc->{results}}, 
-        {
-         error => 0,
-         msg   => "Testprogram ".$msg->{testprogram}" finished in PRC ".$msg->{prc_number};
-        };
-
-        if ($msg->{prc_number} == 0) {
-                for ( my $i=1; $i = @{$self->state->{prcs}}; $i++) {
-                        $self->state->{prcs}->[$i]->{timeout_current_date} = 
-                          time() + $self->state->{prcs}->[$i]->{timeout_boot_span};
-                }
-        }
-
-        $self->state_detail->{current_state} = 'testing';
+        my $timeout = $self->get_min_prc_timeout();
         
-        return (1, undef);
+        $self->state_detail->{current_state} = 'testing';
+        return (0,  $timeout);
+}
+
+
+=head2 msg_end_testprogram
+
+Handle message end-testprogram
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg_end_testprogram
+{
+        my ($self, $msg) = @_;
+
+        if ($self->state_detail->{current_state} ne 'testing'){
+                push @[$self->state_detail->{results}], 
+                {
+                 error => 1,
+                 msg   => "Received end_testprogram in state '".$self->state_detail->{current_state}.
+                 "'. This message is only allowed in states testing"
+                };
+                $self->state_detail->{current_state} = 'finished';
+                return (1,undef);
+        }
+
+        my $nr = $msg->{prc_number};
+        my $next_timeout = $self->state->{prcs}->[$nr]->{timeout_testprograms_span}->{$msg->{testprogram}+1};
+        if (defined($next_timeout) {
+                $self->state->{prcs}->[$nr]->{timeout_current_date} = time() + $next_timeout;
+        }
+        $self->state->{prcs}->[$nr]->{state} = 'test';
+
+        my $timeout = $self->get_min_prc_timeout();
+        
+        $self->state_detail->{current_state} = 'testing';
+        return (0,  $timeout);
 }
 
 
@@ -283,15 +423,16 @@ sub update_state
 
         if ($msg and ref($msg) eq 'HASH') {
                 given $msg->{state} {
-                        when 'start-install'     { ($error, $timeout_span) = $self->msg-start-install($msg) };
-                        when 'end-install'       { ($error, $timeout_span) = $self->msg-end-install($msg) };
-                        when 'error-install'     { ($error, $timeout_span) = $self->msg-error-install($msg) };
-                        when 'start-testing'     { ($error, $timeout_span) = $self->msg-start-testing($msg) };
-                        when 'end-testing'       { ($error, $timeout_span) = $self->msg-end-testing($msg) };
-                        when 'error-guest'       { ($error, $timeout_span) = $self->msg-error-guest($msg) };
-                        when 'error-testprogram' { ($error, $timeout_span) = $self->msg-error-testprogram($msg) };
-                        when 'end-testprogram'   { ($error, $timeout_span) = $self->msg-end-testprogram($msg) };
-                        when 'reboot'            { ($error, $timeout_span) = $self->msg-reboot($msg) };
+                        when 'start-install'     { ($error, $timeout_span) = $self->msg_start_install($msg)     };
+                        when 'end-install'       { ($error, $timeout_span) = $self->msg_end_install($msg)       };
+                        when 'error-install'     { ($error, $timeout_span) = $self->msg_error_install($msg)     };
+                        when 'start-guest'       { ($error, $timeout_span) = $self->msg_start_guest($msg)       };
+                        when 'error-guest'       { ($error, $timeout_span) = $self->msg_error_guest($msg)       };
+                        when 'start-testing'     { ($error, $timeout_span) = $self->msg_start_testing($msg)     };
+                        when 'end-testing'       { ($error, $timeout_span) = $self->msg_end_testing($msg)       };
+                        when 'error-testprogram' { ($error, $timeout_span) = $self->msg_error_testprogram($msg) };
+                        when 'end-testprogram'   { ($error, $timeout_span) = $self->msg_end_testprogram($msg)   };
+                        when 'reboot'            { ($error, $timeout_span) = $self->msg_reboot($msg)            };
                         # (TODO) add default
         }
 
