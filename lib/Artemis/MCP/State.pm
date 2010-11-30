@@ -46,7 +46,7 @@ sub get_current_state
         return $self->state_details->{current_state};
 }
 
-=head2 current_state_earlier
+=head2 compare_given_state
 
 Compare the current state to a given state name. Return -1 if the given
 state is earlier then the current, 1 if the current state is earlier
