@@ -284,16 +284,16 @@ sub get_state_config
                                  current => 0},
                      prcs    => {},
                     }
-          foreach my $prc {
-                           @{$self->mcp_info->{prc}}}{
-                                   my $prc_state = {
-                                                    timeout_boot_span => $prc->{timeouts}->{boot},
-                                                    timeout_current_date => undef,
-                                                    state => 'preload',
-                                                    results => [],
-                                                   }
-                           }
-                   }
+          foreach my $prc ( @{$self->mcp_info->{prc}}) {
+                  my $prc_state = {
+                                   timeout_boot_span => $prc->{timeouts}->{boot},
+                                   timeout_current_date => undef,
+                                   state => 'preload',
+                                   results => [],
+                                  }
+          }
+}
+
 
 1;
 
