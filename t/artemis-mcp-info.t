@@ -24,3 +24,5 @@ $info->add_testprogram(3, {timeout => 30, name => "foo", argv => ['--bar']});
 my @received_list = $info->get_testprogram_timeouts(3);
 is_deeply(\@received_list, [20, 10, 5, 30], 'Setting and getting testprogram timeouts');
 is($info->get_prc_count(), 3, 'Get PRC count');
+use Data::Dumper;
+print STDERR Dumper  $info->get_state_config();

@@ -276,13 +276,13 @@ sub get_state_config
         my $state = {
                      current_state => 'started',
                      results => [],
-                     install => { timeout_boot_span    => 1800,
-                                  timeout_install_span => 800,
+                     install => { timeout_boot_span    => $self->cfg->{times}{boot_timeout},
+                                  timeout_install_span => $self->cfg->{times}{installer_timeout},
                                   timeout_current_date => undef,
                                 },
                      reboot  => {max     => $self->mcp_info->{prc}->[0]->{max_reboot}
                                  current => 0},
-                     prcs    => {},
+                     prcs    => [],
                     }
           foreach my $prc ( @{$self->mcp_info->{prc}}) {
                   my $prc_state = {
@@ -291,8 +291,10 @@ sub get_state_config
                                    state => 'preload',
                                    results => [],
                                   }
+                    push @{$state->{prcs}}, $prc_state;
           }
 }
+
 
 
 1;
