@@ -280,19 +280,22 @@ sub get_state_config
                                   timeout_install_span => $self->cfg->{times}{installer_timeout},
                                   timeout_current_date => undef,
                                 },
-                     reboot  => {max     => $self->mcp_info->{prc}->[0]->{max_reboot}
-                                 current => 0},
                      prcs    => [],
-                    }
-          foreach my $prc ( @{$self->mcp_info->{prc}}) {
-                  my $prc_state = {
-                                   timeout_boot_span => $prc->{timeouts}->{boot},
-                                   timeout_current_date => undef,
-                                   state => 'preload',
-                                   results => [],
-                                  }
-                    push @{$state->{prcs}}, $prc_state;
-          }
+                    };
+        if ($self->mcp_info->{prc}->[0]->{max_reboot}) {
+                $state->{reboot}->{max_reboot} = $self->mcp_info->{prc}->[0]->{max_reboot};
+                $state->{reboot}->{current} = 0;
+       }
+        foreach my $prc ( @{$self->mcp_info->{prc}}) {
+                my $prc_state = {
+                                 timeout_boot_span => $prc->{timeouts}->{boot},
+                                 timeout_current_date => undef,
+                                 state => 'preload',
+                                 results => [],
+                                };
+                push @{$state->{prcs}}, $prc_state;
+        }
+        return $state;
 }
 
 
