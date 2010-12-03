@@ -65,7 +65,7 @@ my %jobs;
 # Job 1
 
 eval{
-        for (my $i=0; $i<60; $i++) {
+        for (my $i=0; $i<180; $i++) {
                 
                 $next_job   = $scheduler->get_next_job();
                 if ($next_job) {
