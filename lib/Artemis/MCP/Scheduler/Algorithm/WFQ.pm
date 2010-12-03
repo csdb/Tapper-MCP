@@ -7,8 +7,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
 {
         requires 'queues';
 
-        use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
-        use Data::Dumper;
+#        use aliased 'Artemis::Schema::TestrunDB::Result::Queue';
 
         method get_virtual_finishing_time($queue) # Queue
         {

@@ -5,8 +5,6 @@ use 5.010;
 ## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::Controller
 {
-        with 'MooseX::Log::Log4perl';
-        use Perl6::Junction qw/ any /;
         use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::PrioQueue';
