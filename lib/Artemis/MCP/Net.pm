@@ -161,8 +161,8 @@ sub reboot_system
         my ($self, $host, $hard) = @_;
 	$self->log->debug("Trying to reboot $host.");
 
-        ## Some machines do not boot up correctly after a shutdown with 
-        ## ssh and reboot (e.g. because they do not even shut down correctly 
+        ## Some machines do not boot up correctly after a shutdown with
+        ## ssh and reboot (e.g. because they do not even shut down correctly
         ## waiting for services like NFS to shut down).
         if (not $hard) {
                 $self->log->info("Try reboot via Net::SSH::Expect"); # usually for the installed host/dom0 system
@@ -170,23 +170,30 @@ sub reboot_system
                                                 password => 'xyzxyz',
                                                 user     => 'root',
                                                 raw_pty  => 1 );
+                my $output;
                 # Try login, with timeout
                 eval {
                         local $SIG{ALRM} = sub{ die("timeout in login") };
                         alarm(10);
                         my $login_output = $ssh->login();
-                
-                        if ($login_output and $login_output !~ /ogin:/)
+
+                        if ($login_output)
                         {
                                 $self->log->info("Logged in. Try exec reboot");
                                 $ssh->exec("stty raw -echo");
-                                $ssh->exec("reboot");
+                                $output = $ssh->exec("reboot");
                         }
                 };
                 alarm(0);
-                return 0 if not $@;
+                if ($output =~ 'The system is going down for reboot') {
+                        return 0;
+                } elsif ($@) {
+                        $self->log->error("Can not reboot $host with SSH: $@");
+                } else {
+                        $self->log->error("Can not reboot $host with SSH: $output");
+                }
         }
-        
+
         # else trigger reset switch
         $self->log->info("Try reboot via reset switch");
         my $cmd = $self->cfg->{osrc_rst}." -f $host";
