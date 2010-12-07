@@ -86,6 +86,8 @@ sub get_current_timeout_span
 
 Initialize the state or read it back from database.
 
+@param
+
 @return success - 0
 @return error   - error string
 
@@ -93,7 +95,7 @@ Initialize the state or read it back from database.
 
 sub state_init
 {
-        my ($data, $revive) = @_;
+        my ($self, $data, $revive) = @_;
 }
 
 =head2 update_timeouts
@@ -147,7 +149,7 @@ sub get_min_prc_timeout
         my ($self) = @_;
         my $now = time();
         my $timeout = $self->state->{prcs}->[0]->{timeout_current_date} - $now;
-        
+
         for ( my $i=1; $i = @{$self->state->{prcs}}; $i++) {
                 next unless $self->state->{prcs}->[$i]->{timeout_current_date};
                 $timeout = min($timeout, $self->state->{prcs}->[$i]->{timeout_current_date} - $now);
@@ -171,7 +173,7 @@ sub msg_start_install
 {
         my ($self, $msg) = @_;
         if ($self->state_detail->{current_state} ne 'reboot_install'){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received start-install in state '".$self->state_detail->{current_state}.
@@ -180,9 +182,9 @@ sub msg_start_install
                 $self->state_detail->{current_state} = 'finished';
                 return (1,undef);
         }
-        
+
         $self->state_detail->{current_state} = 'installing';
-        $self->state_detail->{install}->{timeout_current_date} = 
+        $self->state_detail->{install}->{timeout_current_date} =
           time + $self->state_detail->{install}->{timeout_install_span};
         return (0, $self->state_detail->{install}->{timeout_install_span});
 }
@@ -202,7 +204,7 @@ sub msg_end_install
 {
         my ($self, $msg) = @_;
         if ($self->state_detail->{current_state} ne 'installing'){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received end-install in state '".$self->state_detail->{current_state}.
@@ -211,9 +213,9 @@ sub msg_end_install
                 $self->state_detail->{current_state} = 'finished';
                 return (1,undef);
         }
-        
+
         $self->state_detail->{current_state}                     = 'reboot_test';
-        $self->state_detail->{prcs}->[0]->{timeout_current_date} = 
+        $self->state_detail->{prcs}->[0]->{timeout_current_date} =
           time + $self->state_detail->{prcs}->[0]->{timeout_boot_span};
         return (0, $self->state_detail->{prcs}->[0]->{timeout_boot_span});
 }
@@ -233,7 +235,7 @@ sub msg_error_install
 {
         my ($self, $msg) = @_;
         if ($self->state_detail->{current_state} ne 'installing'){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received end-install in state '".$self->state_detail->{current_state}.
@@ -242,13 +244,13 @@ sub msg_error_install
                 $self->state_detail->{current_state} = 'finished';
         }
 
-        push @[$self->state_detail->{results}], 
+        push @[$self->state_detail->{results}],
         {
          error => 1,
          msg   => "Installation failed: ".$msg->{error},
         };
         $self->state_detail->{current_state} = 'finished';
-        
+
         return (1, undef);
 }
 
@@ -268,7 +270,7 @@ sub msg_error_guest
         my ($self, $msg) = @_;
         if (($self->state_detail->{current_state} ne 'reboot_test') and
             ($self->state_detail->{current_state} ne 'testing')){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received error-guest in state '".$self->state_detail->{current_state}.
@@ -278,7 +280,7 @@ sub msg_error_guest
                 return (1, undef);
         }
 
-        push @[$self->state_detail->{results}], 
+        push @[$self->state_detail->{results}],
         {
          error => 1,
          msg   => "Starting PRC ".$msg->{prc_number}." failed: ".$msg->{error},
@@ -320,7 +322,7 @@ sub msg_start_guest
 
         if (($self->state_detail->{current_state} ne 'reboot_test') and
             ($self->state_detail->{current_state} ne 'testing')){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received start-guest in state '".$self->state_detail->{current_state}.
@@ -333,11 +335,11 @@ sub msg_start_guest
 
         my $nr = $msg->{prc_number};
         $self->state->{prcs}->[$nr]->{state} = 'boot';
-        $self->state->{prcs}->[$nr]->{timeout_current_date} = 
+        $self->state->{prcs}->[$nr]->{timeout_current_date} =
           time() + $self->state->{prcs}->[$nr]->{timeout_boot_span};
 
         my $timeout = $self->get_min_prc_timeout();
-        
+
         $self->state_detail->{current_state} = 'testing';
         return (0,  $timeout);
 }
@@ -359,7 +361,7 @@ sub msg_start_testing
 
         if (($self->state_detail->{current_state} ne 'reboot_test') and
             ($self->state_detail->{current_state} ne 'testing')){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received start-testing in state '".$self->state_detail->{current_state}.
@@ -378,7 +380,7 @@ sub msg_start_testing
         }
 
         my $timeout = $self->get_min_prc_timeout();
-        
+
         $self->state_detail->{current_state} = 'testing';
         $self->state->{prcs}->[$nr]->{state} = 'test';
         return (0,  $timeout);
@@ -401,7 +403,7 @@ sub msg_start_testing
 
         if (($self->state_detail->{current_state} ne 'reboot_test') and
             ($self->state_detail->{current_state} ne 'testing')){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received start-testing in state '".$self->state_detail->{current_state}.
@@ -418,7 +420,7 @@ sub msg_start_testing
         $self->state->{prcs}->[$nr]->{timeout_current_date} = time() + $next_timeout;
 
         my $timeout = $self->get_min_prc_timeout();
-        
+
         $self->state_detail->{current_state} = 'testing';
         $self->state->{prcs}->[$nr]->{state} = 'test';
         return (0,  $timeout);
@@ -442,7 +444,7 @@ sub msg_end_testing
 
         if (($self->state_detail->{current_state} ne 'reboot_test') and
             ($self->state_detail->{current_state} ne 'testing')){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received start-testing in state '".$self->state_detail->{current_state}.
@@ -467,7 +469,7 @@ sub msg_end_testing
                 return (1, undef);
         }
         my $timeout = $self->get_min_prc_timeout();
-        
+
         return (0,  $timeout);
 }
 
@@ -489,7 +491,7 @@ sub msg_end_testprogram
         my ($self, $msg) = @_;
 
         if ($self->state_detail->{current_state} ne 'testing'){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received end-testprogram in state '".$self->state_detail->{current_state}.
@@ -527,7 +529,7 @@ sub msg_error_testprogram
         my ($self, $msg) = @_;
 
         if ($self->state_detail->{current_state} ne 'testing'){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received error-testprogram in state '".$self->state_detail->{current_state}.
@@ -544,7 +546,7 @@ sub msg_error_testprogram
         $self->state->{prcs}->[$nr]->{timeout_current_date} = time() + $next_timeout;
 
         my $timeout = $self->get_min_prc_timeout();
-       
+
         return (0,  $timeout);
 }
 
@@ -564,7 +566,7 @@ sub msg_reboot
         my ($self, $msg) = @_;
 
         if ($self->state_detail->{current_state} ne 'testing'){
-                push @[$self->state_detail->{results}], 
+                push @[$self->state_detail->{results}],
                 {
                  error => 1,
                  msg   => "Received error-testprogram in state '".$self->state_detail->{current_state}.
@@ -581,7 +583,7 @@ sub msg_reboot
         $self->state->{prcs}->[$nr]->{timeout_current_date} = time() + $next_timeout;
 
         my $timeout = $self->get_min_prc_timeout();
-       
+
         return (0,  $timeout);
 }
 
@@ -625,7 +627,7 @@ sub update_state
         return $self->update_timeouts();
 
         $state_detail =
-        { 
+        {
           current_state => (started|reboot_install|installing|reboot_test|testing|finished|)
           results => [
             {success => 1, msg => "Testprogram 0 in PRC 0 finished", },
@@ -637,7 +639,7 @@ sub update_state
           timeout_install_span => 800,
           timeout_current_date => 14524510,
           },
-          prcs    => 
+          prcs    =>
         [{ timeout_testprograms_span => [ 10, 15, 5, 17],
            timeout_current_date      =>  14524514,
            number_current_test       =>  2,
