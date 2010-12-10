@@ -428,7 +428,7 @@ sub suite_headerlines {
         my $headerlines = [
                            "# Artemis-reportgroup-testrun: $testrun_id",
                            "# Artemis-suite-name: Topic-$topic",
-                           "# Artemis-suite-version: 1.0",
+                           "# Artemis-suite-version: $Artemis::MCP::VERSION",
                            "# Artemis-machine-name: $hostname",
                            "# Artemis-section: MCP overview",
                            "# Artemis-reportgroup-primary: 1",
