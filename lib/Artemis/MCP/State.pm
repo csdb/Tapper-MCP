@@ -41,7 +41,7 @@ Artemis::MCP::State - Keep state information for one specific test run
 
 =head2 commit
 
-Update database entry
+Update database entry.
 
 @return success - 0
 @return error   - error string
@@ -674,8 +674,7 @@ Tells caller whether the testrun is already finished or not.
 
 sub testrun_finished
 {
-        my ($self) = @_;
-        return $self->state_details->{current_state} eq 'finished' ? 1 : 0;
+        shift->state_details->{current_state} eq 'finished' ? 1 : 0;
 }
 
 
