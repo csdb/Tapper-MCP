@@ -17,14 +17,17 @@ ok($algorithm->does(WFQ), 'does WFQ');
 my $q1 = model('TestrunDB')->resultset('Queue')->new({name => 'A', priority => 300, runcount => 0});
 my $q2 = model('TestrunDB')->resultset('Queue')->new({name => 'B', priority => 200, runcount => 0});
 my $q3 = model('TestrunDB')->resultset('Queue')->new({name => 'C', priority => 100, runcount => 0});
+my $q4 = model('TestrunDB')->resultset('Queue')->new({name => 'D', priority => 0, runcount => 0});
 
 $q1->insert;
 $q2->insert;
 $q3->insert;
+$q4->insert;
 
 $algorithm->add_queue($q1);
 $algorithm->add_queue($q2);
 $algorithm->add_queue($q3);
+$algorithm->add_queue($q4);
 
 my @order;
 
