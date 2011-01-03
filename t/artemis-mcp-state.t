@@ -54,7 +54,7 @@ is($retval, 'reboot_install', 'Current state at installation');
 
 my $timeout;
 
-($retval, $timeout) = $state->msg_start_install({state => 'start_install'});
+($retval, $timeout) = $state->update_state({state => 'start-install'});
 is($retval, 0, 'start-install handled');
 $retval = $state->get_current_state();
 is($retval, 'installing', 'Current state at installation');
