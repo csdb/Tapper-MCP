@@ -126,6 +126,21 @@ sub installer_timeout_current_date
         return $self->state_details->{install}{timeout_current_date};
 }
 
+=head2 start_install
+
+Update timeouts for "installation started".
+
+@return int - new timeout span
+
+=cut
+
+sub start_install
+{
+        my ($self) = @_;
+        $self->state_details->{install}->{timeout_current_date} =
+          time + $self->state_details->{install}->{timeout_install_span};
+        return $self->state_details->{install}->{timeout_install_span};
+}
 
 
 =head2 prc_boot_start
@@ -235,22 +250,6 @@ sub is_all_prcs_finished
                 }
         }
         return $all_finished;
-}
-
-=head2 start_install
-
-Update timeouts for "installation started".
-
-@return int - new timeout span
-
-=cut
-
-sub start_install
-{
-        my ($self) = @_;
-        $self->state_details->{install}->{timeout_current_date} =
-          time + $self->state_details->{install}->{timeout_install_span};
-        return $self->state_details->{install}->{timeout_install_span};
 }
 
 
