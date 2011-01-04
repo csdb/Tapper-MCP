@@ -39,14 +39,21 @@ Artemis::MCP::State::Details - Encapsulate state_details attribute of MCP::State
 =head1 FUNCTIONS
 
 
-=head2 prc_results_add
+=head2 results
 
-Add a new results hash to one PRC
+Getter and setter for results array for whole test. Setter adds given
+parameter instead of substituting.
 
-@return success - 0
-@return error   - error string
+@param hash ref - containing success(bool) and msg(string)
 
 =cut
+
+sub results
+{
+        my ($self, $result) = @_;
+        push @{$self->state_details->{results}}, $result if $result;
+        return $self->state_details->{results};
+}
 
 =head2 state_init
 
@@ -145,19 +152,21 @@ sub prc_timeout_current_date
 }
 
 
-=head2 prc_results_add
+=head2 prc_results
 
-Add a new message to results of given PRC
+Getter and setter for results array for of one PRC. Setter adds given
+parameter instead of substituting.
 
 @param hash ref - containing success(bool) and msg(string)
 @param int      - PRC number
 
 =cut
 
-sub prc_results_add
+sub prc_results
 {
         my ($self, $num, $msg) = @_;
         push @{$self->state_details->{prcs}->[$num]->{results}}, $msg;
+        return $self->state_details->{prcs}->[$num]->{results};
 }
 
 =head2 prc_count
