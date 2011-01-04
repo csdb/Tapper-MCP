@@ -49,14 +49,14 @@ my $initial_state =
 
 my $retval = $state->state_init($initial_state);
 is($retval, 0, 'Init succeeded');
-$retval = $state->get_current_state();
+$retval = $state->state_details->current_state();
 is($retval, 'reboot_install', 'Current state at installation');
 
 my $timeout;
 
 ($retval, $timeout) = $state->update_state({state => 'start-install'});
 is($retval, 0, 'start-install handled');
-$retval = $state->get_current_state();
+$retval = $state->state_details->current_state();
 is($retval, 'installing', 'Current state at installation');
 
 
