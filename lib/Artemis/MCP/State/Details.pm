@@ -275,10 +275,21 @@ sub prc_next_timeout
                             @{$prc->{timeout_testprograms_span}}) {
                                 $next_timeout = $prc->{timeout_testprograms_span}->[0];
                         } else {
-                                $next_timeout  ||= 60; # one minute for "end-testing"
+                                $next_timeout = 60; # one minute for "end-testing"
                         }
                 }
-                when('test') {}
+                when('test') {
+                        my $testprogram_number = $prc->{number_current_test};
+                        $testprogram_number += 1 if defined $testprogram_number; # next program
+                        if (ref $prc->{timeout_testprograms_span} eq 'ARRAY' and
+                            exists $prc->{timeout_testprograms_span}[$testprogram_number]){
+                                $next_timeout = $prc->{timeout_testprograms_span}[$testprogram_number];
+                                $prc->{number_current_test} = $testprogram_number;
+                        } else {
+                                $next_timeout = 60; # one minute for "end-testing"
+                                $prc->{number_current_test} = undef;
+                        }
+                }
         }
 
         $next_timeout = $self->state_details->{prcs}->[$num]->{timeout_testprograms_span}->[0];
