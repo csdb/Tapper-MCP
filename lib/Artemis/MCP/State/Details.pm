@@ -80,6 +80,18 @@ sub state_init
         return 0;
 }
 
+
+=head2 reload
+
+Reload state_details from database.
+
+=cut
+
+sub reload
+{
+}
+
+
 =head2 current_state
 
 Getter and setter for current state name.
