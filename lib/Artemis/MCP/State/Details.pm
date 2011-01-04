@@ -10,6 +10,21 @@ has state_details => (is => 'rw',
                       default => sub { {current_state => 'invalid'} }
                      );
 
+=head2 commit
+
+Update database entry.
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub commit
+{
+        my ($self) = @_;
+        return 0;
+}
+
 
 =head1 NAME
 
@@ -46,7 +61,7 @@ sub state_init
 {
         my ($self, $data) = @_;
         $self->state_details($data);
-        @{$self->state_details}{qw(current_state results)} = 
+        @{$self->state_details}{qw(current_state results)} =
           ( 'reboot_install', [], );
         $self->state_details->{prcs} ||= [];
         foreach my $this_prc (@{$self->state_details->{prcs}}) {
@@ -75,6 +90,25 @@ sub current_state
 }
 
 
+=head2 installer_timeout_current_date
+
+Getter and setter for installer timeout date.
+
+@param  int    - new installer timeout date
+
+@return string - installer timeout date
+
+=cut
+
+sub installer_timeout_current_date
+{
+        my ($self, $timeout_date) = @_;
+        $self->state_details->{install}{timeout_current_date} = $timeout_date if defined $timeout_date;
+        return $self->state_details->{install}{timeout_current_date};
+}
+
+
+
 =head2 prc_boot_start
 
 Sets timeouts for given PRC to the ones associated with booting of this
@@ -89,7 +123,7 @@ PRC started.
 sub prc_boot_start
 {
         my ($self, $num) = @_;
-        $self->state_details->{prcs}->[$num]->{timeout_current_date} = 
+        $self->state_details->{prcs}->[$num]->{timeout_current_date} =
           time + $self->state_details->{prcs}->[$num]->{timeout_boot_span};
         return $self->state_details->{prcs}->[$num]->{timeout_boot_span};
 }
@@ -124,7 +158,7 @@ sub prc_results_add
 {
         my ($self, $num, $msg) = @_;
         push @{$self->state_details->{prcs}->[$num]->{results}}, $msg;
-}       
+}
 
 =head2 prc_count
 
@@ -193,27 +227,9 @@ Update timeouts for "installation started".
 sub start_install
 {
         my ($self) = @_;
-        $self->state_details->{install}->{timeout_current_date} = 
+        $self->state_details->{install}->{timeout_current_date} =
           time + $self->state_details->{install}->{timeout_install_span};
         return $self->state_details->{install}->{timeout_install_span};
-}
-
-=head2 start_install
-
-Update timeouts for "given PRC started booting".
-
-@return int - new timeout span
-
-=cut
-
-sub prc_boot_start
-{
-        my ($self, $num) = @_;
-        
-        $self->state_details->{prcs}->[$num]->{timeout_current_date} = 
-          time() + $self->state_details->{prcs}->[$num]->{timeout_boot_span};
-        
-        return $self->state_details->{prcs}->[$num]->{timeout_boot_span};
 }
 
 
@@ -240,11 +256,11 @@ sub prc_next_timeout
                                 $next_timeout = $prc->{timeout_testprograms_span}->[0];
                         } else {
                                 $next_timeout  ||= 60; # one minute for "end-testing"
-                        } 
-                } 
-                when('test')
+                        }
+                }
+                when('test') {}
         }
-                
+
         $next_timeout = $self->state_details->{prcs}->[$num]->{timeout_testprograms_span}->[0];
         $self->state_details->{prcs}->[$num]->{timeout_current_date} = time() + $next_timeout;
         return $next_timeout;
@@ -266,9 +282,32 @@ Get or set the number of the testprogram currently running in given PRC.
 sub prc_current_test_number
 {
         my ($self, $num, $test_number) = @_;
-        $self->state_details->{prcs}->{$num}{number_current_test} = $test_number 
+        $self->state_details->{prcs}->{$num}{number_current_test} = $test_number
           if defined $test_number;
         return $self->state_details->{prcs}->{$num}{number_current_test};
 }
+
+=head2 get_min_prc_timeout
+
+Check all PRCs and return the minimum of their upcoming timeouts in
+seconds.
+
+@return timeout span for the next state change during testing
+
+=cut
+
+sub get_min_prc_timeout
+{
+        my ($self) = @_;
+        my $now = time();
+        my $timeout = $self->state_details->{prcs}->[0]->{timeout_current_date} - $now;
+
+        for ( my $i=1; $i = @{$self->state_details->{prcs}}; $i++) {
+                next unless $self->state_details->{prcs}->[$i]->{timeout_current_date};
+                $timeout = min($timeout, $self->state_details->{prcs}->[$i]->{timeout_current_date} - $now);
+        }
+        return $timeout;
+}
+
 
 1;
