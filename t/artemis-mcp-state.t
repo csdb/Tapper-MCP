@@ -78,4 +78,29 @@ is($retval, 0, 'end-install handled');
 $retval = $state->state_details->current_state();
 is($retval, 'reboot_test', 'Current state after installation');
 
+($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 1});
+is($retval, 0, '1. guest_started handled');
+$retval = $state->state_details->current_state();
+is($retval, 'testing', 'Current state after 1. guest started');
+
+($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 2});
+is($retval, 0, '2. guest_started handled');
+$retval = $state->state_details->current_state();
+is($retval, 'testing', 'Current state after 2. guest started');
+
+($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 3});
+is($retval, 0, '3. guest_started handled');
+$retval = $state->state_details->current_state();
+is($retval, 'testing', 'Current state after 3. guest started');
+
+
+($retval, $timeout) = $state->update_state({ state => 'start-testing', prc_number => 0});
+is($retval, 0, '3. guest_started handled');
+$retval = $state->state_details->current_state();
+is($retval, 'testing', 'Current state after 3. guest started');
+
+
+
+
+
 done_testing();
