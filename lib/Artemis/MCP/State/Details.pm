@@ -34,7 +34,7 @@ Artemis::MCP::State::Details - Encapsulate state_details attribute of MCP::State
 
  use Artemis::MCP::State::Details;
  my $state_details = Artemis::MCP::State::Details->new();
- $state_details->prc_results_add(0, {success => 0, mg => 'No success'});
+ $state_details->prc_results(0, {success => 0, mg => 'No success'});
 
 =head1 FUNCTIONS
 
