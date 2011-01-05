@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Moose;
+use List::Util qw/max min/;
 
 has state_details => (is => 'rw',
                       default => sub { {current_state => 'invalid'} }
@@ -276,7 +277,7 @@ sub prc_next_timeout
         my ($self, $num) = @_;
         my $prc = $self->state_details->{prcs}->[$num];
         my $next_timeout;
-        given ($prc->state){
+        given ($prc->{current_state}){
                 when('preload') { $next_timeout = $prc->{timeout_boot_span}}
                 when('boot')    {
                         if (ref $prc->{timeout_testprograms_span} eq 'ARRAY' and
@@ -300,7 +301,6 @@ sub prc_next_timeout
                 }
         }
 
-        $next_timeout = $self->state_details->{prcs}->[$num]->{timeout_testprograms_span}->[0];
         $self->state_details->{prcs}->[$num]->{timeout_current_date} = time() + $next_timeout;
         return $next_timeout;
 }
@@ -341,7 +341,7 @@ sub get_min_prc_timeout
         my $now = time();
         my $timeout = $self->state_details->{prcs}->[0]->{timeout_current_date} - $now;
 
-        for ( my $prc_num=1; $prc_num = @{$self->state_details->{prcs}}; $prc_num++) {
+        for ( my $prc_num=1; $prc_num < @{$self->state_details->{prcs}}; $prc_num++) {
                 next unless $self->state_details->{prcs}->[$prc_num]->{timeout_current_date};
                 $timeout = min($timeout, $self->state_details->{prcs}->[$prc_num]->{timeout_current_date} - $now);
         }
