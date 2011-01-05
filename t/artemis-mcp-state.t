@@ -26,25 +26,25 @@ sub initial_state
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
-                                     'state' => 'preload'
+                                     'current_state' => 'preload'
                                     },
                                     {
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
-                                     'state' => 'preload'
+                                     'current_state' => 'preload'
                                     },
                                     {
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
-                                     'state' => 'preload'
+                                     'current_state' => 'preload'
                                     },
                                      {
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
-                                     'state' => 'preload'
+                                     'current_state' => 'preload'
                                     }
                                    ],
                                      'results' => []
