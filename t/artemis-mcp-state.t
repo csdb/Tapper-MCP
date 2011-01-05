@@ -29,22 +29,25 @@ sub initial_state
                                      'current_state' => 'preload'
                                     },
                                     {
+                                     'timeout_testprograms_span' => [ 5, 2],
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
                                      'current_state' => 'preload'
                                     },
                                     {
+                                     'timeout_testprograms_span' => [ 5, 2],
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
                                      'current_state' => 'preload'
                                     },
                                      {
-                                     'timeout_boot_span' => $timeout_span,
-                                     'timeout_current_date' => undef,
-                                     'results' => [],
-                                     'current_state' => 'preload'
+                                      'timeout_testprograms_span' => [ 5, 2],
+                                      'timeout_boot_span' => $timeout_span,
+                                      'timeout_current_date' => undef,
+                                      'results' => [],
+                                      'current_state' => 'preload'
                                     }
                                    ],
                                      'results' => []
@@ -98,8 +101,6 @@ is($retval, 'testing', 'Current state after 3. guest started');
 is($retval, 0, '3. guest_started handled');
 $retval = $state->state_details->current_state();
 is($retval, 'testing', 'Current state after 3. guest started');
-
-
 
 
 
