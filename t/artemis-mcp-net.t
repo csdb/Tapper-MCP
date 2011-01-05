@@ -16,6 +16,7 @@ use YAML::Syck;
 use Cwd;
 use TAP::DOM;
 
+use Artemis::MCP;
 use Artemis::MCP::Net;
 use Artemis::Schema::TestTools;
 
@@ -44,16 +45,16 @@ my $srv = new Artemis::MCP::Net;
 
 my $headerlines = $srv->suite_headerlines(4);
 my $report_string = $srv->tap_report_create(4, [{msg => "Test on guest 1"},{error => 1, msg => "error"}], $headerlines);
-my $expect_string = '1..2
+my $expect_string = "1..2
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
-# Artemis-suite-version: 1.0
+# Artemis-suite-version: $Artemis::MCP::VERSION
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
 ok 1 - Test on guest 1
 not ok 2 - error
-';
+";
 
 is($report_string, $expect_string, 'TAP report creation');
 
