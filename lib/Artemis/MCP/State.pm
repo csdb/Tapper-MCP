@@ -211,15 +211,15 @@ sub update_test_timeout
         my $new_timeout=0;
         # we need the PRC number, thus not foreach
  PRC:
-        for (my $i = 0; $i<= $self->state_details->prc_count; $i++) {
-                given($self->state_details->prc_state($i)){
+        for (my $prc_num = 0; $prc_num<= $self->state_details->prc_count; $prc_num++) {
+                given($self->state_details->prc_state($prc_num)){
                         when ( any( 'finished', 'preload')) { next PRC }
                         when ('boot') {
                                 if ($self->state_details->prc_timeout_current_date <= $now){
-                                        my $msg = "Timeout while booting PRC$i";
+                                        my $msg = "Timeout while booting PRC$prc_num";
                                         $self->state_details->results({error => 1, msg => $msg});
-                                        $self->state_details->prc_results($i, {error => 1, msg => $msg});
-                                        $self->state_details->prc_state($i, 'finished');
+                                        $self->state_details->prc_results($prc_num, {error => 1, msg => $msg});
+                                        $self->state_details->prc_state($prc_num, 'finished');
                                 }}
                         when ('test') {
                                 # $new_timeout = max($new_timeout,

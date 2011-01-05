@@ -243,8 +243,8 @@ sub is_all_prcs_finished
         my ($self) = @_;
         # check whether this is the last PRC we are waiting for
         my $all_finished = 1;
-        for ( my $i=0; $i = @{$self->state_details->{prcs}}; $i++) {
-                if ($self->state_details->{prcs}->[$i]->{state} ne 'finished') {
+        for ( my $prc_num=0; $prc_num < @{$self->state_details->{prcs}}; $prc_num++) {
+                if ($self->state_details->{prcs}->[$prc_num]->{current_state} ne 'finished') {
                         $all_finished = 0;
                         last;
                 }
@@ -333,9 +333,9 @@ sub get_min_prc_timeout
         my $now = time();
         my $timeout = $self->state_details->{prcs}->[0]->{timeout_current_date} - $now;
 
-        for ( my $i=1; $i = @{$self->state_details->{prcs}}; $i++) {
-                next unless $self->state_details->{prcs}->[$i]->{timeout_current_date};
-                $timeout = min($timeout, $self->state_details->{prcs}->[$i]->{timeout_current_date} - $now);
+        for ( my $prc_num=1; $prc_num = @{$self->state_details->{prcs}}; $prc_num++) {
+                next unless $self->state_details->{prcs}->[$prc_num]->{timeout_current_date};
+                $timeout = min($timeout, $self->state_details->{prcs}->[$prc_num]->{timeout_current_date} - $now);
         }
         return $timeout;
 }
