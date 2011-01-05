@@ -67,14 +67,11 @@ is_deeply($state->state_details->results,
           }],
           'Timeout added to results list');
 
-
-
 $retval = $state->state_init(initial_state());
 ($retval, $timeout) = $state->update_state({state => 'start-install'});
 is($retval, 0, 'start-install handled');
 $retval = $state->state_details->current_state();
 is($retval, 'installing', 'Current state at installation');
-
 
 ($retval, $timeout) = $state->update_state({state => 'end-install'});
 is($retval, 0, 'end-install handled');
