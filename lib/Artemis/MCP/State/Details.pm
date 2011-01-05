@@ -182,16 +182,24 @@ sub prc_timeout_current_date
 =head2 prc_results
 
 Getter and setter for results array for of one PRC. Setter adds given
-parameter instead of substituting.
+parameter instead of substituting. If no argument is given, all PRC
+results are returned.
 
-@param hash ref - containing success(bool) and msg(string)
-@param int      - PRC number
+@param int      - PRC number (optional)
+@param hash ref - containing success(bool) and msg(string) (optional)
 
 =cut
 
 sub prc_results
 {
         my ($self, $num, $msg) = @_;
+        if (not defined $num) {
+                my @results;
+                for ( my $prc_num=0; $prc_num < @{$self->state_details->{prcs}}; $prc_num++) {
+                        push @results, $self->state_details->{prcs}->[$prc_num]->{results};
+                        return \@results;
+                }
+        }
         push @{$self->state_details->{prcs}->[$num]->{results}}, $msg;
         return $self->state_details->{prcs}->[$num]->{results};
 }
