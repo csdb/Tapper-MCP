@@ -72,8 +72,7 @@ sub is_msg_valid
                         $self->state_details->prc_results($prc_number, {error => 1, msg => $result});
                         $self->state_details->prc_state($prc_number, 'finished');
 
-                        # if broken PRC is the first one, it may not start its guests
-                        if ($self->state_details->is_all_prcs_finished() or $prc_number == 0) {
+                        if ($self->state_details->is_all_prcs_finished()) {
                                 $self->state_details->current_state('finished');
                                 return (0);
                         }
