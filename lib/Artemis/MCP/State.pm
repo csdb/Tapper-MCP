@@ -61,11 +61,11 @@ sub is_msg_valid
 
         if (not $self->state_details->current_state eq any(@$states)){
                 my $result =
-                  ({
-                    error => 1,
-                    msg   => "Received $msg->{state} in state '".$self->state_details->current_state.
-                    "'. This message is only allowed in states ".join(", ",@$states)
-                   });
+                {
+                 error => 1,
+                 msg   => "Received $msg->{state} in state '".$self->state_details->current_state.
+                 "'. This message is only allowed in states ".join(", ",@$states)
+                };
 
                 $self->state_details->results({error => 1, msg => $result});
                 if (defined $prc_number) {
@@ -302,7 +302,6 @@ sub msg_end_install
         my $valid = $self->is_msg_valid($msg, ['installing']);
         return (1, undef) if not $valid;
 
-
         $self->state_details->current_state('reboot_test');
         return (0, $self->state_details->prc_boot_start(0));
 }
@@ -410,7 +409,6 @@ sub msg_start_testing
         my ($self, $msg) = @_;
 
         my $nr = $msg->{prc_number};
-
         my $valid = $self->is_msg_valid($msg, ['reboot_test', 'testing'], $nr);
         return (1, undef) unless $valid;
 
@@ -438,7 +436,6 @@ sub msg_end_testing
         my ($self, $msg) = @_;
 
         my $nr = $msg->{prc_number};
-
         my $valid = $self->is_msg_valid($msg, ['reboot_test', 'testing'], $nr);
         return (1, undef) unless $valid;
 
@@ -477,7 +474,6 @@ sub msg_end_testprogram
         my ($self, $msg) = @_;
 
         my $nr = $msg->{prc_number};
-
         my $valid = $self->is_msg_valid($msg, ['testing'], $nr);
         return (1, undef) unless $valid;
 
