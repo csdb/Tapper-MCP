@@ -60,21 +60,23 @@ sub initial_state
 my ($retval, $timeout);
 $retval = $state->state_init(initial_state());
 is($retval, 0, 'Init succeeded');
-$retval = $state->is_msg_valid({state => 'start-install'}, ['reboot_install']);
+$retval = $state->is_msg_valid({state => 'start-install'});
 is($retval, 1, 'Message valid');
 
-$retval = $state->is_msg_valid({state => 'start-install'}, ['test']);
+
+$state->state_details->current_state('testing');
+isnt($state->testrun_finished, 1, 'Reset current state');
+
+$retval = $state->is_msg_valid({state => 'start-guest', prc_number => 1});
+is($retval, 1, 'Message valid in last element of set of states');
+
+$retval = $state->is_msg_valid({state => 'end-install'});
 is($retval, 0, 'Invalid message detected');
 ok($state->testrun_finished, 'Invalid message/testrun finished');
 
-$state->state_details->current_state('reboot_install');
-isnt($state->testrun_finished, 1, 'Reset current state');
 
-$retval = $state->is_msg_valid({state => 'start-install'}, ['test', 'reboot_install']);
-is($retval, 1, 'Message valid in last element of set of states');
-
-$retval = $state->is_msg_valid({state => 'start-install'}, ['test'], 0);
-is($retval, 1, 'Do not quit testrun at out-of-order message for PRC0');
+$retval = $state->is_msg_valid({state => 'end-testprogram', prc_number => 0, testprogram => 1});
+is($retval, 0, 'Out of order testprogram detected');
 is($state->state_details->prc_state(0), 'finished', 'PRC finished after out-of-order message');
 
 done_testing();
