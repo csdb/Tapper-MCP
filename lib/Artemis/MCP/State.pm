@@ -311,6 +311,7 @@ sub msg_end_install
         my ($self, $msg) = @_;
 
         $self->state_details->current_state('reboot_test');
+        $self->state_details->prc_state(0,  'boot');
         return (0, $self->state_details->prc_boot_start(0));
 }
 
