@@ -483,7 +483,7 @@ sub msg_end_testprogram
                               "Expected $current_test_number, got $msg->{testprograms}"
                              };
                 $self->state_details->prc_results($nr, $result);
-                $self->state_details->results($nr, $result);
+                $self->state_details->results($result);
                 $self->state_details->prc_current_test_number($nr, $msg->{testprogram});
         }
 
@@ -519,7 +519,7 @@ sub msg_error_testprogram
                               "Expected $current_test_number, got $msg->{testprograms}"
                              };
                 $self->state_details->prc_results($nr, $result);
-                $self->state_details->results($nr, $result);
+                $self->state_details->results($result);
                 $self->state_details->prc_current_test_number($nr, $msg->{testprogram});
         }
 
@@ -527,7 +527,7 @@ sub msg_error_testprogram
                       msg => $msg->{error},
                      };
         $self->state_details->prc_results($nr, $result);
-        $self->state_details->results($nr, $result);
+        $self->state_details->results($result);
 
         $self->state_details->prc_next_timeout($nr);
         return (0, $self->state_details->get_min_prc_timeout());
@@ -557,7 +557,7 @@ sub msg_reboot
                       msg => "Host rebooted",
                      };
         $self->state_details->prc_results($nr, $result);
-        $self->state_details->results($nr, $result);
+        $self->state_details->results($result);
 
         $self->state_details->prc_next_timeout($nr);
         return (0, $self->state_details->get_min_prc_timeout());
