@@ -229,7 +229,7 @@ sub update_test_timeout
  PRC:
         for (my $prc_num = 0; $prc_num<= $self->state_details->prc_count; $prc_num++) {
                 given($self->state_details->prc_state($prc_num)){
-                        when ( any( 'finished', 'preload')) { next PRC }
+                        when ('finished' or 'preload') { next PRC }
                         when ('boot') {
                                 if ($self->state_details->prc_timeout_current_date <= $now){
                                         my $msg = "Timeout while booting PRC$prc_num";
@@ -258,18 +258,17 @@ sub update_timeouts
 {
         my ($self) = @_;
         given($self->state_details->current_state){
-                when (any('started',
-                          'reboot_install',
-                          'installing')) { return $self->update_installer_timeout() }
-                when (any('reboot_test',
-                          'testing'))    { return $self->update_test_timeout() }
-                when ('finished')        { return( 1, undef) } # no timeout handling when finished
-                default                  {
+                when ('started' or 'reboot_install' or 'installing') {
+                        say "current state is ",$self->state_details->current_state; return $self->update_installer_timeout() }
+                when ('reboot_test' or 'testing') {
+                        return $self->update_test_timeout() }
+                when ('finished')               {
+                        return( 1, undef) } # no timeout handling when finished
+                default {
                         my $msg = 'Invalid state ';
                         $msg   .= $self->state_details->current_state;
                         $msg   .= ' during update_timeouts';
                         $self->state_details->results({error => 1, msg => $msg});
-                        $self->log->error($msg);
                 }
         }
         return (1, undef);
