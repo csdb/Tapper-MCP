@@ -55,20 +55,6 @@ sub initial_state
 }
 
 my ($retval, $timeout);
-$retval = $state->state_init(initial_state());
-is($retval, 0, 'Init succeeded');
-$retval = $state->state_details->current_state();
-is($retval, 'reboot_install', 'Current state at installation');
-
-sleep 2;
-($retval, $timeout) = $state->update_state();
-is($state->testrun_finished, 1, 'Timeout detected');
-is_deeply($state->state_details->results,
-          [{
-           'msg' => 'timeout hit while waiting for installer booting',
-           'error' => 1,
-          }],
-          'Timeout added to results list');
 
 $retval = $state->state_init(initial_state());
 ($retval, $timeout) = $state->update_state({state => 'start-install'});
