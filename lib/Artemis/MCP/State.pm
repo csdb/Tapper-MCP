@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use Moose;
-use List::Util qw/max min/;
+use List::Util qw/max min reduce/;
 use Perl6::Junction qw/any/;
 
 use Artemis::MCP::State::Details;
@@ -42,6 +42,16 @@ has valid_states  => (is => 'rw',
                                }
                      );
 
+
+# A min implementation that handles undef as bigger than anything not smaller.
+sub mindef
+{
+        no warnings 'uninitialized'; # written for handling undef so undef is certainly ok
+        reduce { if (not (defined $a  and defined $b))
+                 { max($a,$b) }
+                 else { min($a,$b) }
+         } @_;
+}
 
 
 sub BUILD
@@ -188,7 +198,7 @@ sub update_installer_timeout
 
 Check and update timeouts for one PRC.
 
-@param hash ref - PRC
+@param  int     - PRC number
 
 @return success - new timeout
 @return error   - undef
@@ -197,14 +207,34 @@ Check and update timeouts for one PRC.
 
 sub update_prc_timeout
 {
-        my ($self, $prc) = @_;
-
-        return undef;
+        my ($self, $prc_number) = @_;
+        my $now = time();
+        if ($self->state_details->prc_timeout_current_date($prc_number) < $now) {
+                my $result = { error => 1,
+                               msg   => "Timeout in PRC $prc_number "};
+                given($self->state_details->prc_state($prc_number)){
+                        when ('boot'){
+                                $result->{msg} .= 'during boot';
+                                $self->state_details->prc_state($prc_number, 'finished');
+                                return undef;
+                        }
+                        when ('test'){
+                                $result->{msg} .= 'while waiting for testprogram ';
+                                $result->{msg} .= $self->state_details->prc_current_test_number($prc_number);
+                                return $self->state_details->prc_next_timeout($prc_number);
+                        }
+                        default { return undef }
+                }
+        }
+        return $self->state_details->prc_timeout_current_date($prc_number) - $now;
 }
 
 =head2 update_test_timeout
 
 Update timeouts during test phase.
+
+@return success - (1, new timeout)
+@return error   - (0, undef)
 
 =cut
 
@@ -222,27 +252,34 @@ sub update_test_timeout
                         $self->state_details->current_state('finished');
                         return (1, undef);
                 }
+                else {
+                        return (0, $prc0_timeout - $now);
+                }
         }
-
-        my $new_timeout=0;
+        my $new_timeout;
         # we need the PRC number, thus not foreach
  PRC:
-        for (my $prc_num = 0; $prc_num<= $self->state_details->prc_count; $prc_num++) {
+        for (my $prc_num = 0; $prc_num < $self->state_details->prc_count; $prc_num++) {
                 given($self->state_details->prc_state($prc_num)){
-                        when ('finished' or 'preload') { next PRC }
+                        when ( ['finished', 'preload'] ) { break}
                         when ('boot') {
-                                if ($self->state_details->prc_timeout_current_date <= $now){
+                                if ($self->state_details->prc_timeout_current_date($prc_num) <= $now){
                                         my $msg = "Timeout while booting PRC$prc_num";
                                         $self->state_details->results({error => 1, msg => $msg});
                                         $self->state_details->prc_results($prc_num, {error => 1, msg => $msg});
                                         $self->state_details->prc_state($prc_num, 'finished');
-                                }}
+                                }
+                                else {
+                                        $new_timeout = mindef($new_timeout,
+                                                               $self->state_details->prc_timeout_current_date($prc_num) - time());
+                                }
+                        }
                         when ('test') {
-                                # $new_timeout = max($new_timeout,
-                                #                    $self->update_prc_timeout());
+                                $new_timeout = mindef($new_timeout, $self->update_prc_timeout($prc_num));
                         }
                 }
         }
+        return (0, $new_timeout);
 }
 
 =head2 update_timeouts
@@ -258,9 +295,9 @@ sub update_timeouts
 {
         my ($self) = @_;
         given($self->state_details->current_state){
-                when ('started' or 'reboot_install' or 'installing') {
-                        say "current state is ",$self->state_details->current_state; return $self->update_installer_timeout() }
-                when ('reboot_test' or 'testing') {
+                when ( ['started', 'reboot_install', 'installing'] ) {
+                        return $self->update_installer_timeout() }
+                when ( ['reboot_test','testing'] ) {
                         return $self->update_test_timeout() }
                 when ('finished')               {
                         return( 1, undef) } # no timeout handling when finished
