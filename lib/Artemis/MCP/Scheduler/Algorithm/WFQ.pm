@@ -25,6 +25,7 @@ role Artemis::MCP::Scheduler::Algorithm::WFQ
                 foreach my $q (values %$queues)
                 {
                         my $this_vft;
+                        next if not $q->priority;
 
                         $this_vft = $self->get_virtual_finishing_time($q);
 

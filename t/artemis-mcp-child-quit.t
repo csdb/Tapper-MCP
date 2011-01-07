@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-
+#doc
 use strict;
 use warnings;
 
@@ -17,9 +17,11 @@ use Artemis::Model 'model';
 use Artemis::Schema::TestTools;
 use Artemis::Config;
 use Artemis::MCP::Info;
+use Artemis::MCP;
 
 # for mocking
 use Artemis::MCP::Child;
+
 
 
 use Test::More;
@@ -117,16 +119,16 @@ if ($pid==0) {
         waitpid($pid,0);
 }
 
-is($tap_report, '1..1
+is($tap_report, "1..1
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
-# Artemis-suite-version: 1.0
+# Artemis-suite-version: $Artemis::MCP::VERSION
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
 not ok 1 - Testrun canceled while waiting for installation start
 # killed by admin
-', 'Report for quit during installation');
+", 'Report for quit during installation');
 
 
 $tap_report=q(Reset before running test 'quit during test execution');
@@ -153,17 +155,17 @@ if ($pid==0) {
         waitpid($pid,0);
 }
 
-is($tap_report, '1..2
+is($tap_report, "1..2
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
-# Artemis-suite-version: 1.0
+# Artemis-suite-version: $Artemis::MCP::VERSION
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
 ok 1 - Installation finished
 not ok 2 - Testrun canceled while running tests
 # killed by admin
-', 'Report for quit during installation');
+", 'Report for quit during installation');
 
 
 
