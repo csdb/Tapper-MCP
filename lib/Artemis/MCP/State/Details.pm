@@ -6,12 +6,29 @@ use warnings;
 
 use Moose;
 use List::Util qw/max min/;
+use Artemis::Model 'model';
+use YAML qw/Dump Load/;
 
 has state_details => (is => 'rw',
-                      default => sub { {current_state => 'invalid'} }
+                      isa     => 'HashRef',
+                      default => sub { {current_state => 'invalid'} },
                      );
 
-=head2 commit
+has persist       => (is  => 'rw',);
+
+
+sub BUILD
+{
+        my ($self, $args) = @_;
+        my $testrun_id = $args->{testrun_id};
+        my $result = model('TestrunDB')->resultset('State')->find_or_create({testrun_id => $testrun_id});
+        $self->persist($result);
+}
+
+
+
+
+=head2 db_update
 
 Update database entry.
 
@@ -20,9 +37,12 @@ Update database entry.
 
 =cut
 
-sub commit
+sub db_update
 {
         my ($self) = @_;
+        my $yaml = Dump($self->state_details);
+        $self->persist->state($yaml);
+        $self->persist->update;
         return 0;
 }
 
@@ -52,7 +72,10 @@ parameter instead of substituting.
 sub results
 {
         my ($self, $result) = @_;
-        push @{$self->state_details->{results}}, $result if $result;
+        if ($result) {
+                push @{$self->state_details->{results}}, $result;
+                $self->db_update();
+        }
         return $self->state_details->{results};
 }
 
@@ -77,7 +100,7 @@ sub state_init
         }
         my $install = $self->state_details->{install};
         $install->{timeout_current_date} = $install->{timeout_boot_span} + time();
-        $self->commit();
+        $self->db_update();
         return 0;
 }
 
@@ -90,6 +113,9 @@ Reload state_details from database.
 
 sub reload
 {
+        my ($self) = @_;
+        my $yaml = Load($self->persist->state);
+        $self->state_details($yaml);
 }
 
 
@@ -105,7 +131,10 @@ Getter and setter for current state name.
 sub current_state
 {
         my ($self, $state) = @_;
-        $self->state_details->{current_state} = $state if defined $state;
+        if (defined $state) {
+                $self->state_details->{current_state} = $state;
+                $self->db_update;
+        }
         return $self->state_details->{current_state};
 }
 
@@ -123,7 +152,10 @@ Getter and setter for installer timeout date.
 sub installer_timeout_current_date
 {
         my ($self, $timeout_date) = @_;
-        $self->state_details->{install}{timeout_current_date} = $timeout_date if defined $timeout_date;
+        if (defined $timeout_date) {
+                $self->state_details->{install}{timeout_current_date} = $timeout_date;
+                $self->db_update;
+        }
         return $self->state_details->{install}{timeout_current_date};
 }
 
@@ -140,6 +172,7 @@ sub start_install
         my ($self) = @_;
         $self->state_details->{install}->{timeout_current_date} =
           time + $self->state_details->{install}->{timeout_install_span};
+        $self->db_update;
         return $self->state_details->{install}->{timeout_install_span};
 }
 
@@ -160,6 +193,8 @@ sub prc_boot_start
         my ($self, $num) = @_;
         $self->state_details->{prcs}->[$num]->{timeout_current_date} =
           time + $self->state_details->{prcs}->[$num]->{timeout_boot_span};
+        $self->db_update;
+
         return $self->state_details->{prcs}->[$num]->{timeout_boot_span};
 }
 
@@ -198,10 +233,11 @@ sub prc_results
                 my @results;
                 for ( my $prc_num=0; $prc_num < @{$self->state_details->{prcs}}; $prc_num++) {
                         push @results, $self->state_details->{prcs}->[$prc_num]->{results};
-                        return \@results;
                 }
+                return \@results;
         }
         push @{$self->state_details->{prcs}->[$num]->{results}}, $msg;
+        $self->db_update;
         return $self->state_details->{prcs}->[$num]->{results};
 }
 
@@ -233,7 +269,10 @@ Getter and setter for current state of given PRC.
 sub prc_state
 {
         my ($self, $num, $state) = @_;
-        $self->state_details->{prcs}->[$num]{current_state} = $state if defined $state;
+        if (defined $state) {
+                $self->state_details->{prcs}->[$num]{current_state} = $state;
+                $self->db_update;
+        }
         return $self->state_details->{prcs}->[$num]{current_state};
 }
 
@@ -302,6 +341,8 @@ sub prc_next_timeout
         }
 
         $self->state_details->{prcs}->[$num]->{timeout_current_date} = time() + $next_timeout;
+        $self->db_update;
+
         return $next_timeout;
 }
 
@@ -321,8 +362,10 @@ Get or set the number of the testprogram currently running in given PRC.
 sub prc_current_test_number
 {
         my ($self, $num, $test_number) = @_;
-        $self->state_details->{prcs}->{$num}{number_current_test} = $test_number
-          if defined $test_number;
+        if (defined $test_number) {
+                $self->state_details->{prcs}->{$num}{number_current_test} = $test_number;
+                $self->db_update;
+        }
         return $self->state_details->{prcs}->{$num}{number_current_test};
 }
 
