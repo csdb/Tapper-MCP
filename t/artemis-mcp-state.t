@@ -3,11 +3,19 @@ use warnings;
 use 5.010;
 
 use Test::More;
+use Artemis::Schema::TestTools;
+use Test::Fixture::DBIC::Schema;
 
 BEGIN{use_ok('Artemis::MCP::State')}
 
-my $state = Artemis::MCP::State->new();
+
+
+# -----------------------------------------------------------------------------------------------------------------
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
+# -----------------------------------------------------------------------------------------------------------------
+my $state = Artemis::MCP::State->new(23);
 isa_ok($state, 'Artemis::MCP::State');
+
 
 my $timeout_span = 1;
 
@@ -87,7 +95,6 @@ is($retval, 'testing', 'Current state after 3. guest started');
 is($retval, 0, '3. guest_started handled');
 $retval = $state->state_details->current_state();
 is($retval, 'testing', 'Current state after 3. guest started');
-
 
 
 done_testing();
