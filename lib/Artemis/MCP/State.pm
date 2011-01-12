@@ -53,11 +53,16 @@ sub mindef
          } @_;
 }
 
+around BUILDARGS => sub {
+        my (undef, undef, $testrun_id) = @_;
+        return ({testrun_id => $testrun_id});
+};
 
 sub BUILD
 {
-        my ($self) = @_;
-        $self->state_details(Artemis::MCP::State::Details->new());
+        my ($self, $args) = @_;
+
+        $self->state_details(Artemis::MCP::State::Details->new({testrun_id => $args->{testrun_id}}));
 }
 
 =head1 NAME
