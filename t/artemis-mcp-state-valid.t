@@ -10,10 +10,16 @@ use 5.010;
 #################################################
 
 use Test::More;
+use Artemis::Schema::TestTools;
+use Test::Fixture::DBIC::Schema;
+
+# -----------------------------------------------------------------------------------------------------------------
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
+# -----------------------------------------------------------------------------------------------------------------
 
 BEGIN{use_ok('Artemis::MCP::State')}
 
-my $state = Artemis::MCP::State->new();
+my $state = Artemis::MCP::State->new(23);
 
 
 my $timeout_span = 1;
