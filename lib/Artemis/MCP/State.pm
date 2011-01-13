@@ -28,7 +28,8 @@ has all_states    => (is => 'rw',
 
 
 has valid_states  => (is => 'rw',
-                      default => sub { return  {'start-install'     => ['reboot_install'],
+                      default => sub { return  { 'takeoff'           => ['started'],
+                                                'start-install'     => ['reboot_install'],
                                                 'end-install'       => ['installing'],
                                                 'error-install'     => ['installing'],
                                                 'start-guest'       => ['reboot_test', 'testing'],
@@ -170,6 +171,7 @@ sub state_init
         }
         return 0;
 }
+
 
 =head2 update_installer_timeout
 
@@ -315,6 +317,22 @@ sub update_timeouts
         }
         return (1, undef);
 
+}
+
+=head2 msg_takeoff
+
+The reboot call was successfully executed, now update the state for
+waiting for the first message.
+
+@return success - (0, timeout span for next state change)
+
+=cut
+
+sub msg_takeoff
+{
+        my ($self) = @_;
+        my $timeout = $self->state_details->takeoff();
+        return (0, $timeout);
 }
 
 
@@ -617,6 +635,7 @@ sub update_state
                 my $valid = $self->is_msg_valid($msg);
                 last if not $valid; # double braces allows last in if
                 given ($msg->{state}) {
+                        when ('takeoff')           { ($error, $timeout_span) = $self->msg_takeoff($msg)     };
                         when ('start-install')     { ($error, $timeout_span) = $self->msg_start_install($msg)     };
                         when ('end-install')       { ($error, $timeout_span) = $self->msg_end_install($msg)       };
                         when ('error-install')     { ($error, $timeout_span) = $self->msg_error_install($msg)     };

@@ -92,14 +92,12 @@ sub state_init
 {
         my ($self, $data) = @_;
         $self->state_details($data);
-        @{$self->state_details}{qw(current_state results)} =
-          ( 'reboot_install', [], );
+        $self->state_details->{current_state} = 'started';
+        $self->state_details->{results} = [];
         $self->state_details->{prcs} ||= [];
         foreach my $this_prc (@{$self->state_details->{prcs}}) {
                 $this_prc->{results} ||= [];
         }
-        my $install = $self->state_details->{install};
-        $install->{timeout_current_date} = $install->{timeout_boot_span} + time();
         $self->db_update();
         return 0;
 }
@@ -118,6 +116,24 @@ sub reload
         $self->state_details($yaml);
 }
 
+
+=head2 takeoff
+
+The reboot call was successfully executed, now update the state for
+waiting for the first message.
+
+@return int - new timeout
+
+=cut
+
+sub takeoff
+{
+        my ($self) = @_;
+        $self->current_state('reboot_install');
+        my $install = $self->state_details->{install};
+        $install->{timeout_current_date} = $install->{timeout_boot_span} + time();
+        return ($install->{timeout_current_date});
+}
 
 =head2 current_state
 
