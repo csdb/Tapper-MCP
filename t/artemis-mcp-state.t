@@ -65,6 +65,8 @@ sub initial_state
 my ($retval, $timeout);
 
 $retval = $state->state_init(initial_state());
+($retval, $timeout) = $state->update_state({state => 'takeoff'});
+
 ($retval, $timeout) = $state->update_state({state => 'start-install'});
 is($retval, 0, 'start-install handled');
 $retval = $state->state_details->current_state();

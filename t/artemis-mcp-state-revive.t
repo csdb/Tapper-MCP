@@ -61,6 +61,7 @@ my ($retval, $timeout);
         isa_ok($state, 'Artemis::MCP::State');
         
         $retval = $state->state_init($initial_state);
+        ($retval, $timeout) = $state->update_state({state => 'takeoff'});
         ($retval, $timeout) = $state->update_state({state => 'start-install'});
         ($retval, $timeout) = $state->update_state({state => 'end-install'});
         ($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 1});

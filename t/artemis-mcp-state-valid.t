@@ -66,12 +66,17 @@ sub initial_state
 my ($retval, $timeout);
 $retval = $state->state_init(initial_state());
 is($retval, 0, 'Init succeeded');
+$retval = $state->is_msg_valid({state => 'takeoff'});
+is($retval, 1, 'Takeoff message valid');
+
+$state->state_details->current_state('reboot_install');
+isnt($state->testrun_finished, 1, 'Set current state to reboot-install');
 $retval = $state->is_msg_valid({state => 'start-install'});
-is($retval, 1, 'Message valid');
+is($retval, 1, 'Start-install message valid');
 
 
 $state->state_details->current_state('testing');
-isnt($state->testrun_finished, 1, 'Reset current state');
+isnt($state->testrun_finished, 1, 'Set current state to testing');
 
 $retval = $state->is_msg_valid({state => 'start-guest', prc_number => 1});
 is($retval, 1, 'Message valid in last element of set of states');

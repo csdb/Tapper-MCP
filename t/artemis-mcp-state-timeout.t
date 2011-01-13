@@ -78,6 +78,8 @@ sub initial_state
 my ($retval, $timeout);
 $retval = $state->state_init(initial_state());
 is($retval, 0, 'Init succeeded');
+($retval, $timeout) = $state->update_state({state => 'takeoff'});
+
 $retval = $state->state_details->current_state();
 is($retval, 'reboot_install', 'Current state at installation');
 
@@ -94,6 +96,7 @@ is_deeply($state->state_details->results,
 my $expected_timeout;
 my $start_time = time();
 $retval = $state->state_init(initial_state());
+($retval, $timeout) = $state->update_state({state => 'takeoff'});
 
 # we expect timeout_install_span
 $expected_timeout = 3*$timeout_span-(time() - $start_time);
