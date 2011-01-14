@@ -24,17 +24,17 @@ Artemis::MCP::Control - Shared code for all modules that only handle one
 
 =cut
 
-sub BUILDARGS {
+around BUILDARGS => sub {
+        my $orig  = shift;
         my $class = shift;
         
         if ( @_ >= 1 and not ref $_[0] ) {
-                return { testrun => $_[0] };
-  }
+                return $class->$orig({ testrun => $_[0] });
+        }
         else {
-                return $class->SUPER::BUILDARGS(@_);
+                return $class->$orig(@_);
         }
 }
-
 
 1;
 
