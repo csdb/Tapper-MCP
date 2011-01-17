@@ -285,6 +285,7 @@ Getter and setter for current state of given PRC.
 sub prc_state
 {
         my ($self, $num, $state) = @_;
+        return {} if $num >= $self->prc_count;
         if (defined $state) {
                 $self->state_details->{prcs}->[$num]{current_state} = $state;
                 $self->db_update;
