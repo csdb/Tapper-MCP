@@ -14,16 +14,17 @@ has state_details => (is => 'rw',
                       default => sub { {current_state => 'invalid'} }
                      );
 # needed for state comparison
-has all_states    => (is => 'rw',
+has all_states    => (is => 'ro',
                       default => sub {
                               return
                               {
-                               started        => 1,
-                               reboot_install => 2,
-                               installing     => 3,
-                               reboot_test    => 4,
-                               testing        => 5,
-                               finished       => 6,
+                               invalid        => 1,
+                               started        => 2,
+                               reboot_install => 3,
+                               installing     => 4,
+                               reboot_test    => 5,
+                               testing        => 6,
+                               finished       => 7,
                               }});
 
 
