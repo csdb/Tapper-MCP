@@ -241,12 +241,11 @@ sub report_mcp_results
         my $mcp_results = $self->state->state_details->results();
         $self->tap_report_send($mcp_results, $headerlines);
 
-        for (my $prc_number = 0;
-             $prc_number <= $self->state->state_details->prc_count;
-             $prc_number++)
+        my $prc_count = $self->state->state_details->prc_count;
+        for (my $prc_number = 0; $prc_number < $prc_count; $prc_number++)
         {
                 my $prc_results = $self->state->state_details->prc_results($prc_number);
-                $headerlines = $self->mcp_headerlines($prc_number);
+                $headerlines = $self->prc_headerlines($prc_number);
                 $self->tap_report_send($prc_results, $headerlines);
         }
 }
@@ -307,7 +306,6 @@ sub runtest_handling
 
         $self->log->debug('waiting for test to finish');
         $self->wait_for_testrun($srv);
-
         $self->report_mcp_results($net);
         return 0;
 
