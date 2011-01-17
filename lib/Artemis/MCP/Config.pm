@@ -491,11 +491,11 @@ sub get_install_config
 {
         my ($self, $config) = @_;
 
-        my $search = model('TestrunDB')->resultset('Testrun')->search({id => $self->{testrun},})->first();
+
         my $retval = $self->mcp_info->add_prc(0, $self->cfg->{times}{boot_timeout});
         return $retval if $retval;
 
-        foreach my $precondition ($search->ordered_preconditions) {
+        foreach my $precondition ($self->testrun->ordered_preconditions) {
                 # make sure installing the root partition is always the first precondition
                 if ($precondition->precondition_as_hash->{precondition_type} eq 'image' ) {
                         $config = $self->parse_image_precondition($config, $precondition->precondition_as_hash);
@@ -564,8 +564,6 @@ sub get_common_config
         my ($self) = @_;
         my $config;
         my $testrun = $self->{testrun};
-        my $search=model('TestrunDB')->resultset('Testrun')->search({id => $testrun})->first();
-        return "Testrun $testrun not found in the database" if not $search;
 
         $config->{paths}                     = $self->cfg->{paths};
         $config->{times}                     = $self->cfg->{times};
@@ -580,12 +578,12 @@ sub get_common_config
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun;
 
-        if ($search->scenario_element) {
-                $config->{scenario_id} = $search->scenario_element->scenario_id;
+        if ($self->testrun->scenario_element) {
+                $config->{scenario_id} = $self->testrun->scenario_element->scenario_id;
                 my $path = $config->{paths}{sync_path}."/".$config->{scenario_id}."/";
                 $config->{files}{sync_file} = "$path/syncfile";
 
-                if ($search->scenario_element->peer_elements->first->testrun->id == $testrun) {
+                if ($self->testrun->scenario_element->peer_elements->first->testrun->id == $testrun) {
                         if (not -d $path) {
                                 File::Path::mkpath($path, {error => \my $retval});
                         ERROR:
@@ -598,9 +596,9 @@ sub get_common_config
                                         return "Can't create $file: $message";
                                 }
                         }
-                        my @peers = map {$_->testrun->testrun_scheduling->host->name} $search->scenario_element->peer_elements->all;
+                        my @peers = map {$_->testrun->testrun_scheduling->host->name} $self->testrun->scenario_element->peer_elements->all;
                         if (sysopen(my $fh, $config->{files}{sync_file}, O_CREAT | O_EXCL |O_RDWR )) {
-                                print $fh $search->scenario_element->peer_elements->count;
+                                print $fh $self->testrun->scenario_element->peer_elements->count;
                                 close $fh;
                         }       # else trust the creator
                         eval {

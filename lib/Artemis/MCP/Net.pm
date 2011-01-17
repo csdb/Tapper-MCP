@@ -16,7 +16,7 @@ use YAML;
 
 extends 'Artemis::MCP';
 
-use Artemis::Model qw(model get_hardware_overview);
+use Artemis::Model qw(get_hardware_overview);
 
 =head2 conserver_connect
 
@@ -448,12 +448,12 @@ db.
 
 sub hw_report_send
 {
-        my ($self, $testrun_id) = @_;
-        my $run       = model->resultset('Testrun')->find($testrun_id);
+        my ($self, $testrun) = @_;
+        my $testrun_id = $testrun->id;
         my $host;
         eval {
                 # parts of this chain may be undefined
-                $host = $run->testrun_scheduling->host;
+                $host = $testrun->testrun_scheduling->host;
         };
         return qq(testrun '$testrun_id' has no host associated) unless $host;
 

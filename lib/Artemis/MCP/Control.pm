@@ -5,10 +5,13 @@ use warnings;
 
 use Moose;
 use Artemis::Config;
+use Artemis::Model qw/model/;
 
 extends 'Artemis::MCP';
 
-has testrun  => (is => 'rw');
+has testrun  => (is => 'ro',
+                 isa => 'Artemis::Schema::TestrunDB::Result::Testrun',
+                );
 
 
 =head1 NAME
@@ -27,14 +30,20 @@ Artemis::MCP::Control - Shared code for all modules that only handle one
 around BUILDARGS => sub {
         my $orig  = shift;
         my $class = shift;
-        
-        if ( @_ >= 1 and not ref $_[0] ) {
-                return $class->$orig({ testrun => $_[0] });
+
+
+        my $args;
+        if ( @_ == 1 and not $_[0] eq 'HASH' ) {
+                $args = $class->$orig(testrun => $_[0]);
+        } else {
+                $args = $class->$orig(@_);
         }
-        else {
-                return $class->$orig(@_);
+        if (not ref $args->{testrun}) {
+                $args->{testrun} = model->resultset('Testrun')->find($args->{testrun});
         }
-}
+        return $args;
+
+};
 
 1;
 
