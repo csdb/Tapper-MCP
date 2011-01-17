@@ -66,7 +66,6 @@ Log::Log4perl->init(\$string);
 
 my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
 
-
 my $mock_net = Test::MockModule->new('Artemis::MCP::Net');
 $mock_net->mock('reboot_system',sub{return 0;});
 $mock_net->mock('upload_files',sub{return 0;});
@@ -80,7 +79,11 @@ my $mock_inet     = Test::MockModule->new('IO::Socket::INET');
 $mock_inet->mock('new', sub {my $original = $mock_inet->original('new'); return &$original(@_, LocalPort => 1337);});
                  
 my $testrun    = 4;
+my @tap_reports;
+
 my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
+$mock_child->mock('tap_report_away', sub { my (undef, $new_tap_report) = @_; push @tap_reports, $new_tap_report; return (0,0)});
+
 my $child      = Artemis::MCP::Child->new($testrun);
 my $retval;
 
@@ -91,8 +94,7 @@ $mcp_info->add_testprogram(0, {timeout => 15, name => "foo", argv => ['--bar']})
 $mcp_info->set_max_reboot(0, 2);
 $child->mcp_info($mcp_info);
 
-my $tap_report;
-$mock_net->mock('tap_report_away', sub { (undef, $tap_report) = @_; return (0,0)});
+
 
 my $pid=fork();
 if ($pid==0) {
@@ -117,19 +119,19 @@ if ($pid==0) {
         waitpid($pid,0);
 }
 
-is($tap_report, '1..1
+is($tap_reports[0], "1..1
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
-# Artemis-suite-version: 1.0
+# Artemis-suite-version: $Artemis::MCP::VERSION
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
-not ok 1 - Testrun canceled while waiting for installation start
+not ok 1 - Testrun cancelled during state 'installing'
 # killed by admin
-', 'Report for quit during installation');
+", 'Report for quit during installation');
 
 
-$tap_report=q(Reset before running test 'quit during test execution');
+@tap_reports=();
 $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
@@ -153,17 +155,17 @@ if ($pid==0) {
         waitpid($pid,0);
 }
 
-is($tap_report, '1..2
+is($tap_reports[0], "1..2
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
-# Artemis-suite-version: 1.0
+# Artemis-suite-version: $Artemis::MCP::VERSION
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
 ok 1 - Installation finished
-not ok 2 - Testrun canceled while running tests
+not ok 2 - Testrun cancelled during state 'reboot_test'
 # killed by admin
-', 'Report for quit during installation');
+", 'Report for quit during installation');
 
 
 
