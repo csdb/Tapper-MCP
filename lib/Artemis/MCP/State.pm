@@ -27,6 +27,10 @@ has all_states    => (is => 'ro',
                                finished       => 7,
                               }});
 
+has cfg => (is => 'rw',
+           isa => 'HashRef',
+           default => sub {{}},
+           );
 
 has valid_states  => (is => 'rw',
                       default => sub { return  { 'takeoff'           => ['started'],
@@ -353,6 +357,12 @@ sub msg_start_install
         my ($self, $msg) = @_;
 
         $self->state_details->current_state('installing');
+        if ($self->cfg->{autoinstall}) {
+                my $net    = Artemis::MCP::Net->new();
+                $net->write_grub_file($self->cfg->{hostname},
+                                      "timeout 2\n\ntitle Boot from first hard disc\n\tchainloader (hd0,1)+1");
+
+        }
         return (0, $self->state_details->start_install);
 }
 
