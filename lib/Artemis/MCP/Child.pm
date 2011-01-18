@@ -255,6 +255,7 @@ sub report_mcp_results
                 $headerlines = $self->prc_headerlines($prc_number);
                 $self->tap_report_send($prc_results, $headerlines);
         }
+        $self->upload_files($report_id, $self->testrun->id );
 }
 
 =head2 runtest_handling
