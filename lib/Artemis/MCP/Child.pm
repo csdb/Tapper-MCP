@@ -52,8 +52,8 @@ as well as with readl file handle.
 @param file handle - read from this socket
 @param int         - timeout in seconds
 
-@return success - message string read from remote)
-@return timeout - 0
+@return success - message string read from remote
+@return timeout - undef
 
 =cut
 
@@ -95,7 +95,8 @@ testing allowing messages to come from a file during tests.
 @param file handle - read from this socket
 @param int         - timeout in seconds
 
-@return hash reference
+@return success - hash reference containing message
+@return timeout - undef
 
 =cut
 
@@ -133,8 +134,7 @@ Read a message from socket.
 @param file descriptor - read from this socket
 
 @return success - hash reference containing received information
-@return timeout - hash reference with timeout set to given timeout
-@return error   - error string
+@return timeout - undef
 
 
 
