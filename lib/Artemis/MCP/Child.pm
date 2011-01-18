@@ -247,9 +247,11 @@ sub report_mcp_results
         }
 
         my $prc_count = $self->state->state_details->prc_count;
+ PRC_RESULT:
         for (my $prc_number = 0; $prc_number < $prc_count; $prc_number++)
         {
                 my $prc_results = $self->state->state_details->prc_results($prc_number);
+                next PRC_RESULT if not (ref($prc_results) eq 'ARRAY' and @$prc_results);
                 $headerlines = $self->prc_headerlines($prc_number);
                 $self->tap_report_send($prc_results, $headerlines);
         }
