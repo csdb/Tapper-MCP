@@ -60,31 +60,28 @@ Log::Log4perl->init(\$string);
 
 #''''''''''''''''''''''''''''''''''''#
 #                                    #
-#       Permanent mocking            #
+#    Mock testrun setup functions    #
 #                                    #
 #''''''''''''''''''''''''''''''''''''#
-
-my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
-
 my $mock_net = Test::MockModule->new('Artemis::MCP::Net');
 $mock_net->mock('reboot_system',sub{return 0;});
 $mock_net->mock('upload_files',sub{return 0;});
 $mock_net->mock('write_grub_file',sub{return 0;});
 $mock_net->mock('hw_report_send',sub{return 0;});
-
 my $mock_conf = Test::MockModule->new('Artemis::MCP::Config');
 $mock_conf->mock('write_config',sub{return 0;});
+
+
 
 my $mock_inet     = Test::MockModule->new('IO::Socket::INET');
 $mock_inet->mock('new', sub {my $original = $mock_inet->original('new'); return &$original(@_, LocalPort => 1337);});
                  
-my $testrun    = 4;
 my @tap_reports;
-
 my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
 $mock_child->mock('tap_report_away', sub { my (undef, $new_tap_report) = @_; push @tap_reports, $new_tap_report; return (0,0)});
 
-my $child      = Artemis::MCP::Child->new($testrun);
+
+my $child      = Artemis::MCP::Child->new(4);
 my $retval;
 
 
