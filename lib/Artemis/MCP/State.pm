@@ -253,14 +253,14 @@ sub update_prc_timeout
                         when ('boot'){
                                 $result->{msg} .= 'during boot';
                                 $self->state_details->prc_state($prc_number, 'finished');
-                                return undef;
+                                return;
                         }
                         when ('test'){
                                 $result->{msg} .= 'while waiting for testprogram ';
                                 $result->{msg} .= $self->state_details->prc_current_test_number($prc_number);
                                 return $self->state_details->prc_next_timeout($prc_number);
                         }
-                        default { return undef }
+                        default { return }
                 }
         }
         return $self->state_details->prc_timeout_current_date($prc_number) - $now;
