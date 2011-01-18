@@ -563,7 +563,7 @@ sub get_common_config
 {
         my ($self) = @_;
         my $config;
-        my $testrun = $self->{testrun};
+        my $testrun = $self->testrun;
 
         $config->{paths}                     = $self->cfg->{paths};
         $config->{times}                     = $self->cfg->{times};
@@ -576,14 +576,14 @@ sub get_common_config
         $config->{report_api_port}           = $self->cfg->{report_api_port};
         $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server}
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
-        $config->{test_run}                  = $testrun;
+        $config->{test_run}                  = $testrun->id;
 
         if ($self->testrun->scenario_element) {
                 $config->{scenario_id} = $self->testrun->scenario_element->scenario_id;
                 my $path = $config->{paths}{sync_path}."/".$config->{scenario_id}."/";
                 $config->{files}{sync_file} = "$path/syncfile";
 
-                if ($self->testrun->scenario_element->peer_elements->first->testrun->id == $testrun) {
+                if ($self->testrun->scenario_element->peer_elements->first->testrun->id == $testrun->id) {
                         if (not -d $path) {
                                 File::Path::mkpath($path, {error => \my $retval});
                         ERROR:
