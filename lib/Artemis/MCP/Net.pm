@@ -269,28 +269,29 @@ END
 
 
 
-=head2 hw_report_send
+=head2 hw_report_create
 
-Send a report containing the test machines hw config as set in the hardware
-db.
+Create a report containing the test machines hw config as set in the hardware
+db. Leave the sending to caller
 
 @param int - testrun id
 
-@return success - 0
-@return error   - error string
+@return success - (0, hw_report)
+@return error   - (1, error string)
 
 =cut
 
-sub hw_report_send
+sub hw_report_create
 {
         my ($self, $testrun) = @_;
         my $testrun_id = $testrun->id;
         my $host;
         eval {
                 # parts of this chain may be undefined
+
                 $host = $testrun->testrun_scheduling->host;
         };
-        return qq(testrun '$testrun_id' has no host associated) unless $host;
+        return (1, qq(testrun '$testrun_id' has no host associated)) unless $host;
 
         my $data = get_hardware_overview($host->id);
         my $yaml = Dump($data);
@@ -308,9 +309,7 @@ ok 1 - Getting hardware information
 ok 2 - Sending
 ", $testrun_id, $Artemis::MCP::VERSION, $host->name, $yaml);
 
-        my ($error, $error_string) = $self->tap_report_away($report);
-        return $error_string if $error;
-        return 0;
+        return (0, $report);
 }
 
 1;
