@@ -252,8 +252,10 @@ sub prc_results
                 }
                 return \@results;
         }
-        push @{$self->state_details->{prcs}->[$num]->{results}}, $msg;
-        $self->db_update;
+        if ($msg) {
+                push @{$self->state_details->{prcs}->[$num]->{results}}, $msg;
+                $self->db_update;
+        }
         return $self->state_details->{prcs}->[$num]->{results};
 }
 
