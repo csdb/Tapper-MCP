@@ -632,6 +632,29 @@ sub msg_reboot
         return (0, $self->state_details->get_min_prc_timeout());
 }
 
+=head2 msg_quit
+
+Handle message quit
+
+@param hash ref - message
+
+@return (1, undef)
+
+=cut
+
+sub msg_quit
+{
+        my ($self, $msg) = @_;
+
+        my $result = {error => 1,
+                      msg => "Testrun cancelled during state '".$self->state_details->current_state()."'",
+                     };
+        $result->{comment} = $msg->{error} if $msg->{error};
+        $self->state_details->results($result);
+        $self->state_details->current_state('finished');
+        return (1, undef);
+}
+
 
 
 =head2
@@ -658,7 +681,8 @@ sub update_state
                 my $valid = $self->is_msg_valid($msg);
                 last if not $valid; # double braces allows last in if
                 given ($msg->{state}) {
-                        when ('takeoff')           { ($error, $timeout_span) = $self->msg_takeoff($msg)     };
+                        when ('quit')              { ($error, $timeout_span) = $self->msg_quit($msg)           };
+                        when ('takeoff')           { ($error, $timeout_span) = $self->msg_takeoff($msg)           };
                         when ('start-install')     { ($error, $timeout_span) = $self->msg_start_install($msg)     };
                         when ('end-install')       { ($error, $timeout_span) = $self->msg_end_install($msg)       };
                         when ('error-install')     { ($error, $timeout_span) = $self->msg_error_install($msg)     };
