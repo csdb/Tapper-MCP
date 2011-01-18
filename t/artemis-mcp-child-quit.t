@@ -116,7 +116,8 @@ if ($pid==0) {
         waitpid($pid,0);
 }
 
-is($tap_reports[0], "1..1
+# TAP report 0 is hw report
+is($tap_reports[1], "1..1
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
 # Artemis-suite-version: $Artemis::MCP::VERSION
@@ -152,7 +153,8 @@ if ($pid==0) {
         waitpid($pid,0);
 }
 
-is($tap_reports[0], "1..2
+# TAP report 0 is hw report
+is($tap_reports[1], "1..2
 # Artemis-reportgroup-testrun: 4
 # Artemis-suite-name: Topic-Software
 # Artemis-suite-version: $Artemis::MCP::VERSION
