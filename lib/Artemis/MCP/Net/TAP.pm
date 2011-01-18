@@ -181,4 +181,52 @@ sub tap_report_create
 }
 
 
+=head2 upload_files
+
+Upload files written in one stage of the testrun to report framework.
+
+@param int - report id
+@param int - testrun id
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub upload_files
+{
+        my ($self, $reportid, $testrunid) = @_;
+        my $host = $self->cfg->{report_server};
+        my $port = $self->cfg->{report_api_port};
+
+        my $path = $self->cfg->{paths}{output_dir};
+        $path .= "/$testrunid/";
+        my @files=`find $path -type f`;
+        $self->log->debug(@files);
+        foreach my $file(@files) {
+                chomp $file;
+                my $reportfile=$file;
+                $reportfile =~ s|^$path||;
+                $reportfile =~ s|^./||;
+                $reportfile =~ s|[^A-Za-z0-9_-]|_|g;
+                my $cmdline =  "#! upload $reportid ";
+                $cmdline   .=  $reportfile;
+                $cmdline   .=  " plain\n";
+
+                my $server = IO::Socket::INET->new(PeerAddr => $host,
+                                                   PeerPort => $port);
+                return "Cannot open remote receiver $host:$port" if not $server;
+
+                open(my $FH, "<",$file) or do{$self->log->warn("Can't open $file:$!"); $server->close();next;};
+                $server->print($cmdline);
+                while (my $line = <$FH>) {
+                        $server->print($line);
+                }
+                close($FH);
+                $server->close();
+        }
+        return 0;
+}
+
+
 1;
