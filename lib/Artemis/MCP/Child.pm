@@ -76,7 +76,7 @@ sub net_read_do
                          @ready  = $select->can_read();
                 }
                 $timeout_calc -= time() - $time;
-                return 0 if not @ready;
+                return if not @ready;
                 my $tmp;
                 my $readbytes = sysread($fh, $tmp, BUFLEN);
                 last NETREAD if not $readbytes;
@@ -269,7 +269,7 @@ sub runtest_handling
         my  ($self, $hostname, $revive) = @_;
 
         my $srv    = IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
-        return("Can't open socket for testrun $self->testrun->id:$!") if not $srv;
+        return("Can't open socket for testrun ".$self->testrun->id.":$!") if not $srv;
         my $net    = Artemis::MCP::Net->new();
         my $error;
 
