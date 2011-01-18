@@ -239,7 +239,12 @@ sub report_mcp_results
 
         my $headerlines = $self->mcp_headerlines();
         my $mcp_results = $self->state->state_details->results();
-        $self->tap_report_send($mcp_results, $headerlines);
+        my ($error, $report_id) = $self->tap_report_send($mcp_results, $headerlines);
+        if ($error) {
+                $self->log->error('Can not send TAP report for testrun '.$self->testrun->id.
+                                  " on ".$self->cfg->{hostname}.": $report_id");
+                return;
+        }
 
         my $prc_count = $self->state->state_details->prc_count;
         for (my $prc_number = 0; $prc_number < $prc_count; $prc_number++)
