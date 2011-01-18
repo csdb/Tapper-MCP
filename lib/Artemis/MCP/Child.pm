@@ -306,8 +306,13 @@ sub runtest_handling
                         my $reboot_retval = $net->reboot_system($hostname);
                         return $reboot_retval if $reboot_retval;
 
-                        $error = $net->hw_report_send($self->testrun);
-                        $self->log->error($error) if $error;
+                        my $report;
+                        ($error, $report) = $net->hw_report_create($self->testrun->id);
+                        if ($error) {
+                                $self->log->error($error);
+                        } else {
+                                $self->tap_report_away($report);
+                        }
                 }
                 $self->state->update_state({state => 'takeoff'});
         }
