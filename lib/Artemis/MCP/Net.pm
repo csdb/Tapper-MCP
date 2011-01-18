@@ -16,7 +16,7 @@ use YAML;
 
 extends 'Artemis::MCP';
 
-use Artemis::Model qw(get_hardware_overview);
+use Artemis::Model qw(model get_hardware_overview);
 
 =head2 conserver_connect
 
@@ -283,8 +283,8 @@ db. Leave the sending to caller
 
 sub hw_report_create
 {
-        my ($self, $testrun) = @_;
-        my $testrun_id = $testrun->id;
+        my ($self, $testrun_id) = @_;
+        my $testrun = model->resultset('Testrun')->find($testrun_id);
         my $host;
         eval {
                 # parts of this chain may be undefined
