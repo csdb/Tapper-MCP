@@ -150,12 +150,12 @@ then the given one and 0 if both are equal.
 sub compare_given_state
 {
         my ($self, $given_state) = @_;
-        return $self->all_states->{$given_state} <=> $self->all_states->{$self->state_details->get_current_state};
+        return $self->all_states->{$given_state} <=> $self->all_states->{$self->state_details->current_state};
 }
 
 =head2 get_current_timeout_span
 
-Returns the time in seconds since the next timeout hits. When multiple
+Returns the time in seconds until the next timeout hits. When multiple
 timeouts are currently running (during test with multiple PRCs) the
 lowest of these timeouts is choosen. This value can be used for sleeping
 in reads.
