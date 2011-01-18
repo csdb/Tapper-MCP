@@ -166,7 +166,20 @@ in reads.
 
 sub get_current_timeout_span
 {
-
+        my ($self) = @_;
+        my $new_timeout;
+        given ($self->state_details->current_state){
+                when(['invalid', 'finished', 'started']){ return 60;}
+                when(['reboot_install', 'installing']){$new_timeout = $self->state_details->installer_timeout_current_date }
+                when('reboot_test'){ $new_timeout = $self->state_details->prc_timeout_current_date(0)}
+                when('testing'){
+                        $new_timeout = $self->state_details->prc_timeout_current_date(0);
+                        for (my $prc_num = 1; $prc_num < $self->state_details->prc_count; $prc_num++) {
+                                $new_timeout = mindef($new_timeout, $self->state_details->prc_timeout_current_date($prc_num));
+                        }
+                }
+        }
+        return $new_timeout - time();
 }
 
 =head2 state_init
