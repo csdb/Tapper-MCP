@@ -32,7 +32,8 @@ has cfg => (is => 'rw',
            default => sub {{}},
            );
 
-has valid_states  => (is => 'rw',
+
+has valid_states  => (is => 'ro',
                       default => sub { return  { 'takeoff'           => ['started'],
                                                 'start-install'     => ['reboot_install'],
                                                 'end-install'       => ['installing'],
@@ -60,9 +61,19 @@ sub mindef
 }
 
 around BUILDARGS => sub {
-        my (undef, undef, $testrun_id) = @_;
-        return ({testrun_id => $testrun_id});
+        my $orig  = shift;
+        my $class = shift;
+
+
+        my $args;
+        if ( @_ == 1 and not $_[0] eq 'HASH' ) {
+                return $class->$orig(testrun_id => $_[0]);
+        } else {
+                return $class->$orig(@_);
+        }
+
 };
+
 
 sub BUILD
 {
@@ -97,6 +108,7 @@ sub is_msg_valid
 {
         my ($self, $msg) = @_;
 
+        return 1 if $msg->{state} eq 'quit';
         if (not $self->state_details->current_state eq any(@{$self->valid_states->{$msg->{state}}})){
                 my $result =
                 {
