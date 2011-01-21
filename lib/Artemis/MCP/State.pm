@@ -99,6 +99,8 @@ Artemis::MCP::State - Keep state information for one specific test run
 
 Check whether received message is valid in current state.
 
+@param hash ref - message
+
 @return valid   - 1
 @return invalid - 0
 
@@ -185,6 +187,9 @@ sub get_current_timeout_span
 =head2 state_init
 
 Initialize the state or reload it from database.
+
+@param hash ref - initial state data (ignored in revive mode)
+@param bool     - are we in revive mode?
 
 @return success - 0
 @return error   - error string
