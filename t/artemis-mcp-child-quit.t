@@ -5,34 +5,19 @@ use warnings;
 
 # get rid of warnings
 use Class::C3;
-use IO::Socket::INET;
 use MRO::Compat;
 use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
 use Test::MockModule;
-use YAML::Syck;
-use Data::Dumper;
 
+use Artemis::Config;
+use Artemis::MCP::Child;
+use Artemis::MCP::Info;
 use Artemis::Model 'model';
 use Artemis::Schema::TestTools;
-use Artemis::Config;
-use Artemis::MCP::Info;
-
-# for mocking
-use Artemis::MCP::Child;
-
+use YAML::Syck 'LoadFile';
 
 use Test::More;
-
-sub msg_send
-{
-        my ($yaml, $port) = @_;
-        my $remote = IO::Socket::INET->new(PeerHost => 'localhost',
-                                           PeerPort => $port) or return "Can't connect to server:$!";
-        print $remote $yaml;
-        close $remote;
-        return 0;
-}
 
 sub closure
 {
@@ -73,8 +58,6 @@ $mock_conf->mock('write_config',sub{return 0;});
 
 
 
-my $mock_inet     = Test::MockModule->new('IO::Socket::INET');
-$mock_inet->mock('new', sub {my $original = $mock_inet->original('new'); return &$original(@_, LocalPort => 1337);});
                  
 my @tap_reports;
 my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
@@ -96,14 +79,13 @@ $child->mcp_info($mcp_info);
 my $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
-        $mock_inet->unmock('new');
         open my $fh, "<","t/command_files/quit_during_installation.txt" or die "Can't open commands file for quit test:$!";
 
         # get yaml and dump it instead of reading from file directly allows to have multiple messages in the file without need to parse seperators
         my $closure = closure($fh);
         while (my $yaml = &$closure()) {
-                my $retval = msg_send(Dump($yaml), 1337);
-                die $retval if $retval;
+                my $message = model('TestrunDB')->resultset('Message')->new({testrun_id => 4, message =>  $yaml});
+                $message->insert;
         }
         exit 0;
 } else {
@@ -133,14 +115,13 @@ not ok 1 - Testrun cancelled during state 'installing'
 $pid=fork();
 if ($pid==0) {
         sleep(2); #bad and ugly to prevent race condition
-        $mock_inet->unmock('new');
         open my $fh, "<","t/command_files/quit_during_test.txt" or die "Can't open commands file for quit test:$!";
 
         # get yaml and dump it instead of reading from file directly allows to have multiple messages in the file without need to parse seperators
         my $closure = closure($fh);
         while (my $yaml = &$closure()) {
-                my $retval = msg_send(Dump($yaml), 1337);
-                die $retval if $retval;
+                my $message = model('TestrunDB')->resultset('Message')->new({testrun_id => 4, message =>  $yaml});
+                $message->insert;
         }
         exit 0;
 } else {

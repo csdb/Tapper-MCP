@@ -5,7 +5,6 @@ use warnings;
 
 # get rid of warnings
 use Class::C3;
-use IO::Socket::INET;
 use MRO::Compat;
 use Log::Log4perl;
 use Test::Fixture::DBIC::Schema;
@@ -18,26 +17,9 @@ use Artemis::Config;
 
 # for mocking
 use Artemis::MCP::Child;
-
+use Artemis::Model 'model';
 
 use Test::More;
-
-sub msg_send
-{
-        my ($yaml, $port) = @_;
-        my $remote = IO::Socket::INET->new(PeerHost => 'localhost',
-                                           PeerPort => $port) or return "Can't connect to server:$!";
-        print $remote $yaml;
-        close $remote;
-}
-
-sub closure
-{
-        my ($file) = @_;
-        my $i=0;
-        my @data = LoadFile($file);
-        return sub{my ($self, $file) = @_; return $data[$i++]};
-}
 
 
 
@@ -63,8 +45,6 @@ Log::Log4perl->init(\$string);
 #                                    #
 #''''''''''''''''''''''''''''''''''''#
 
-my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
-
 
 my $mock_net = new Test::MockModule('Artemis::MCP::Net');
 $mock_net->mock('reboot_system',sub{return 0;});
@@ -74,8 +54,6 @@ $mock_net->mock('write_grub_file',sub{return 0;});
 
 my $mock_conf = new Test::MockModule('Artemis::MCP::Config');
 $mock_conf->mock('write_config',sub{return 0;});
-
-my $mock_inet     = new Test::MockModule('IO::Socket::INET');
 
 
 my $testrun    = 4;
@@ -94,33 +72,22 @@ my $retval;
 # get_message()
 #
 
-my ($pipe, $fh, $dont_need);
-pipe $pipe, $dont_need or die "Can't open pipe:$!";
-# use eval to prevent waiting forever when test fails
 eval {
         local $SIG{ALRM}=sub{die 'Timeout handling in get_message did not return in time'};
-        alarm(10);
-        $retval = $child->get_message($pipe, 2);
+        alarm(5);
+        $retval = $child->get_message(1);
 };
 alarm(0);
-is($@,'', 'Received message in time');
-is($retval, undef, 'No message received in time at get_message()');
+is($@,'', 'get_message returned after timeout');
+die "All remaining tests may sleep forever if timeout handling in get_message is broken"
+  if $@ eq 'Timeout handling in get_message did not return in time'; 
+is($retval, undef, 'No message due to timeout in get_message()');
 
+my $message = model('TestrunDB')->resultset('Message')->new({testrun_id => 4, message =>  "state: start-install"});
+$message->insert;
 
-open $fh, "<","t/command_files/install-error.txt" or die "Can't open commands file installation with error:$!";
-my $closure = closure($fh);
-$mock_child->mock('net_read', $closure);
-
-
-# use eval to prevent waiting forever when test fails
-eval {
-        local $SIG{ALRM}=sub{die 'Parsing error in get_message did not return in time';};
-        alarm(10);
-        $retval = $child->get_message($fh, 2);
-};
-alarm(0);
-print STDERR $@ if $@;
-is(ref $retval, 'HASH', 'Timeout handling in get_message');
+$retval = $child->get_message(1);
+is_deeply($retval->message, {state => 'start-install'}, 'get_message() returns expected message');
 
 
 #''''''''''''''''''''''''''''''''''''#
@@ -132,14 +99,7 @@ my @tap_reports;
 $mock_child->mock('tap_report_away', sub { my (undef, $new_tap_report) = @_; push @tap_reports, $new_tap_report; return (0,0)});
 
 
-# NOTE: assigning to $! has to be an error number, reading from $! will be the associated error string
-$mock_inet->mock('new', sub { $!=1, return undef; });
-$retval =  $child->runtest_handling('bullock');
-like($retval, qr(Can't open socket for testrun 4:), "Catching unsuccessful socket creation"); #'
 
-
-
-$mock_inet->mock('new', sub { return $pipe; });
 $retval =  $child->runtest_handling('bullock');
 is($tap_reports[1], "1..1
 # Artemis-reportgroup-testrun: 4
@@ -148,10 +108,7 @@ is($tap_reports[1], "1..1
 # Artemis-machine-name: bullock
 # Artemis-section: MCP overview
 # Artemis-reportgroup-primary: 1
-not ok 1 - timeout hit while waiting for installer booting
+not ok 1 - timeout hit while waiting for installation
 ", 'Detect timeout during installer booting');
-$mock_inet->original('new');
-
-
 
 done_testing();
