@@ -222,7 +222,7 @@ sub runtest_handling
                         my $report;
                         ($error, $report) = $net->hw_report_create($self->testrun->id);
                         if ($error) {
-                                $self->log->error($error);
+                                $self->log->error($report);
                         } else {
                                 $self->tap_report_away($report);
                         }
