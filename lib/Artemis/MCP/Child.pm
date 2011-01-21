@@ -5,8 +5,6 @@ use strict;
 use warnings;
 
 use Hash::Merge::Simple qw/merge/;
-use IO::Select;
-use IO::Socket::INET;
 use List::Util qw(min max);
 use Moose;
 #use UNIVERSAL;
@@ -44,92 +42,10 @@ Artemis::MCP::Child - Control one specific testrun on MCP side
 
 
 
-=head2 net_read_do
-
-Put worker part of net_read into a sub so we can call it with accepted socket
-as well as with readl file handle.
-
-@param file handle - read from this socket
-@param int         - timeout in seconds
-
-@return success - message string read from remote
-@return timeout - undef
-
-=cut
-
-sub net_read_do
-{
-        my ($self, $fh, $timeout) = @_;
-        my $msg;
-        my $timeout_calc = $timeout;
-        my $select = IO::Select->new() or return;
-        $select->add($fh);
-
- NETREAD:
-        while (1) {
-                my $time   = time();
-                my @ready;
-                # if no timeout is given, it's ok to wait forever
-                if ($timeout) {
-                         @ready  = $select->can_read($timeout_calc);
-                } else {
-                         @ready  = $select->can_read();
-                }
-                $timeout_calc -= time() - $time;
-                return if not @ready;
-                my $tmp;
-                my $readbytes = sysread($fh, $tmp, BUFLEN);
-                last NETREAD if not $readbytes;
-                $msg     .= $tmp;
-        }
-        return $msg;
-}
-
-=head2 net_read
-
-Reads new message from network socket.
-
-This function can be mocked when
-testing allowing messages to come from a file during tests.
-
-@param file handle - read from this socket
-@param int         - timeout in seconds
-
-@return success - hash reference containing message
-@return timeout - undef
-
-=cut
-
-sub net_read
-{
-        my ($self, $fh, $timeout) = @_;
-        my $msg;
-        my $sock;
-
-        if ($fh->can('accept')) {
-                eval{
-                        local $SIG{ALRM}=sub{die 'Timeout'};
-                        alarm($timeout);
-                        $sock = $fh->accept();
-                };
-                alarm(0);
-                return if $@=~m/Timeout/;
-                $msg = $self->net_read_do($sock, $timeout);
-        }
-        else {
-                $msg = $self->net_read_do($fh, $timeout);
-        }
-        alarm 0;
-        return if not $msg;
-        my $yaml = Load($msg);
-        return $yaml;
-
-}
-
 
 =head2 get_message
 
-Read a message from socket.
+Read a message from database. Try no more than timeout seconds
 
 @param file descriptor - read from this socket
 
@@ -142,18 +58,23 @@ Read a message from socket.
 
 sub get_message
 {
-        my ($self, $fh, $timeout) = @_;
-        return $self->net_read($fh, $timeout);
+        my ($self, $timeout) = @_;
+        my $end_time = time() + $timeout;
+
+        my $message;
+        while () {
+                $message = $self->testrun->message->first;
+                last if $message or time() > $end_time;
+        }
+
+        return $message;
 }
 
 
 
 =head2 wait_for_testrun
 
-
-
-@param int - testrun id
-@param file handle - read from this handle
+Wait for the current testrun and update state based on messages.
 
 @return hash { report_array => reference to report array, prc_state => $prc_state }
 
@@ -161,14 +82,14 @@ sub get_message
 
 sub wait_for_testrun
 {
-        my ($self, $fh) = @_;
+        my ($self) = @_;
 
         my $timeout_span = $self->state->get_current_timeout_span();
         my $error;
 
  MESSAGE:
         while (1) {
-                my $msg = $self->get_message($fh, $timeout_span);
+                my $msg = $self->get_message($timeout_span);
                 ($error, $timeout_span) = $self->state->update_state($msg);
                 if ($error) {
                         last MESSAGE if $self->state->testrun_finished;
@@ -190,13 +111,13 @@ sub wait_for_testrun
 sub generate_configs
 {
 
-        my ($self, $hostname, $port ) = @_;
+        my ($self, $hostname ) = @_;
         my $retval;
 
         my $producer = Artemis::MCP::Config->new($self->testrun);
 
         $self->log->debug("Create install config for $hostname");
-        my $config   = $producer->create_config($port);
+        my $config   = $producer->create_config();
         return $config if not ref($config) eq 'HASH';
 
         $retval = $producer->write_config($config, "$hostname-install");
@@ -204,7 +125,6 @@ sub generate_configs
 
         if ($config->{autoinstall}) {
                 my $common_config = $producer->get_common_config();
-                $common_config->{mcp_port} = $port;
                 $common_config->{hostname} = $hostname;  # allows guest systems to know their host system name
 
                 my $testconfigs = $producer->get_test_config();
@@ -276,17 +196,10 @@ sub runtest_handling
 
         my  ($self, $hostname, $revive) = @_;
 
-        my $srv    = IO::Socket::INET->new(Listen=>5, Proto => 'tcp');
-        return("Can't open socket for testrun ".$self->testrun->id.":$!") if not $srv;
         my $net    = Artemis::MCP::Net->new();
         my $error;
 
-        # check if $srv really knows sockport(), because in case of a test
-        # IO::Socket::INET is overwritten to read from a file
-        my $port = 0;
-        $port    = $srv->sockport if $srv->can('sockport');
-
-        my $config = $self->generate_configs($hostname, $port);
+        my $config = $self->generate_configs($hostname);
         return $config if ref $config ne 'HASH';
 
         $self->state(Artemis::MCP::State->new(testrun_id => $self->testrun->id, cfg => $config));
@@ -314,11 +227,17 @@ sub runtest_handling
                                 $self->tap_report_away($report);
                         }
                 }
-                $self->state->update_state({state => 'takeoff'});
+                my $message = model('TestrunDB')->resultset('Message')->new
+                  ({
+                   message => {state => 'takeoff'},
+                   testrun_id => $self->testrun->id,
+                   });
+                $message->insert;
+                $self->state->update_state($message);
         }
 
         $self->log->debug('waiting for test to finish');
-        $self->wait_for_testrun($srv);
+        $self->wait_for_testrun();
         $self->report_mcp_results($net);
         return 0;
 
