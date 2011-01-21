@@ -663,10 +663,9 @@ information are taken from the database based upon the given testrun id.
 
 sub create_config
 {
-        my ($self, $port) = @_;
+        my ($self) = @_;
         my $config = $self->get_common_config();
         return $config if not ref $config eq 'HASH';
-        $config->{mcp_port}        = $port;
 
         $config    = $self->get_install_config($config);
         return $config;
