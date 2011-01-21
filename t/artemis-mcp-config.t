@@ -95,7 +95,7 @@ is(ref($config),'HASH', 'Config created');
 my $expected_grub = qr(timeout 2
 
 title RHEL 5
-kernel /tftpboot/stable/rhel/5/x86_64/vmlinuz  console=ttyS0,115200 ks=http://bancroft/autoinstall/stable/rhel/5/x86_64/artemis-ai.ks ksdevice=eth0 noapic artemis_ip=\d{1,3}\.\d{1,3}.\d{1,3}.\d{1,3} artemis_host=$config->{mcp_host} artemis_port=1337 artemis_environment=test
+kernel /tftpboot/stable/rhel/5/x86_64/vmlinuz  console=ttyS0,115200 ks=http://bancroft/autoinstall/stable/rhel/5/x86_64/artemis-ai.ks ksdevice=eth0 noapic artemis_ip=\d{1,3}\.\d{1,3}.\d{1,3}.\d{1,3} artemis_host=$config->{mcp_host} artemis_environment=test testrun=$config->{test_run}
 initrd /tftpboot/stable/rhel/5/x86_64/initrd.img
 );
 
