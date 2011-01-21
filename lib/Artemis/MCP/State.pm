@@ -7,8 +7,10 @@ use warnings;
 use Moose;
 use List::Util qw/max min reduce/;
 use Perl6::Junction qw/any/;
+use UNIVERSAL 'can';
 
 use Artemis::MCP::State::Details;
+use Artemis::Model 'model';
 
 has state_details => (is => 'rw',
                       default => sub { {current_state => 'invalid'} }
@@ -693,11 +695,15 @@ checked and updated if needed.
 
 sub update_state
 {
-        my ($self, $msg) = @_;
+        my ($self, $msg_result) = @_;
         my ($error, $timeout_span);
         my $now = time();
 
-        if ($msg and ref($msg) eq 'HASH') {{
+        my $guard;
+        $guard = model('TestrunDB')->txn_scope_guard;
+        $guard->commit() if ref model('TestrunDB')->storage() eq 'DBIx::Class::Storage::DBI::SQLite';
+        if ($msg_result) {{
+                my $msg = $msg_result->message;
                 my $valid = $self->is_msg_valid($msg);
                 last if not $valid; # double braces allows last in if
                 given ($msg->{state}) {
@@ -715,8 +721,11 @@ sub update_state
                         when ('reboot')            { ($error, $timeout_span) = $self->msg_reboot($msg)            };
                         # (TODO) add default
                 }
+                $msg_result->delete;
         }}
-        return $self->update_timeouts();
+        ($error, $timeout_span) = $self->update_timeouts();
+        $guard->commit;
+        return ($error, $timeout_span);
 }
 
 =head2 testrun_finished
