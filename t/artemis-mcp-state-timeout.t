@@ -5,6 +5,7 @@ use 5.010;
 use Test::More;
 use Artemis::Schema::TestTools;
 use Test::Fixture::DBIC::Schema;
+use Artemis::Model 'model';
 
 BEGIN{use_ok('Artemis::MCP::State')}
 
@@ -15,6 +16,19 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 my $state = Artemis::MCP::State->new(23);
 isa_ok($state, 'Artemis::MCP::State');
+
+sub message_create
+{
+        my ($data) = @_;
+        my $message = model('TestrunDB')->resultset('Message')->new
+                  ({
+                   message => $data,
+                   testrun_id => 23,
+                   });
+        $message->insert;
+        return $message;
+}
+        
 
 ########################################################
 #                                                      #
@@ -78,7 +92,7 @@ sub initial_state
 my ($retval, $timeout);
 $retval = $state->state_init(initial_state());
 is($retval, 0, 'Init succeeded');
-($retval, $timeout) = $state->update_state({state => 'takeoff'});
+($retval, $timeout) = $state->update_state(message_create({state => 'takeoff'}));
 
 $retval = $state->state_details->current_state();
 is($retval, 'reboot_install', 'Current state at installation');
@@ -96,24 +110,24 @@ is_deeply($state->state_details->results,
 my $expected_timeout;
 my $start_time = time();
 $retval = $state->state_init(initial_state());
-($retval, $timeout) = $state->update_state({state => 'takeoff'});
+($retval, $timeout) = $state->update_state(message_create({state => 'takeoff'}));
 
 # we expect timeout_install_span
 $expected_timeout = 3*$timeout_span-(time() - $start_time);
-($retval, $timeout) = $state->update_state({state => 'start-install'});
+($retval, $timeout) = $state->update_state(message_create({state => 'start-install'}));
 ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
    'Timeout returned after start-install within expected range');
 
 
 # we expect timeout_boot_span of PRC0
 $expected_timeout = 7*$timeout_span-(time() - $start_time);
-($retval, $timeout) = $state->update_state({state => 'end-install'});
+($retval, $timeout) = $state->update_state(message_create({state => 'end-install'}));
 ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
    'Timeout returned after end-install within expected range');
 
 # we timeout_boot_span of PRC1,
 $expected_timeout = 2*$timeout_span-(time() - $start_time);
-($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 1});
+($retval, $timeout) = $state->update_state(message_create({ state => 'start-guest', prc_number => 1}));
 is($retval, 0, '1. guest_started handled');
 ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
    'Timeout after booting first guest within expected range');
@@ -121,7 +135,7 @@ ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
 
 # we still expect timeout_boot_span of PRC1, its lower than PRC2
 $expected_timeout = 2*$timeout_span-(time() - $start_time);
-($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 2});
+($retval, $timeout) = $state->update_state(message_create({ state => 'start-guest', prc_number => 2}));
 is($retval, 0, '2. guest_started handled');
 ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
    'Timeout after booting second guest within expected range');
@@ -129,14 +143,14 @@ ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
 
 # we still expect timeout_boot_span of PRC1, its lower than PRC2 and PRC3
 $expected_timeout = 2*$timeout_span-(time() - $start_time);
-($retval, $timeout) = $state->update_state({ state => 'start-guest', prc_number => 3});
+($retval, $timeout) = $state->update_state(message_create({ state => 'start-guest', prc_number => 3}));
 is($retval, 0, '2. guest_started handled');
 ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
    'Timeout after booting third guest within expected range');
 
 
 $expected_timeout = 60;
-($retval, $timeout) = $state->update_state({ state => 'start-testing', prc_number => 0});
+($retval, $timeout) = $state->update_state(message_create({ state => 'start-testing', prc_number => 0}));
 $timeout = $state->state_details->prc_timeout_current_date(0) - time();
 ok(($expected_timeout - 1 <= $timeout   and $timeout <= $expected_timeout),
    'PRC0 timeout for "end-testing"');
