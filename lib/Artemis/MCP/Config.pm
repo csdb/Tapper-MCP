@@ -469,8 +469,9 @@ sub parse_autoinstall
         }
         my $artemis_ip=inet_ntoa($packed_ip);
         my $artemis_environment = Artemis::Config::_getenv();
+        my $testrun = $config->{test_run};
         $config->{installer_grub} =~
-          s|\$ARTEMIS_OPTIONS|artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=$artemis_port artemis_environment=$artemis_environment|g;
+          s|\$ARTEMIS_OPTIONS|artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_environment=$artemis_environment testrun=$testrun|g;
 
         return $config;
 }
