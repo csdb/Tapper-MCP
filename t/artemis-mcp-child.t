@@ -75,19 +75,19 @@ my $retval;
 eval {
         local $SIG{ALRM}=sub{die 'Timeout handling in get_message did not return in time'};
         alarm(5);
-        $retval = $child->get_message(1);
+        $retval = $child->get_messages(1);
 };
 alarm(0);
-is($@,'', 'get_message returned after timeout');
-die "All remaining tests may sleep forever if timeout handling in get_message is broken"
-  if $@ eq 'Timeout handling in get_message did not return in time'; 
-is($retval, undef, 'No message due to timeout in get_message()');
+is($@,'', 'get_messages returned after timeout');
+die "All remaining tests may sleep forever if timeout handling in get_messages is broken"
+  if $@ eq 'Timeout handling in get_messages did not return in time';
+is($retval->count, 0, 'No message due to timeout in get_messages()');
 
 my $message = model('TestrunDB')->resultset('Message')->new({testrun_id => 4, message =>  "state: start-install"});
 $message->insert;
 
-$retval = $child->get_message(1);
-is_deeply($retval->message, {state => 'start-install'}, 'get_message() returns expected message');
+$retval = $child->get_messages(1);
+is_deeply($retval->first->message, {state => 'start-install'}, 'get_messages() returns expected message');
 
 
 #''''''''''''''''''''''''''''''''''''#

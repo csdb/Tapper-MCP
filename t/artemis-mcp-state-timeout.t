@@ -94,11 +94,12 @@ $retval = $state->state_init(initial_state());
 is($retval, 0, 'Init succeeded');
 ($retval, $timeout) = $state->update_state(message_create({state => 'takeoff'}));
 
+my $message_rs = model('TestrunDB')->resultset('Message');
 $retval = $state->state_details->current_state();
 is($retval, 'reboot_install', 'Current state at installation');
 
 sleep 2;
-($retval, $timeout) = $state->update_state();
+($retval, $timeout) = $state->update_state($message_rs);
 is($state->testrun_finished, 1, 'Timeout detected');
 is_deeply($state->state_details->results,
           [{
