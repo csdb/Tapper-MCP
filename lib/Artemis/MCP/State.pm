@@ -678,6 +678,44 @@ sub msg_quit
 }
 
 
+=head2 next_state
+
+Update state machine based on message.
+
+@param Result class - message
+
+@return success - 1
+@return error   - undef
+
+=cut
+
+sub next_state
+{
+        my ($self, $msg) = @_;
+        my ($error, $timeout_span);
+
+        my $valid = $self->is_msg_valid($msg);
+        return if not $valid;
+
+        given ($msg->{state}) {
+                when ('quit')              { ($error, $timeout_span) = $self->msg_quit($msg)           };
+                when ('takeoff')           { ($error, $timeout_span) = $self->msg_takeoff($msg)           };
+                when ('start-install')     { ($error, $timeout_span) = $self->msg_start_install($msg)     };
+                when ('end-install')       { ($error, $timeout_span) = $self->msg_end_install($msg)       };
+                when ('error-install')     { ($error, $timeout_span) = $self->msg_error_install($msg)     };
+                when ('start-guest')       { ($error, $timeout_span) = $self->msg_start_guest($msg)       };
+                when ('error-guest')       { ($error, $timeout_span) = $self->msg_error_guest($msg)       };
+                when ('start-testing')     { ($error, $timeout_span) = $self->msg_start_testing($msg)     };
+                when ('end-testing')       { ($error, $timeout_span) = $self->msg_end_testing($msg)       };
+                when ('error-testprogram') { ($error, $timeout_span) = $self->msg_error_testprogram($msg) };
+                when ('end-testprogram')   { ($error, $timeout_span) = $self->msg_end_testprogram($msg)   };
+                when ('reboot')            { ($error, $timeout_span) = $self->msg_reboot($msg)            };
+                                # (TODO) add default
+        }
+
+        return (1);
+}
+
 
 =head2
 
@@ -695,34 +733,27 @@ checked and updated if needed.
 
 sub update_state
 {
-        my ($self, $msg_result) = @_;
+        my ($self, $msg_obj) = @_;
         my ($error, $timeout_span);
         my $now = time();
 
         my $guard;
         $guard = model('TestrunDB')->txn_scope_guard;
         $guard->commit() if ref model('TestrunDB')->storage() eq 'DBIx::Class::Storage::DBI::SQLite';
-        if ($msg_result) {{
-                my $msg = $msg_result->message;
-                my $valid = $self->is_msg_valid($msg);
-                last if not $valid; # double braces allows last in if
-                given ($msg->{state}) {
-                        when ('quit')              { ($error, $timeout_span) = $self->msg_quit($msg)           };
-                        when ('takeoff')           { ($error, $timeout_span) = $self->msg_takeoff($msg)           };
-                        when ('start-install')     { ($error, $timeout_span) = $self->msg_start_install($msg)     };
-                        when ('end-install')       { ($error, $timeout_span) = $self->msg_end_install($msg)       };
-                        when ('error-install')     { ($error, $timeout_span) = $self->msg_error_install($msg)     };
-                        when ('start-guest')       { ($error, $timeout_span) = $self->msg_start_guest($msg)       };
-                        when ('error-guest')       { ($error, $timeout_span) = $self->msg_error_guest($msg)       };
-                        when ('start-testing')     { ($error, $timeout_span) = $self->msg_start_testing($msg)     };
-                        when ('end-testing')       { ($error, $timeout_span) = $self->msg_end_testing($msg)       };
-                        when ('error-testprogram') { ($error, $timeout_span) = $self->msg_error_testprogram($msg) };
-                        when ('end-testprogram')   { ($error, $timeout_span) = $self->msg_end_testprogram($msg)   };
-                        when ('reboot')            { ($error, $timeout_span) = $self->msg_reboot($msg)            };
-                        # (TODO) add default
+
+        if (ref $msg_obj eq 'Artemis::Schema::TestrunDB::Result::Message') {
+                my $msg_hash = $msg_obj->message;
+                $self->next_state($msg_hash);
+                $msg_obj->delete;
+
+        } else {
+                foreach my $msg_result ($msg_obj->all) {
+                        my $msg_hash = $msg_result->message;
+                        my ($success ) = $self->next_state($msg_hash);
+                        $msg_result->delete;
+                        last if not $success;
                 }
-                $msg_result->delete;
-        }}
+        }
         ($error, $timeout_span) = $self->update_timeouts();
         $guard->commit;
         return ($error, $timeout_span);

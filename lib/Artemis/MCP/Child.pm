@@ -43,31 +43,31 @@ Artemis::MCP::Child - Control one specific testrun on MCP side
 
 
 
-=head2 get_message
+=head2 get_messages
 
-Read a message from database. Try no more than timeout seconds
+Read all pending messages from database. Try no more than timeout seconds
 
 @param file descriptor - read from this socket
 
-@return success - hash reference containing received information
-@return timeout - undef
+@return success - Resultset class countaining all available messages
+@return timeout - Resultset class countaining zero messages
 
 
 
 =cut
 
-sub get_message
+sub get_messages
 {
         my ($self, $timeout) = @_;
         my $end_time = time() + $timeout;
 
-        my $message;
+        my $messages;
         while () {
-                $message = $self->testrun->message->first;
-                last if $message or time() > $end_time;
+                $messages = $self->testrun->message;
+                last if ($messages and $messages->count) or time() > $end_time;
+                sleep 1;
         }
-
-        return $message;
+        return $messages;
 }
 
 
@@ -89,7 +89,8 @@ sub wait_for_testrun
 
  MESSAGE:
         while (1) {
-                my $msg = $self->get_message($timeout_span);
+                my $msg = $self->get_messages($timeout_span);
+                $DB::single=1;
                 ($error, $timeout_span) = $self->state->update_state($msg);
                 if ($error) {
                         last MESSAGE if $self->state->testrun_finished;
