@@ -10,7 +10,7 @@ our $VERSION = '2.000132';
 use Artemis::Config;
 use Moose;
 
-extends 'Artemis::Base';
+extends 'Tapper::Base';
 
 sub cfg
 {
