@@ -36,7 +36,8 @@ use Devel::Backtrace;
 # --------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema,  fixture => 't/fixtures/testrundb/testrun_with_scheduling_long.yml' );
 # --------------------------------------------------------------------------------
-
+qx(artemis-testrun updatehost --name bullock --addqueue KVM);
+qx(artemis-testrun updatehost --name bascha --addqueue Xen);
 # --------------------------------------------------
 
 my $algorithm = Algorithm->new_with_traits ( traits => [WFQ] );
@@ -65,7 +66,7 @@ my %jobs;
 # Job 1
 
 eval{
-        for (my $i=0; $i<60; $i++) {
+        for (my $i=0; $i<180; $i++) {
                 
                 $next_job   = $scheduler->get_next_job();
                 if ($next_job) {

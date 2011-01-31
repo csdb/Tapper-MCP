@@ -5,8 +5,6 @@ use 5.010;
 ## no critic (RequireUseStrict)
 class Artemis::MCP::Scheduler::Controller
 {
-        with 'MooseX::Log::Log4perl';
-        use Perl6::Junction qw/ any /;
         use Artemis::Model 'model';
         use aliased 'Artemis::MCP::Scheduler::Algorithm';
         use aliased 'Artemis::MCP::Scheduler::PrioQueue';
@@ -55,7 +53,13 @@ Check whether we need to change from scheduling white bandwidth to black bandwid
 
 =head2 get_next_job
 
+Pick a testrequest and prepare it for execution. Returns 0 if not testrequest
+fits any of the free hosts.
 
+@param ArrayRef - array of host objects associated to hosts with no current test
+
+@return success   - job object
+@return no job    - 0
 
 =cut 
 
@@ -158,23 +162,6 @@ Artemis::MCP::Scheduler::Controller - Main class of the scheduler
 
 =head1 FUNCTIONS
 
-# DEACTIVATED
-# =head2 get_prioritiy_job
-
-# Check priority queue for a new job and return it.
-
-# @return    job available - ad hoc queue object
-# @return no job available - 0
-
-=head2 get_next_job
-
-Pick a testrequest and prepare it for execution. Returns 0 if not testrequest
-fits any of the free hosts.
-
-@param ArrayRef - array of host objects associated to hosts with no current test
-
-@return success   - job object
-@return no job    - 0
 
 =head1 AUTHOR
 

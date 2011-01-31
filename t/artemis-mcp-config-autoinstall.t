@@ -6,15 +6,16 @@ use warnings;
 use Test::Fixture::DBIC::Schema;
 use YAML::Syck;
 
-use Artemis::Schema::TestTools;
-use Artemis::MCP::Child;
 use Artemis::Config;
+use Artemis::MCP::Child;
+use Artemis::Model 'model';
+use Artemis::Schema::TestTools;
 
-use Test::More;
+use Socket;
+use Sys::Hostname;
 use Test::Deep;
 use Test::MockModule;
-use Sys::Hostname;
-use Socket;
+use Test::More;
 
 BEGIN { use_ok('Artemis::MCP::Config'); }
 
@@ -25,7 +26,9 @@ my $string = "
 log4perl.rootLogger           = INFO, root
 log4perl.appender.root        = Log::Log4perl::Appender::Screen
 log4perl.appender.root.stderr = 1
-log4perl.appender.root.layout = SimpleLayout";
+log4perl.appender.root.layout = PatternLayout
+# date package category - message in  last 2 components of filename (linenumber) newline
+log4perl.appender.root.layout.ConversionPattern = %d %p %c - %m in %F{2} (%L)%n";
 Log::Log4perl->init(\$string);
 
 
@@ -68,7 +71,7 @@ my $artemis_ip   = inet_ntoa($packed_ip);
 ok(defined $config->{installer_grub}, 'Grub for installer set');
 is($config->{installer_grub}, 
    "title opensuse 11.2\n".
-   "kernel /tftpboot/kernel autoyast=bare.cfg artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_port=12 artemis_environment=test\n".
+   "kernel /tftpboot/kernel autoyast=bare.cfg artemis_ip=$artemis_ip artemis_host=$artemis_host artemis_environment=test testrun=1\n".
    "initrd /tftpboot/initrd\n",
    'Expected value for installer grub config');
 
@@ -88,26 +91,33 @@ my $timeout = Artemis::Config->subconfig->{times}{boot_timeout};
 
 my $mock_net = new Test::MockModule('Artemis::MCP::Net');
 $mock_net->mock('reboot_system',sub{return 0;});
-$mock_net->mock('tap_report_send',sub{return 0;});
 $mock_net->mock('upload_files',sub{return 0;});
 $mock_net->mock('write_grub_file',sub{(undef, undef, $grubtext) = @_;return 0;});
-$mock_net->mock('hw_report_send',sub{return 0;});
+$mock_net->mock('hw_report_create',sub{return (0, 'text');});
+
+
 
 my $mock_inet = new Test::MockModule('IO::Socket::INET');
 $mock_inet->mock('new', sub{my $inet = bless {sockport => sub {return 12;}}; return $inet});
 
 my $mock_child = Test::MockModule->new('Artemis::MCP::Child');
-$mock_child->mock('get_message',sub{ return {state => 'start-install'}});
+$mock_net->mock('hw_report_create',sub{return (0, 'text');});
+
+my $message = model('TestrunDB')->resultset('Message')->new
+  ({
+    message => {state => 'start-install'},
+    testrun_id => 1,
+   });
+$message->insert;
+
+$mock_child->mock('tap_report_away', sub{ return 0});
+$mock_child->mock('upload_files', sub{ return 0});
 
 
 my $testrun    = 1;
 my $child      = Artemis::MCP::Child->new($testrun);
 
 my $retval = $child->runtest_handling('dickstone');
-is($retval,
-   qq(MCP expected state end-install or error-install but remote system is in state "start-install"),
-   'runtesthandling returns because of mocked reboot');
-
 is ($grubtext, 'timeout 2
 
 title Boot from first hard disc

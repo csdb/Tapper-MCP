@@ -35,7 +35,7 @@ $mockmaster->mock('console_close',sub{return "mocked console_close";});
 my $mockchild = Test::MockModule->new('Artemis::MCP::Child');
 $mockchild->mock('runtest_handling',sub{my $self = shift @_; $self->rerun(1);return 0;});
 
-my $mockschedule = Test::MockModule->new('Artemis::MCP::Scheduler');
+my $mockschedule = Test::MockModule->new('Artemis::MCP::Scheduler::Controller');
 $mockschedule->mock('get_next_testrun',sub{return('bullock',4)});
 
 

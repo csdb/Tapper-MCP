@@ -264,6 +264,40 @@ sub is_simnow
         return $self->mcp_info->{simnow} // 0;
 }
 
+=head2 get_state_config
+
+Returns a hash structure suitable for feeding it into
+
+=cut
+
+sub get_state_config
+{
+        my ($self) = @_;
+        my $state = {
+                     current_state => 'started',
+                     results => [],
+                     install => { timeout_boot_span    => $self->cfg->{times}{boot_timeout},
+                                  timeout_install_span => $self->cfg->{times}{installer_timeout},
+                                  timeout_current_date => undef,
+                                },
+                     prcs    => [],
+                    };
+        if ($self->mcp_info->{prc}->[0]->{max_reboot}) {
+                $state->{reboot}->{max_reboot} = $self->mcp_info->{prc}->[0]->{max_reboot};
+                $state->{reboot}->{current} = 0;
+       }
+        foreach my $prc ( @{$self->mcp_info->{prc}}) {
+                my $prc_state = {
+                                 timeout_boot_span => $prc->{timeouts}->{boot} || $self->cfg->{times}{boot_timeout},
+                                 timeout_current_date => undef,
+                                 state => 'preload',
+                                 results => [],
+                                };
+                push @{$state->{prcs}}, $prc_state;
+        }
+        return $state;
+}
+
 
 
 1;

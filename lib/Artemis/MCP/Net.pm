@@ -268,196 +268,30 @@ END
 	return(0);
 }
 
-=head2 upload_files
 
-Upload files written in one stage of the testrun to report framework.
+=head2 hw_report_create
 
-@param int - report id
+Create a report containing the test machines hw config as set in the hardware
+db. Leave the sending to caller
+
 @param int - testrun id
 
-@return success - 0
-@return error   - error string
-
-=cut
-
-sub upload_files
-{
-        my ($self, $reportid, $testrunid) = @_;
-        my $host = $self->cfg->{report_server};
-        my $port = $self->cfg->{report_api_port};
-
-        my $path = $self->cfg->{paths}{output_dir};
-        $path .= "/$testrunid/";
-        my @files=`find $path -type f`;
-        $self->log->debug(@files);
-        foreach my $file(@files) {
-                chomp $file;
-                my $reportfile=$file;
-                $reportfile =~ s|^$path||;
-                $reportfile =~ s|^./||;
-                $reportfile =~ s|[^A-Za-z0-9_-]|_|g;
-                my $cmdline =  "#! upload $reportid ";
-                $cmdline   .=  $reportfile;
-                $cmdline   .=  " plain\n";
-
-                my $server = IO::Socket::INET->new(PeerAddr => $host,
-                                                   PeerPort => $port);
-                return "Cannot open remote receiver $host:$port" if not $server;
-
-                open(my $FH, "<",$file) or do{$self->log->warn("Can't open $file:$!"); $server->close();next;};
-                $server->print($cmdline);
-                while (my $line = <$FH>) {
-                        $server->print($line);
-                }
-                close($FH);
-                $server->close();
-        }
-        return 0;
-}
-
-
-=head2 tap_report_away
-
-Actually send the tap report to receiver.
-
-@param string - report to be sent
-
-@return success - (0, report id)
+@return success - (0, hw_report)
 @return error   - (1, error string)
 
 =cut
 
-sub tap_report_away
-{
-        my ($self, $tap) = @_;
-        my $reportid;
-        if (my $sock = IO::Socket::INET->new(PeerAddr => $self->cfg->{report_server},
-					     PeerPort => $self->cfg->{report_port},
-					     Proto    => 'tcp')) {
-                eval{
-                        my $timeout = 100;
-                        local $SIG{ALRM}=sub{die("timeout for sending tap report ($timeout seconds) reached.");};
-                        alarm($timeout);
-                        ($reportid) = <$sock> =~m/(\d+)$/g;
-                        $sock->print($tap);
-                };
-                alarm(0);
-                $self->log->error($@) if $@;
-		close $sock;
-	} else {
-                return(1,"Can not connect to report server: $!");
-	}
-        return (0,$reportid);
-
-}
-
-=head2 tap_report_send
-
-Send information of current test run status to report framework using TAP
-protocol.
-
-@param int   - test run id
-@param array -  report array
-@param array - header lines
-
-@return success - (0, report id)
-@return error   - (1, error string)
-
-=cut
-
-sub tap_report_send
-{
-        my ($self, $testrun, $reportlines, $headerlines) = @_;
-        my $tap = $self->tap_report_create($testrun, $reportlines, $headerlines);
-        $self->log->debug($tap);
-        return $self->tap_report_away($tap);
-}
-
-sub suite_headerlines {
-        my ($self, $testrun_id) = @_;
-
-        my $run      = model->resultset('Testrun')->search({id=>$testrun_id})->first();
-        my $topic = $run->topic_name() || $run->shortname();
-        $topic =~ s/\s+/-/g;
-        my $hostname;
-
-        eval {
-                # parts of this chain may not exists and thus thow an exception
-                $hostname = $run->testrun_scheduling->host->name;
-                };
-        $hostname    = $hostname // 'No hostname set';
-
-        my $headerlines = [
-                           "# Artemis-reportgroup-testrun: $testrun_id",
-                           "# Artemis-suite-name: Topic-$topic",
-                           "# Artemis-suite-version: $Artemis::MCP::VERSION",
-                           "# Artemis-machine-name: $hostname",
-                           "# Artemis-section: MCP overview",
-                           "# Artemis-reportgroup-primary: 1",
-                          ];
-        return $headerlines;
-}
-
-=head2 tap_report_create
-
-Create a report string from a report in array form. Since the function only
-does data transformation, no error should ever occur.
-
-@param int   - test run id
-@param array - report array
-@param array - header lines
-
-@return report string
-
-=cut
-
-sub tap_report_create
-{
-        my ($self, $testrun, $reportlines, $headerlines) = @_;
-        my @reportlines  = @$reportlines;
-        my $message;
-        $message .= "1..".($#reportlines+1)."\n";
-
-        foreach my $l (map { chomp; $_ } @$headerlines) {
-                $message .= "$l\n";
-        }
-
-        # @reportlines starts with 0, reports start with 1
-        for (my $i=1; $i<=$#reportlines+1; $i++) {
-                # check if == 0, but == fails if $report[$i-1] contains a string
-                $message .= "not " if $reportlines[$i-1]->{error};
-                $message .="ok $i - ";
-                $message .= $reportlines[$i-1]->{msg} if $reportlines[$i-1]->{msg};
-                $message .="\n";
-
-                $message .= "# ".$reportlines[$i-1]->{comment}."\n"
-                  if $reportlines[$i-1]->{comment};
-        }
-        return ($message);
-}
-
-=head2 hw_report_send
-
-Send a report containing the test machines hw config as set in the hardware
-db.
-
-@param int - testrun id
-
-@return success - 0
-@return error   - error string
-
-=cut
-
-sub hw_report_send
+sub hw_report_create
 {
         my ($self, $testrun_id) = @_;
-        my $run       = model->resultset('Testrun')->find($testrun_id);
+        my $testrun = model->resultset('Testrun')->find($testrun_id);
         my $host;
         eval {
                 # parts of this chain may be undefined
-                $host = $run->testrun_scheduling->host;
+
+                $host = $testrun->testrun_scheduling->host;
         };
-        return qq(testrun '$testrun_id' has no host associated) unless $host;
+        return (1, qq(testrun '$testrun_id' has no host associated)) unless $host;
 
         my $data = get_hardware_overview($host->id);
         my $yaml = Dump($data);
@@ -475,9 +309,7 @@ ok 1 - Getting hardware information
 ok 2 - Sending
 ", $testrun_id, $Artemis::MCP::VERSION, $host->name, $yaml);
 
-        my ($error, $error_string) = $self->tap_report_away($report);
-        return $error_string if $error;
-        return 0;
+        return (0, $report);
 }
 
 1;
