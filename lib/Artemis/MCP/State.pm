@@ -201,9 +201,7 @@ Initialize the state or reload it from database.
 sub state_init
 {
         my ($self, $data, $revive) = @_;
-        if ($revive) {
-                $self->state_details->reload();
-        } else {
+        if (not $revive) {
                 $self->state_details->state_init($data);
         }
         return 0;
