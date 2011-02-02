@@ -132,6 +132,7 @@ sub takeoff
         $self->current_state('reboot_install');
         my $install = $self->state_details->{install};
         $install->{timeout_current_date} = $install->{timeout_boot_span} + time();
+        $self->db_update();
         return ($install->{timeout_current_date});
 }
 
