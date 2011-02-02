@@ -202,6 +202,7 @@ sub runtest_handling
 
         my $config = $self->generate_configs($hostname);
         return $config if ref $config ne 'HASH';
+        $self->log->debug("Reviving testrun ",$self->testrun->id) if $revive;
 
         $self->state(Artemis::MCP::State->new(testrun_id => $self->testrun->id, cfg => $config));
         $self->state->state_init($self->mcp_info->get_state_config, $revive );
