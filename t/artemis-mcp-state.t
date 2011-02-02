@@ -15,7 +15,8 @@ BEGIN{use_ok('Artemis::MCP::State')}
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
 # -----------------------------------------------------------------------------------------------------------------
-my $state = Artemis::MCP::State->new(23);
+my $testrun_id = 23;
+my $state = Artemis::MCP::State->new($testrun_id);
 isa_ok($state, 'Artemis::MCP::State');
 
 
@@ -25,7 +26,7 @@ sub message_create
         my $message = model('TestrunDB')->resultset('Message')->new
                   ({
                    message => $data,
-                   testrun_id => 23,
+                   testrun_id => $testrun_id,
                    });
         $message->insert;
         return $message;
@@ -78,7 +79,7 @@ sub initial_state
                              }
 }
 
-my ($retval, $timeout);
+my ($retval, $timeout, $db_state);
 
 $retval = $state->state_init(initial_state());
 ($retval, $timeout) = $state->update_state(message_create({state => 'takeoff'}));
@@ -87,32 +88,47 @@ $retval = $state->state_init(initial_state());
 is($retval, 0, 'start-install handled');
 $retval = $state->state_details->current_state();
 is($retval, 'installing', 'Current state at installation');
+$db_state = model('TestrunDB')->resultset('State')->search({testrun_id => $testrun_id})->first;
+is_deeply($db_state->state, $state->state_details->state_details, 'State updated in db');
+                                                          
+
 
 ($retval, $timeout) = $state->update_state(message_create({state => 'end-install'}));
 is($retval, 0, 'end-install handled');
 $retval = $state->state_details->current_state();
 is($retval, 'reboot_test', 'Current state after installation');
+$db_state = model('TestrunDB')->resultset('State')->search({testrun_id => $testrun_id})->first;
+is_deeply($db_state->state, $state->state_details->state_details, 'State updated in db');
+
 
 ($retval, $timeout) = $state->update_state(message_create({ state => 'start-guest', prc_number => 1}));
 is($retval, 0, '1. guest_started handled');
 $retval = $state->state_details->current_state();
 is($retval, 'testing', 'Current state after 1. guest started');
+$db_state = model('TestrunDB')->resultset('State')->search({testrun_id => $testrun_id})->first;
+is_deeply($db_state->state, $state->state_details->state_details, 'State updated in db');
 
 ($retval, $timeout) = $state->update_state(message_create({ state => 'start-guest', prc_number => 2}));
 is($retval, 0, '2. guest_started handled');
 $retval = $state->state_details->current_state();
 is($retval, 'testing', 'Current state after 2. guest started');
+$db_state = model('TestrunDB')->resultset('State')->search({testrun_id => $testrun_id})->first;
+is_deeply($db_state->state, $state->state_details->state_details, 'State updated in db');
 
 ($retval, $timeout) = $state->update_state(message_create({ state => 'start-guest', prc_number => 3}));
 is($retval, 0, '3. guest_started handled');
 $retval = $state->state_details->current_state();
 is($retval, 'testing', 'Current state after 3. guest started');
+$db_state = model('TestrunDB')->resultset('State')->search({testrun_id => $testrun_id})->first;
+is_deeply($db_state->state, $state->state_details->state_details, 'State updated in db');
 
 
 ($retval, $timeout) = $state->update_state(message_create({ state => 'start-testing', prc_number => 0}));
 is($retval, 0, '3. guest_started handled');
 $retval = $state->state_details->current_state();
 is($retval, 'testing', 'Current state after 3. guest started');
+$db_state = model('TestrunDB')->resultset('State')->search({testrun_id => $testrun_id})->first;
+is_deeply($db_state->state, $state->state_details->state_details, 'State updated in db');
 
 
 done_testing();
