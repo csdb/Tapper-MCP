@@ -292,7 +292,7 @@ Run the tests that are due.
                         my $child = Artemis::MCP::Child->new( $id );
                         my $retval;
                         eval {
-                                $retval = $child->runtest_handling( $system );
+                                $retval = $child->runtest_handling( $system, $revive );
                         };
                         $retval = $@ if $@;
 
