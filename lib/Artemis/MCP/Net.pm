@@ -185,7 +185,7 @@ sub reboot_system
                         }
                 };
                 alarm(0);
-                if ($output =~ 'The system is going down for reboot') {
+                if ($output and $output =~ 'The system is going down for reboot') {
                         return 0;
                 } elsif ($@) {
                         $self->log->error("Can not reboot $host with SSH: $@");
