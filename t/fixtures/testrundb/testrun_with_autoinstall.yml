@@ -43,7 +43,7 @@
       repository: /tftp/farnold/
       grub_text: |
          title opensuse 11.2
-         kernel /tftpboot/kernel autoyast=bare.cfg $ARTEMIS_OPTIONS
+         kernel /tftpboot/kernel autoyast=bare.cfg $TAPPER_OPTIONS
          initrd /tftpboot/initrd
 
 - schema: Precondition
@@ -53,7 +53,7 @@
     shortname: testprogram_autoinstall
     precondition: |
       precondition_type: testprogram
-      program: /bin/artemis-testsuite-oprofile
+      program: /bin/tapper-testsuite-oprofile
       timeout: 600
 
 # -------------------- "KVM" <== "KVMtest"

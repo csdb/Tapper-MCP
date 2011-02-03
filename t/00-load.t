@@ -10,21 +10,21 @@ use MRO::Compat;
 
 use Test::More;
 
-my @modules = ('Artemis::MCP', 
-               'Artemis::MCP::Child',
-               'Artemis::MCP::Control',
-               'Artemis::MCP::Config',
-               'Artemis::MCP::Master',
-               'Artemis::MCP::Net',
-               'Artemis::MCP::Net::TAP',
-               'Artemis::MCP::Startup',
-               'Artemis::MCP::Scheduler::Algorithm',
-               'Artemis::MCP::Scheduler::Algorithm::WFQ',
-               'Artemis::MCP::Scheduler::Algorithm::DummyAlgorithm',
-               'Artemis::MCP::Scheduler::Builder',
-               'Artemis::MCP::Scheduler::PreconditionProducer',
-               'Artemis::MCP::Scheduler::Controller',
-               'Artemis::MCP::Scheduler::PrioQueue',
+my @modules = ('Tapper::MCP', 
+               'Tapper::MCP::Child',
+               'Tapper::MCP::Control',
+               'Tapper::MCP::Config',
+               'Tapper::MCP::Master',
+               'Tapper::MCP::Net',
+               'Tapper::MCP::Net::TAP',
+               'Tapper::MCP::Startup',
+               'Tapper::MCP::Scheduler::Algorithm',
+               'Tapper::MCP::Scheduler::Algorithm::WFQ',
+               'Tapper::MCP::Scheduler::Algorithm::DummyAlgorithm',
+               'Tapper::MCP::Scheduler::Builder',
+               'Tapper::MCP::Scheduler::PreconditionProducer',
+               'Tapper::MCP::Scheduler::Controller',
+               'Tapper::MCP::Scheduler::PrioQueue',
               );
 
 plan tests => $#modules+1;
@@ -33,4 +33,4 @@ foreach my $module(@modules) {
         require_ok($module);
 }
 
-diag( "Testing Artemis $Artemis::MCP::VERSION,Perl $], $^X" );
+diag( "Testing Tapper $Tapper::MCP::VERSION,Perl $], $^X" );

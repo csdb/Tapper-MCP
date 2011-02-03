@@ -8,7 +8,7 @@ use Class::C3;
 use MRO::Compat;
 
 use Test::More;
-use Artemis::Schema::TestTools;
+use Tapper::Schema::TestTools;
 use Test::Fixture::DBIC::Schema;
 
 # -----------------------------------------------------------------------------------------------------------------
@@ -16,22 +16,22 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 
-my @modules = ('Artemis::MCP', 
-               'Artemis::MCP::Child',
-               'Artemis::MCP::Control',
-               'Artemis::MCP::Config',
-               'Artemis::MCP::Master',
-               'Artemis::MCP::Net',
-               'Artemis::MCP::Startup',
-               'Artemis::MCP::Scheduler::Algorithm',
-               'Artemis::MCP::Scheduler::Builder',
-               'Artemis::MCP::Scheduler::PreconditionProducer',
-               'Artemis::MCP::Scheduler::Controller',
+my @modules = ('Tapper::MCP', 
+               'Tapper::MCP::Child',
+               'Tapper::MCP::Control',
+               'Tapper::MCP::Config',
+               'Tapper::MCP::Master',
+               'Tapper::MCP::Net',
+               'Tapper::MCP::Startup',
+               'Tapper::MCP::Scheduler::Algorithm',
+               'Tapper::MCP::Scheduler::Builder',
+               'Tapper::MCP::Scheduler::PreconditionProducer',
+               'Tapper::MCP::Scheduler::Controller',
               );
 
 my @roles = (
-             'Artemis::MCP::Scheduler::Algorithm::WFQ',
-             'Artemis::MCP::Scheduler::Algorithm::Dummy',
+             'Tapper::MCP::Scheduler::Algorithm::WFQ',
+             'Tapper::MCP::Scheduler::Algorithm::Dummy',
             );
 
 
@@ -54,5 +54,5 @@ foreach my $module(@modules) {
         print $@ if $@;
 }
 
-diag( "Testing Artemis $Artemis::MCP::VERSION,Perl $], $^X" );
+diag( "Testing Tapper $Tapper::MCP::VERSION,Perl $], $^X" );
 

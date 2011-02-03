@@ -111,10 +111,10 @@
        host:
          preconditions:
          - filename: linux-2.6.23.9.tar.gz
-           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           path: /data/bancroft/tapper/live/repository/packages/kvm/
            precondition_type: package
          - filename: kvm.tar.gz
-           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           path: /data/bancroft/tapper/live/repository/packages/kvm/
            precondition_type: package
          - line: natrium:/vol/osrc_home/ /home nfs auto,defaults 0 0
            precondition_type: fstab
@@ -130,7 +130,7 @@
            name: /bin/true
            precondition_type: copyfile
            protocol: local
-           exec: /usr/share/artemis/packages/mhentsc3/startkvm.pl
+           exec: /usr/share/tapper/packages/mhentsc3/startkvm.pl
          root:
            dest: /kvm/images
            mountfile: /kvm/images/raw.img
@@ -140,7 +140,7 @@
            protocol: nfs
            arch: linux64
          testprogram:
-           execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+           execname: /home/tapper/x86_64/bin/tapper_testsuite_kernbench.sh
            timeout_testprogram: 36000
 
 - schema: Precondition
@@ -154,10 +154,10 @@
        host:
          preconditions:
          - filename: linux-2.6.23.9.tar.gz
-           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           path: /data/bancroft/tapper/live/repository/packages/kvm/
            precondition_type: package
          - filename: kvm.tar.gz
-           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           path: /data/bancroft/tapper/live/repository/packages/kvm/
            precondition_type: package
          - line: natrium:/vol/osrc_home/ /home nfs auto,defaults 0 0
            precondition_type: fstab
@@ -169,7 +169,7 @@
              timeout 2
 
              title RHEL 5
-             kernel /tftpboot/stable/rhel/5/x86_64/vmlinuz  console=ttyS0,115200 ks=http://bancroft/autoinstall/stable/rhel/5/x86_64/artemis-ai.ks ksdevice=eth0 noapic $ARTEMIS_OPTIONS
+             kernel /tftpboot/stable/rhel/5/x86_64/vmlinuz  console=ttyS0,115200 ks=http://bancroft/autoinstall/stable/rhel/5/x86_64/tapper-ai.ks ksdevice=eth0 noapic $TAPPER_OPTIONS
              initrd /tftpboot/stable/rhel/5/x86_64/initrd.img
        guests:
        - config:
@@ -177,7 +177,7 @@
            name: /bin/true
            precondition_type: copyfile
            protocol: local
-           exec: /usr/share/artemis/packages/mhentsc3/startkvm.pl
+           exec: /usr/share/tapper/packages/mhentsc3/startkvm.pl
          root:
            dest: /kvm/images
            mountfile: /kvm/images/raw.img
@@ -187,7 +187,7 @@
            protocol: nfs
            arch: linux64
          testprogram:
-           execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+           execname: /home/tapper/x86_64/bin/tapper_testsuite_kernbench.sh
            timeout_testprogram: 36000
 
 
@@ -228,10 +228,10 @@
        host:
          preconditions:
          - filename: linux-2.6.23.9.tar.gz
-           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           path: /data/bancroft/tapper/live/repository/packages/kvm/
            precondition_type: package
          - filename: kvm.tar.gz
-           path: /data/bancroft/artemis/live/repository/packages/kvm/
+           path: /data/bancroft/tapper/live/repository/packages/kvm/
            precondition_type: package
          - line: natrium:/vol/osrc_home/ /home nfs auto,defaults 0 0
            precondition_type: fstab
@@ -250,7 +250,7 @@
            name: /bin/true
            precondition_type: copyfile
            protocol: local
-           exec: /usr/share/artemis/packages/mhentsc3/startkvm.pl
+           exec: /usr/share/tapper/packages/mhentsc3/startkvm.pl
          root:
            dest: /kvm/images
            mountfile: /kvm/images/raw.img
@@ -260,7 +260,7 @@
            protocol: nfs
            arch: linux64
          testprogram:
-           execname: /home/artemis/x86_64/bin/artemis_testsuite_kernbench.sh
+           execname: /home/tapper/x86_64/bin/tapper_testsuite_kernbench.sh
            timeout_testprogram: 36000
 
 - schema: Precondition
@@ -279,18 +279,18 @@
           partition: /dev/sda2
           precondition_type: image
         testprogram_list:
-          - execname: /opt/artemis/bin/metainfo
+          - execname: /opt/tapper/bin/metainfo
             runtime: 50
             timeout_testprogram: 300
             parameters:
               - --foo=some bar
-          - execname: /opt/artemis/bin/py_kvm_unit
+          - execname: /opt/tapper/bin/py_kvm_unit
             runtime: 1200
             timeout_testprogram: 1800
       guests:
         - config:
             dest: /xen/images/
-            name: bancroft:/data/bancroft/artemis/live/repository/configs/xen/002-uruk-1268101895.svm
+            name: bancroft:/data/bancroft/tapper/live/repository/configs/xen/002-uruk-1268101895.svm
             precondition_type: copyfile
             protocol: nfs
             svm: /xen/images//002-uruk-1268101895.svm
@@ -303,7 +303,7 @@
             precondition_type: copyfile
             protocol: nfs
           testprogram_list:
-            - execname: /opt/artemis/bin/py_reaim
+            - execname: /opt/tapper/bin/py_reaim
               runtime: 28800
               timeout_testprogram: 36000
 

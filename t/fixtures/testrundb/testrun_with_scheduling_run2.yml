@@ -48,7 +48,7 @@
     id: 24
     owner_user_id: 12
     shortname: lmbench
-    notes: artemis test suite lmbench wrapper
+    notes: tapper test suite lmbench wrapper
     topic_name: Distribution
 
 - schema: Testrun
@@ -98,10 +98,10 @@
       producer: DummyProducer
 
 - schema: Precondition
-  name: artemis-tools
+  name: tapper-tools
   data:
     id: 7
-    shortname: artemis-tools
+    shortname: tapper-tools
     precondition: |
       precondition_type: some yaml here 1
 
@@ -162,7 +162,7 @@
       timeout: 90
 
 
-# -------------------- "perfmon" <== "perl", "artemis-tools"
+# -------------------- "perfmon" <== "perl", "tapper-tools"
 
 - schema: TestrunPrecondition
   name: 1st precondition for perfmon
@@ -178,7 +178,7 @@
     precondition_id: 7
     succession: 2
 
-# -------------------- "lmbench" <== "perl", "artemis-tools", "gcc", "glibc"
+# -------------------- "lmbench" <== "perl", "tapper-tools", "gcc", "glibc"
 
 - schema: TestrunPrecondition
   name: 1st precondition for lmbench
@@ -224,10 +224,10 @@
     child_precondition_id: 10
     succession: 2
 
-# -------------------- "artemis-tools" <== "gcc(11)"
+# -------------------- "tapper-tools" <== "gcc(11)"
 
 - schema: PrePrecondition
-  name: make artemis-tools a parent for another gcc-4.2
+  name: make tapper-tools a parent for another gcc-4.2
   data:
     parent_precondition_id: 7
     child_precondition_id: 11

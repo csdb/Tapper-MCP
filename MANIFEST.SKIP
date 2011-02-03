@@ -36,5 +36,5 @@
 #   Mac OSX SMB mount metadata files
 \B\._
 # Avoid archives of this distribution
-\bArtemis-MCP-[\d\.\_]+
+\bTapper-MCP-[\d\.\_]+
 ^MYMETA.yml$

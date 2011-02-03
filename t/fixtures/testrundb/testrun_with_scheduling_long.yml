@@ -87,7 +87,7 @@
       timeout: 90
 
 
-# -------------------- "perfmon" <== "perl", "artemis-tools"
+# -------------------- "perfmon" <== "perl", "tapper-tools"
 
 - schema: TestrunPrecondition
   name: precondition for Test1
