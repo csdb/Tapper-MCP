@@ -209,7 +209,7 @@ sub parse_virt_preconditions
         $config = $self->parse_testprogram_list($config, $virt->{host}->{testprogram_list}, 0) if $virt->{host}->{testprogram_list};
         return $config unless ref($config) eq 'HASH';
 
-        for (my $guest_number = 1; $guest_number <= int @{$virt->{guests}}; $guest_number++ ) {
+        for (my $guest_number = 1; $guest_number <= int @{$virt->{guests} || []}; $guest_number++ ) {
                 my $guest = $virt->{guests}->[$guest_number-1];
 
                 $guest->{mountfile} = $guest->{root}->{mountfile};
@@ -268,7 +268,7 @@ sub parse_virt_preconditions
                 }
 
         }
-        $config->{prcs}->[0]->{config}->{guest_count} = int @{$virt->{guests}};
+        $config->{prcs}->[0]->{config}->{guest_count} = int @{$virt->{guests} || []};
 
         return $config;
 }

@@ -292,7 +292,7 @@ Run the tests that are due.
                         my $child = Tapper::MCP::Child->new( $id );
                         my $retval;
                         eval {
-                                $retval = $child->runtest_handling( $system );
+                                $retval = $child->runtest_handling( $system, $revive );
                         };
                         $retval = $@ if $@;
 
@@ -345,6 +345,7 @@ itself is put outside of function to allow testing.
         {
                 my ($self, $lastrun) = @_;
                 my $timeout          = $lastrun + $self->cfg->{times}{poll_intervall} - time();
+                $timeout = 0 if $timeout < 0;
 
                 my @ready;
                 # if readset is empty, can_read immediately returns with an empty
@@ -370,7 +371,7 @@ itself is put outside of function to allow testing.
                         }
                 }
 
-                if (not @ready) {
+                if (($timeout <= 0) or (not @ready)) {
                         while ( my @jobs = $self->scheduler->get_next_job() ) {
                                 foreach my $job (@jobs) {
                                         # (WORKAROUND) try to avoid to
@@ -380,8 +381,10 @@ itself is put outside of function to allow testing.
                                         sleep 2;
                                         $self->run_due_tests($job);
                                 }
+                                $lastrun = time();
                         }
                 }
+                return $lastrun;
         }
 
 
@@ -437,9 +440,9 @@ Set up all needed data structures then wait for new tests.
                 $self->set_interrupt_handlers();
                 $self->prepare_server();
                 $self->revive_children();
+                my $lastrun = time();
                 while (1) {
-                        my $lastrun = time();
-                        $self->runloop($lastrun);
+                         $lastrun = $self->runloop($lastrun);
                 }
 
         }

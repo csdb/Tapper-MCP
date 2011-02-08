@@ -10,7 +10,6 @@ use Tapper::Model 'model';
 use YAML qw/Dump Load/;
 
 has state_details => (is => 'rw',
-                      isa     => 'HashRef',
                       default => sub { {current_state => 'invalid'} },
                      );
 
@@ -23,6 +22,7 @@ sub BUILD
         my $testrun_id = $args->{testrun_id};
         my $result = model('TestrunDB')->resultset('State')->find_or_create({testrun_id => $testrun_id});
         $self->persist($result);
+        $self->state_details($result->state);
 }
 
 
@@ -40,8 +40,7 @@ Update database entry.
 sub db_update
 {
         my ($self) = @_;
-        my $yaml = Dump($self->state_details);
-        $self->persist->state($yaml);
+        $self->persist->state($self->state_details);
         $self->persist->update;
         return 0;
 }
@@ -102,19 +101,6 @@ sub state_init
         return 0;
 }
 
-
-=head2 reload
-
-Reload state_details from database.
-
-=cut
-
-sub reload
-{
-        my ($self) = @_;
-        my $yaml = Load($self->persist->state);
-        $self->state_details($yaml);
-}
 
 
 =head2 takeoff
