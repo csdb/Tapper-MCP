@@ -1,5 +1,0 @@
----
-state: start-install
----
-state: error-install
-error: Can't mount /data/bancroft

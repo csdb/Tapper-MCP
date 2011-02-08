@@ -1,7 +1,0 @@
----
-state: start-install
----
-state: end-install
----
-state: quit
-error: killed by admin
