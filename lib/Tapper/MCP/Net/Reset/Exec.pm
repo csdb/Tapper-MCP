@@ -1,4 +1,4 @@
-package Artemis::MCP::Net::Reset::Exec;
+package Tapper::MCP::Net::Reset::Exec;
 
 use strict;
 use warnings;
@@ -22,23 +22,23 @@ __END__
 
 =head1 NAME
 
-Artemis::MCP::Net::Reset::Exec - Reset by calling an executable
+Tapper::MCP::Net::Reset::Exec - Reset by calling an executable
 
 =head1 DESCRIPTION
 
-This is a plugin for Artemis.
+This is a plugin for Tapper.
 
 It provides resetting a machine via the OSRC reset script (an internal
 tool).
 
 =head1
 
-To use it add the following config to your Artemis config file:
+To use it add the following config to your Tapper config file:
 
  reset_plugin: OSRC
  reset_plugin_options:
 
-This configures Artemis MCP to use the OSRC plugin for reset and
+This configures Tapper MCP to use the OSRC plugin for reset and
 leaves configuration empty.
 
 =head1 FUNCTIONS
@@ -47,5 +47,5 @@ leaves configuration empty.
 
 The primary plugin function.
 
-It is called with the Artemis::MCP::Net object (for Artemis logging),
+It is called with the Tapper::MCP::Net object (for Tapper logging),
 the hostname to reset and the options from the config file.
