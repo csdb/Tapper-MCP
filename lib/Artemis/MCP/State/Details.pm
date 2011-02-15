@@ -323,7 +323,6 @@ sub prc_next_timeout
         my $prc = $self->state_details->{prcs}->[$num];
         my $default_timeout = 60; # one minute for "end-testing"
         my $next_timeout = $default_timeout;
-        say "*** current_state: ".$prc->{current_state};
         given ($prc->{current_state}){
                 when('preload') { $next_timeout = $prc->{timeout_boot_span}}
                 when('boot')    {
