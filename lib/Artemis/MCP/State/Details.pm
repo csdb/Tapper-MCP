@@ -321,7 +321,9 @@ sub prc_next_timeout
 {
         my ($self, $num) = @_;
         my $prc = $self->state_details->{prcs}->[$num];
-        my $next_timeout;
+        my $default_timeout = 60; # one minute for "end-testing"
+        my $next_timeout = $default_timeout;
+        say "*** current_state: ".$prc->{current_state};
         given ($prc->{current_state}){
                 when('preload') { $next_timeout = $prc->{timeout_boot_span}}
                 when('boot')    {
@@ -329,7 +331,7 @@ sub prc_next_timeout
                             @{$prc->{timeout_testprograms_span}}) {
                                 $next_timeout = $prc->{timeout_testprograms_span}->[0];
                         } else {
-                                $next_timeout = 60; # one minute for "end-testing"
+                                $next_timeout = $default_timeout;
                         }
                 }
                 when('test') {
@@ -340,7 +342,7 @@ sub prc_next_timeout
                                 $next_timeout = $prc->{timeout_testprograms_span}[$testprogram_number];
                                 $prc->{number_current_test} = $testprogram_number;
                         } else {
-                                $next_timeout = 60; # one minute for "end-testing"
+                                $next_timeout = $default_timeout;
                                 $prc->{number_current_test} = undef;
                         }
                 }
