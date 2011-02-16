@@ -54,5 +54,5 @@ foreach my $module(@modules) {
         print $@ if $@;
 }
 
-diag( "Testing Tapper $Tapper::MCP::VERSION,Perl $], $^X" );
+diag( "Testing Tapper::MCP $Tapper::MCP::VERSION,Perl $], $^X" );
 

@@ -753,7 +753,7 @@ sub update_state
                 }
         }
         ($error, $timeout_span) = $self->update_timeouts();
-        $guard->commit;
+        $guard->commit if not ref model('TestrunDB')->storage() eq 'DBIx::Class::Storage::DBI::SQLite';
         return ($error, $timeout_span);
 }
 

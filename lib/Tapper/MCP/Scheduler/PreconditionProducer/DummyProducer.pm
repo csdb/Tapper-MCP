@@ -43,7 +43,7 @@ Maik Hentsche, C<< <maik.hentsche at amd.com> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2010 Maik Hentsche, all rights reserved.
+Copyright 2010 OSRC SysInt Team, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

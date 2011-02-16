@@ -50,7 +50,10 @@ is($next_job->host->name, "iring", "fitting host iring");
 $scheduler->mark_job_as_running($next_job);
 my $job1=$next_job;
 
+{
+        local $^W;
 $next_job = $scheduler->get_next_job();
+}
 is($next_job, undef, "no job since only bullock free");
 
 
