@@ -17,6 +17,8 @@ build_requires 'Cwd'                         => 0;
 build_requires 'String::Diff'                => 0;
 build_requires 'File::Spec'                  => 0;
 
+author_requires 'Module::Install::WriteAll';
+
 requires 'perl'                       => '5.010';
 #requires 'App::Daemon'                => 0;
 requires 'Tapper::Base'              => '0.010009';
