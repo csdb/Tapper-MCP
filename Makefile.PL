@@ -5,7 +5,7 @@ use inc::Module::Install;
 
 name     'Tapper-MCP';
 all_from 'lib/Tapper/MCP.pm';
-author   'AMD OSRC Tapper Team <tapper@amd64.com>';
+author   'AMD OSRC Tapper Team <tapper@amd64.org>';
 license  'freebsd';
 
 build_requires 'Test::Fixture::DBIC::Schema' => 0;
