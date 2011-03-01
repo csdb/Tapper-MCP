@@ -8,7 +8,6 @@ class Tapper::MCP::Scheduler::PreconditionProducer {
 {
         # just for CPAN
         package Tapper::MCP::Scheduler::PreconditionProducer;
-        our $VERSION = '0.01';
 }
 
 1; # End of WFQ

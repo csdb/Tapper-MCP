@@ -7,10 +7,6 @@ class Tapper::MCP::Scheduler::Builder {
         
    Tapper::MCP::Scheduler::Builder - Generate Testruns
 
-=head1 VERSION
-
-Version 0.01
-
 =cut
 
 =head1 SYNOPSIS
@@ -38,7 +34,6 @@ Create files needed for a testrun and put it into db.
 {
         # just for CPAN
         package Tapper::MCP::Scheduler::Builder;
-        our $VERSION = '0.01';
 }
 
 

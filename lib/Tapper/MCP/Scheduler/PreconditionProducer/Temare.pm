@@ -37,7 +37,6 @@ class Tapper::MCP::Scheduler::PreconditionProducer::Temare extends Tapper::MCP::
 {
         # help the CPAN indexer
         package Tapper::MCP::Scheduler::PreconditionProducer::Temare;
-        our $VERSION = '0.01';
 }
 
 1;

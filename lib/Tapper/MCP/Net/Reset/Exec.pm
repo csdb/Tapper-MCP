@@ -3,8 +3,6 @@ package Tapper::MCP::Net::Reset::Exec;
 use strict;
 use warnings;
 
-our $VERSION = '0.001';
-
 sub reset_host
 {
         my ($mcpnet, $host, $options) = @_;

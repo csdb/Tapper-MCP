@@ -150,7 +150,6 @@ fits any of the free hosts.
 {
         # help the CPAN indexer
         package Tapper::MCP::Scheduler::Controller;
-        our $VERSION = '0.01';
 }
 
 

@@ -63,7 +63,6 @@ class Tapper::MCP::Scheduler::PrioQueue
 {
         # help the CPAN indexer
         package Tapper::MCP::Scheduler::PrioQueue;
-        our $VERSION = '0.01';
 }
 
 __END__

@@ -3,9 +3,7 @@ package Tapper::MCP;
 use warnings;
 use strict;
 
-our $VERSION = '2.000132';
-
-
+our $VERSION = '3.000001';
 
 use Tapper::Config;
 use Moose;

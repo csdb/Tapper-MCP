@@ -3,8 +3,6 @@ package Tapper::MCP::Net::Reset::PM211MIP;
 use strict;
 use warnings;
 
-our $VERSION = '0.001';
-
 use LWP::UserAgent;
 
 sub reset_host

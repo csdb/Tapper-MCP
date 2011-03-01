@@ -18,7 +18,6 @@ class Tapper::MCP::Scheduler::PreconditionProducer::DummyProducer
 {
         # help the CPAN indexer
         package Tapper::MCP::Scheduler::PreconditionProducer::DummyProducer;
-        our $VERSION = '0.01';
 }
 
 1;
