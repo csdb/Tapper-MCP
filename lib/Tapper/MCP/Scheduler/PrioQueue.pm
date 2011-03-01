@@ -104,9 +104,7 @@ Maik Hentsche, C<< <maik.hentsche at amd.com> >>
 
 Copyright 2008-2011 AMD OSRC Tapper Team, all rights reserved.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
+This program is released under the following license: freebsd
 
 =cut
 
