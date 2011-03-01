@@ -18,7 +18,7 @@ sub cfg
 
 =head1 NAME
 
-Tapper::MCP - Central control instance of Tapper automation part
+Tapper::MCP - Tapper - Central master control program of Tapper automation
 
 =head1 SYNOPSIS
 
