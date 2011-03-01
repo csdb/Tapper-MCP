@@ -453,7 +453,7 @@ Set up all needed data structures then wait for new tests.
 
 =head1 AUTHOR
 
-OSRC SysInt Team, C<< <osrc-sysint at elbe.amd.com> >>
+AMD OSRC Tapper Team, C<< <tapper at amd64.org> >>
 
 =head1 BUGS
 
