@@ -33,4 +33,4 @@ foreach my $module(@modules) {
         require_ok($module);
 }
 
-diag( "Testing Tapper::MCP $Artemis::MCP::VERSION,Perl $], $^X" );
+diag( "Testing Tapper::MCP $Tapper::MCP::VERSION,Perl $], $^X" );

@@ -7,7 +7,6 @@ use warnings;
 use Moose;
 use List::Util qw/max min reduce/;
 use Perl6::Junction qw/any/;
-use UNIVERSAL 'can';
 
 use Tapper::MCP::State::Details;
 use Tapper::Model 'model';
