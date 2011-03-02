@@ -65,6 +65,8 @@ class Tapper::MCP::Scheduler::PrioQueue
         package Tapper::MCP::Scheduler::PrioQueue;
 }
 
+1;
+
 __END__
 
 =head1 NAME
@@ -109,6 +111,4 @@ This program is released under the following license: freebsd
 =cut
 
 # Idea: provide functions that map to feature has
-
-1;
 
