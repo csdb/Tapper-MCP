@@ -30,34 +30,34 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 my $initial_state = {
                      'current_state' => 'started',
                      'install' => {
-                                   'timeout_install_span' => 3,
-                                   'timeout_boot_span'    => 1,
+                                   'timeout_install_span' => 300,
+                                   'timeout_boot_span'    => 100,
                                    'timeout_current_date' => undef
                                   },
                      'prcs' => [
                                 {
-                                 'timeout_boot_span' => 7,
+                                 'timeout_boot_span' => 700,
                                  'timeout_current_date' => undef,
                                  'results' => [],
                                  'current_state' => 'preload'
                                 },
                                 {
-                                 'timeout_testprograms_span' => [ 5, 2],
-                                 'timeout_boot_span' => 2,
+                                 'timeout_testprograms_span' => [ 500, 200],
+                                 'timeout_boot_span' => 200,
                                  'timeout_current_date' => undef,
                                  'results' => [],
                                  'current_state' => 'preload'
                                 },
                                 {
-                                 'timeout_testprograms_span' => [ 10, 4],
+                                 'timeout_testprograms_span' => [ 1000, 400],
                                  'timeout_boot_span' => 3,
                                  'timeout_current_date' => undef,
                                  'results' => [],
                                  'current_state' => 'preload'
                                 },
                                 {
-                                 'timeout_testprograms_span' => [ 15, 6],
-                                 'timeout_boot_span' => 4,
+                                 'timeout_testprograms_span' => [ 1500, 600],
+                                 'timeout_boot_span' => 400,
                                  'timeout_current_date' => undef,
                                  'results' => [],
                                  'current_state' => 'preload'
