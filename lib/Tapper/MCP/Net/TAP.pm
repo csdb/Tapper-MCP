@@ -76,7 +76,6 @@ sub tap_report_away
 Send information of current test run status to report framework using TAP
 protocol.
 
-@param int   - test run id
 @param array -  report array
 @param array - header lines
 

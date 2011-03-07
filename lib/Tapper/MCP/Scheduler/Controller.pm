@@ -113,8 +113,8 @@ fits any of the free hosts.
                          };
                         if ($error or $@) {
                                 $error //=$@;
-                                my $net    = Tapper::MCP::Net->new();
-                                $net->tap_report_send($job->testrun_id, [{error => 1, msg => $error}]);
+                                my $net_tap = Tapper::MCP::Net::TAP->new();
+                                $net_tap->tap_report_send([{error => 1, msg => $error}]); # XXX: headlines missing?
                                 $self->mark_job_as_finished($job);
                                 return;
                         }
