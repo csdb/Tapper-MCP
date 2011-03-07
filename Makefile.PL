@@ -46,7 +46,7 @@ requires 'Net::SSH'                   => 0;
 requires 'Net::SSH::Expect'           => 0;
 requires 'Socket'                     => 0;
 requires 'Template'                   => 0;
-requires 'YAML'                       => 0;
+requires 'YAML'                       => "0.72";
 requires 'parent'                     => 0;
 requires 'aliased'                    => 0;
 
