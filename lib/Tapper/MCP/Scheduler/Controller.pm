@@ -22,6 +22,10 @@ class Tapper::MCP::Scheduler::Controller
                                          }
                          );
 
+        has testrun   => (is => 'rw');
+        has cfg       => (is => 'ro', default => sub {{}});
+        with 'Tapper::MCP::Net::TAP';
+
 
 =head2
 
@@ -113,8 +117,8 @@ fits any of the free hosts.
                          };
                         if ($error or $@) {
                                 $error //=$@;
-                                my $net_tap = Tapper::MCP::Net::TAP->new();
-                                $net_tap->tap_report_send([{error => 1, msg => $error}]); # XXX: headlines missing?
+                                $self->testrun($job);
+                                $self->tap_report_send([{error => 1, msg => $error}], $self->mcp_headerlines());
                                 $self->mark_job_as_finished($job);
                                 return;
                         }
