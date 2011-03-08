@@ -7,7 +7,7 @@ use 5.010;
 
 use Moose::Role;
 
-requires 'testrun', 'cfg';
+requires 'testrun', 'cfg', 'log';
 
 =head2 prc_headerlines
 
