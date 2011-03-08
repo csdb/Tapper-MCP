@@ -160,8 +160,7 @@ sub report_mcp_results
 
         my $headerlines = $self->mcp_headerlines();
         my $mcp_results = $self->state->state_details->results();
-        my $net_tap = Tapper::MCP::Net::TAP->new();
-        my ($error, $report_id) = $net_tap->tap_report_send($mcp_results, $headerlines);
+        my ($error, $report_id) = $self->tap_report_send($mcp_results, $headerlines);
         if ($error) {
                 $self->log->error('Can not send TAP report for testrun '.$self->testrun->id.
                                   " on ".$self->cfg->{hostname}.": $report_id");
