@@ -1,0 +1,15 @@
+2011-03-08 Steffen Schwigon <steffen.schwigon@amd.com>
+
+	* v3.000002
+
+	* fix scheduler report sending with T::MCP::Net::TAP
+
+	* Make timouts more robust in tests
+
+	* try to force YAML versions
+
+2011-03-02 Steffen Schwigon <steffen.schwigon@amd.com>
+
+	* v3.0.1
+
+	* cpan release
