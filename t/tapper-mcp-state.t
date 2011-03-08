@@ -34,7 +34,7 @@ sub message_create
         
         
 
-my $timeout_span = 1;
+my $timeout_span = 100;
 
 
 sub initial_state
