@@ -3,8 +3,7 @@ use MooseX::Declare;
 use 5.010;
 
 ## no critic (RequireUseStrict)
-class Tapper::MCP::Scheduler::Controller
-{
+class Tapper::MCP::Scheduler::Controller extends Tapper::Base with Tapper::MCP::Net::TAP {
         use Tapper::Model 'model';
         use aliased 'Tapper::MCP::Scheduler::Algorithm';
         use aliased 'Tapper::MCP::Scheduler::PrioQueue';
@@ -24,7 +23,6 @@ class Tapper::MCP::Scheduler::Controller
 
         has testrun   => (is => 'rw');
         has cfg       => (is => 'ro', default => sub {{}});
-        with 'Tapper::MCP::Net::TAP';
 
 
 =head2
