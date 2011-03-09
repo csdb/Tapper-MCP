@@ -35,7 +35,7 @@ has cfg => (is => 'rw',
 
 
 has valid_states  => (is => 'ro',
-                      default => sub { return  { 'takeoff'           => ['started'],
+                      default => sub { return  { 'takeoff'          => ['started'],
                                                 'start-install'     => ['reboot_install'],
                                                 'end-install'       => ['installing'],
                                                 'error-install'     => ['installing'],
