@@ -1,20 +1,15 @@
-#!/usr/bin/env perl
+#!/bin/sh
 
-use YAML;
-
-my @configs;
-push @configs, {precondition_type => 'command', text => $ARGV[0]};
-push @configs, {precondition_type => 'hostname',text => $ARGV[1]};
-push @configs, {precondition_type => 'subject', text => $ARGV[2]};
-push @configs, {precondition_type => 'bitness', text => $ARGV[3]};
-
-
-if ($ENV{TAPPER_TEMARE}){
-        {
-                open my $fh, ">", $ENV{TAPPER_TEMARE} or last;
-                print $fh "subject: temare\n";
-                close $fh;
-        }
-}
-
-print Dump(@configs);
+echo "---
+precondition_type: command
+text: $1
+---
+precondition_type: hostname
+text: $2
+---
+precondition_type: subject
+text: $3
+---
+precondition_type: bitness
+text: $4
+"
