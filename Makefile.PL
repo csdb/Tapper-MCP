@@ -52,5 +52,8 @@ requires 'aliased'                    => 0;
 
 install_script glob('bin/*');
 
+repository 'git://github.com/amd/Tapper-MCP.git';
+bugtracker 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tapper-MCP';
+
 WriteAll;
 
