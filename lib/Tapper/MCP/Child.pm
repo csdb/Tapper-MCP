@@ -90,7 +90,6 @@ sub wait_for_testrun
  MESSAGE:
         while (1) {
                 my $msg = $self->get_messages($timeout_span);
-                $DB::single=1;
                 ($error, $timeout_span) = $self->state->update_state($msg);
                 if ($error) {
                         last MESSAGE if $self->state->testrun_finished;
