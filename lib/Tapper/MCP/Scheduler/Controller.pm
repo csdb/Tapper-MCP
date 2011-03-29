@@ -115,7 +115,7 @@ fits any of the free hosts.
                          };
                         if ($error or $@) {
                                 $error //=$@;
-                                $self->testrun($job);
+                                $self->testrun($job->testrun);
                                 $self->tap_report_send([{error => 1, msg => $error}], $self->mcp_headerlines());
                                 $self->mark_job_as_finished($job);
                                 return;
