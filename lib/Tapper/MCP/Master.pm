@@ -322,7 +322,7 @@ Run the tests that are due.
                         if (ref($console) eq 'IO::Socket::INET') {
                                 $self->child->{$system}->{console}  = $console;
                         } else {
-                                $self->log->info("Can not open console on $system");
+                                $self->log->info("Can not open console on $system: $console");
                         }
 
                         $self->child->{$system}->{pid}      = $pid;
