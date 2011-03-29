@@ -370,10 +370,10 @@ sub prc_current_test_number
 {
         my ($self, $num, $test_number) = @_;
         if (defined $test_number) {
-                $self->state_details->{prcs}->{$num}{number_current_test} = $test_number;
+                $self->state_details->{prcs}->[$num]{number_current_test} = $test_number;
                 $self->db_update;
         }
-        return $self->state_details->{prcs}->{$num}{number_current_test};
+        return $self->state_details->{prcs}->[$num]{number_current_test};
 }
 
 =head2 get_min_prc_timeout
