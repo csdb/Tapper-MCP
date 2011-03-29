@@ -579,6 +579,7 @@ sub get_common_config
         $config->{prc_nfs_server}            = $self->cfg->{prc_nfs_server}
           if $self->cfg->{prc_nfs_server}; # prc_nfs_path is set by merging paths above
         $config->{test_run}                  = $testrun->id;
+        $config->{testrun_id}                = $testrun->id;
 
         if ($self->testrun->scenario_element) {
                 $config->{scenario_id} = $self->testrun->scenario_element->scenario_id;
