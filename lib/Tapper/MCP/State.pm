@@ -39,6 +39,7 @@ has valid_states  => (is => 'ro',
                                                 'start-install'     => ['reboot_install'],
                                                 'end-install'       => ['installing'],
                                                 'error-install'     => ['installing'],
+                                                'warn-install'      => ['installing'],
                                                 'start-guest'       => ['reboot_test', 'testing'],
                                                 'error-guest'       => ['reboot_test', 'testing'],
                                                 'start-testing'     => ['reboot_test', 'testing'],
@@ -120,9 +121,9 @@ sub is_msg_valid
                  "'. This message is only allowed in states ".join(", ",@{$self->valid_states->{$msg->{state}}})
                 };
 
-                $self->state_details->results({error => 1, msg => $result});
+                $self->state_details->results($result);
                 if (defined $msg->{prc_number}) {
-                        $self->state_details->prc_results($msg->{prc_number}, {error => 1, msg => $result});
+                        $self->state_details->prc_results($msg->{prc_number}, $result);
                         $self->state_details->prc_state($msg->{prc_number}, 'finished');
 
                         if ($self->state_details->is_all_prcs_finished()) {
@@ -440,6 +441,28 @@ sub msg_error_install
         return (1, undef);
 }
 
+=head2 msg_warn_install
+
+Handle message error-install
+
+@param hash ref - message
+
+@return success - (0, timeout span for next state change)
+@return error   - (1, undef)
+
+=cut
+
+sub msg_warn_install
+{
+        my ($self, $msg) = @_;
+
+        $self->state_details->results({ error => 1,
+                                        msg   => "Installation issue: ".$msg->{error},
+                                      });
+        return (1, undef);
+}
+
+
 =head2 msg_error_guest
 
 Handle message error-guest
@@ -700,6 +723,7 @@ sub next_state
                 when ('start-install')     { ($error, $timeout_span) = $self->msg_start_install($msg)     };
                 when ('end-install')       { ($error, $timeout_span) = $self->msg_end_install($msg)       };
                 when ('error-install')     { ($error, $timeout_span) = $self->msg_error_install($msg)     };
+                when ('warn-install')      { ($error, $timeout_span) = $self->msg_warn_install($msg)     };
                 when ('start-guest')       { ($error, $timeout_span) = $self->msg_start_guest($msg)       };
                 when ('error-guest')       { ($error, $timeout_span) = $self->msg_error_guest($msg)       };
                 when ('start-testing')     { ($error, $timeout_span) = $self->msg_start_testing($msg)     };
