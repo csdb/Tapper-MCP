@@ -112,6 +112,7 @@ my $expected_timeout;
 my $start_time = time();
 $retval = $state->state_init(initial_state());
 ($retval, $timeout) = $state->update_state(message_create({state => 'takeoff'}));
+diag '';
 diag '################################################# #';
 diag 'Timeout tests! Might fail on heavy loaded         #';
 diag 'machines due to pathological timing issues.       #';

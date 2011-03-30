@@ -39,3 +39,6 @@
 # Avoid archives of this distribution
 \bTapper-MCP-[\d\.\_]+
 ^MYMETA.yml$
+t/tapper_schema_testsdb_testdb.sqlite
+t/tapper_schema_testrundb_test.sqlite
+t/tapper_schema_reportsdb_test.sqlite
