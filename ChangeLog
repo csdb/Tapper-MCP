@@ -1,8 +1,14 @@
-2011-03-28  Steffen Schwigon  <steffen.schwigon@amd.com>
+2011-03-30 Steffen Schwigon <steffen.schwigon@amd.com>
 
 	* v3.0.5
 
-	* utils get rewritten shebang line
+	* rewritable shebang line
+	* yet another timeout increase
+	* [FIX] access to PRC number in message
+	* [FIX] handle warn-install message
+	* [FIX] provide testrun to TAP role
+	* [FIX] show error message when console can't be opened
+	* [FIX] provide MCP port
 
 2011-03-10 Steffen Schwigon <steffen.schwigon@amd.com>
 
