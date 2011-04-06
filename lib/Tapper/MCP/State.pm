@@ -537,6 +537,7 @@ sub msg_start_testing
         $self->state_details->prc_next_timeout($nr);
         $self->state_details->current_state('testing');
         $self->state_details->prc_state($nr, 'test');
+        $self->state_details->prc_current_test_number($nr, 0);
 
         return (0,  $self->state_details->get_min_prc_timeout());
 }
@@ -597,7 +598,7 @@ sub msg_end_testprogram
         if ($msg->{testprogram} != $current_test_number) {
                 my $result = {error => 1,
                               msg => "Invalid order of testprograms in PRC $nr. ".
-                              "Expected $current_test_number, got $msg->{testprograms}"
+                              "Expected $current_test_number, got $msg->{testprogram}"
                              };
                 $self->state_details->prc_results($nr, $result);
                 $self->state_details->results($result);
