@@ -5,7 +5,9 @@ use warnings;
 
 # TODO: redirect STDERR/STDOUT
 
-use Tapper::MCP::Master;
+use Tapper::MCP::Startup;
+use App::Daemon 'daemonize';
+daemonize();
 my $mcp = new Tapper::MCP::Master;
 $mcp->run;
 
