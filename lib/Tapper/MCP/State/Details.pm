@@ -335,14 +335,12 @@ sub prc_next_timeout
                 }
                 when('test') {
                         my $testprogram_number = $prc->{number_current_test};
-                        $testprogram_number += 1 if defined $testprogram_number; # next program
+                        $prc->{number_current_test} = ++$testprogram_number;
                         if (ref $prc->{timeout_testprograms_span} eq 'ARRAY' and
                             exists $prc->{timeout_testprograms_span}[$testprogram_number]){
                                 $next_timeout = $prc->{timeout_testprograms_span}[$testprogram_number];
-                                $prc->{number_current_test} = $testprogram_number;
                         } else {
                                 $next_timeout = $default_timeout;
-                                $prc->{number_current_test} = undef;
                         }
                 }
         }
