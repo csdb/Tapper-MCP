@@ -469,7 +469,7 @@ sub parse_autoinstall
         my $tapper_environment = Tapper::Config::_getenv();
         my $testrun = $config->{test_run};
         $config->{installer_grub} =~
-          s|\$TAPPER_OPTIONS|tapper_ip=$tapper_ip tapper_host=$tapper_host tapper_environment=$tapper_environment testrun=$testrun|g;
+          s|\$TAPPER_OPTIONS|tapper_ip=$tapper_ip tapper_port=$tapper_port tapper_host=$tapper_host tapper_environment=$tapper_environment testrun=$testrun|g;
 
         return $config;
 }
