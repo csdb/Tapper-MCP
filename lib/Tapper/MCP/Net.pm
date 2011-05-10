@@ -263,7 +263,7 @@ timeout 2
 
 title Test
      tftpserver $tftp_server
-     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot tapper_host=$tapper_host tapper_ip=$tapper_ip tapper_testrun=$testrun_id
+     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot tapper_host=$tapper_host tapper_ip=$tapper_ip testrun=$testrun_id
 END
         }
 	print $GRUBFILE $text;
