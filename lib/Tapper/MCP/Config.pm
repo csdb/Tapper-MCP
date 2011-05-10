@@ -29,8 +29,6 @@ sub BUILD
 }
 
 
-our $MODIFIER = 3; # timeout = $MODIFIER * runtime; XXX find better way
-
 =head1 NAME
 
 Tapper::MCP::Config - Generate config for a certain test run
