@@ -71,7 +71,7 @@ my $tapper_ip   = inet_ntoa($packed_ip);
 ok(defined $config->{installer_grub}, 'Grub for installer set');
 is($config->{installer_grub}, 
    "title opensuse 11.2\n".
-   "kernel /tftpboot/kernel autoyast=bare.cfg tapper_ip=$tapper_ip tapper_host=$tapper_host tapper_environment=test testrun=1\n".
+   "kernel /tftpboot/kernel autoyast=bare.cfg tapper_ip=$tapper_ip tapper_port=11337 tapper_host=$tapper_host tapper_environment=test testrun=1\n".
    "initrd /tftpboot/initrd\n",
    'Expected value for installer grub config');
 
