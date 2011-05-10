@@ -197,6 +197,7 @@ sub runtest_handling
         my  ($self, $hostname, $revive) = @_;
 
         my $net    = Tapper::MCP::Net->new();
+        $net->cfg->{testrun_id} = $self->testrun->id;
         my $error;
 
         my $config = $self->generate_configs($hostname);

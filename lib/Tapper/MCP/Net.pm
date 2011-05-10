@@ -250,6 +250,9 @@ sub write_grub_file
         my $tftp_server = $self->cfg->{tftp_server_address};
         my $kernel = $self->cfg->{files}{installer_kernel};
         my $nfsroot = $self->cfg->{paths}{nfsroot};
+        my $testrun_id = $self->cfg->{testrun_id} || 0;
+        $self->log->error("Testrun ID for host $system not given in write_grub_file") unless $testrun_id;
+
 	if (not $text) {
                 $text = <<END;
 serial --unit=0 --speed=115200
@@ -260,7 +263,7 @@ timeout 2
 
 title Test
      tftpserver $tftp_server
-     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot tapper_host=$tapper_host tapper_ip=$tapper_ip
+     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot tapper_host=$tapper_host tapper_ip=$tapper_ip tapper_testrun=$testrun_id
 END
         }
 	print $GRUBFILE $text;
