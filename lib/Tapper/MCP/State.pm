@@ -321,6 +321,12 @@ sub update_test_timeout
                         }
                 }
         }
+
+        if ($self->state_details->is_all_prcs_finished()) {
+                $self->state_details->current_state('finished');
+                return (1, undef);
+        }
+
         return (0, $new_timeout);
 }
 
