@@ -59,6 +59,7 @@ Read all pending messages from database. Try no more than timeout seconds
 sub get_messages
 {
         my ($self, $timeout) = @_;
+        $timeout //= 0; # get rid of warning;
         my $end_time = time() + $timeout;
 
         my $messages;
