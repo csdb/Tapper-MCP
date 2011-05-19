@@ -7,6 +7,7 @@ use warnings;
 
 use Tapper::MCP::Startup;
 use App::Daemon 'daemonize';
+$App::Daemon::as_user = "root";
 daemonize();
 my $mcp = new Tapper::MCP::Master;
 $mcp->run;
