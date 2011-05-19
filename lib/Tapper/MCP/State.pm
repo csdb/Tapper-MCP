@@ -267,6 +267,8 @@ sub update_prc_timeout
                         }
                         default { return }
                 }
+                $self->state_details->results($result);
+                $self->state_details->prc_results($prc_number, $result);
         }
         return $self->state_details->prc_timeout_current_date($prc_number) - $now;
 }
