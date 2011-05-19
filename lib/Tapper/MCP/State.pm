@@ -679,6 +679,9 @@ sub msg_reboot
         $self->state_details->prc_results($nr, $result);
         $self->state_details->results($result);
 
+        # reset testprogram counter
+        $self->state_details->prc_current_test_number($nr, 0);
+
         $self->state_details->prc_next_timeout($nr);
         return (0, $self->state_details->get_min_prc_timeout());
 }
