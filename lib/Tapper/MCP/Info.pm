@@ -292,6 +292,7 @@ sub get_state_config
                                  timeout_current_date => undef,
                                  state => 'preload',
                                  results => [],
+                                 timeout_testprograms_span => $prc->{timeouts}->{programs},
                                 };
                 push @{$state->{prcs}}, $prc_state;
         }
