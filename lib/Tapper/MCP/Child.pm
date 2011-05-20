@@ -47,7 +47,7 @@ Tapper::MCP::Child - Control one specific testrun on MCP side
 
 Read all pending messages from database. Try no more than timeout seconds
 
-@param file descriptor - read from this socket
+@param int - timeout
 
 @return success - Resultset class countaining all available messages
 @return timeout - Resultset class countaining zero messages
