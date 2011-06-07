@@ -341,7 +341,7 @@ sub prc_next_timeout
                                 $prc->{number_current_test} = $testprogram_number;
                                 $next_timeout = $prc->{timeout_testprograms_span}[$testprogram_number];
                         } else {
-                                $prc->{state} = 'lasttest';
+                                $prc->{current_state} = 'lasttest';
                                 $next_timeout = $default_timeout;
                         }
                 }
