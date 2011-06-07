@@ -491,7 +491,7 @@ sub update_installer_grub
 
                 my $nfsroot     = $config->{paths}{nfsroot};
                 my $kernel      = $config->{files}{installer_kernel};
-                my $tftp_server = $config->{tftp_server_address};
+                my $tftp_server = $self->cfg->{tftp_server_address};
 
                 $config->{installer_grub} = <<END;
 serial --unit=0 --speed=115200
