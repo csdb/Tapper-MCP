@@ -322,9 +322,10 @@ sub update_test_timeout
                                                                $self->state_details->prc_timeout_current_date($prc_num) - time());
                                 }
                         }
-                        when ('test') {
+                        when ( ['test', 'lasttest'] ) {
                                 $new_timeout = mindef($new_timeout, $self->update_prc_timeout($prc_num));
                         }
+
                 }
         }
 
