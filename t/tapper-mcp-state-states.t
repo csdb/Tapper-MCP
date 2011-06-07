@@ -52,26 +52,10 @@ sub initial_state
                                      'timeout_boot_span' => $timeout_span,
                                      'timeout_current_date' => undef,
                                      'results' => [],
-                                     'current_state' => 'preload'
+                                     'current_state' => 'preload',
+                                     # not evaluated, just needed to know the number of testprograms
+                                     'timeout_testprograms_span' => [ 5, 5 ], 
                                     },
-                                    # {
-                                    #  'timeout_boot_span' => $timeout_span,
-                                    #  'timeout_current_date' => undef,
-                                    #  'results' => [],
-                                    #  'current_state' => 'preload'
-                                    # },
-                                    # {
-                                    #  'timeout_boot_span' => $timeout_span,
-                                    #  'timeout_current_date' => undef,
-                                    #  'results' => [],
-                                    #  'current_state' => 'preload'
-                                    # },
-                                    #  {
-                                    #  'timeout_boot_span' => $timeout_span,
-                                    #  'timeout_current_date' => undef,
-                                    #  'results' => [],
-                                    #  'current_state' => 'preload'
-                                    # }
                                    ],
                                      'results' => []
                              }
