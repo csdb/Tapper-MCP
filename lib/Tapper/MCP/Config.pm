@@ -9,7 +9,7 @@ use Fcntl;
 use File::Path;
 use LockFile::Simple;
 use Moose;
-use Socket;
+use Socket 'inet_ntoa';
 use Sys::Hostname;
 use YAML;
 
@@ -458,16 +458,55 @@ sub parse_autoinstall
         $config->{paths}{base_dir} = '/';
         my $timeout = $autoinstall->{timeout} || $self->cfg->{times}{installer_timeout};
         $self->mcp_info->set_installer_timeout($timeout);
+        return $config;
+}
 
-        my $tapper_host=$config->{mcp_host};
-        my $tapper_port=$config->{mcp_port};
-        my $packed_ip = gethostbyname($tapper_host);
+=head2 update_installer_grub
+
+Get the text for grub config file at booting into installation.
+
+@param hash ref - config to change
+
+@return success - config hash
+@return error   - error string
+
+=cut
+
+sub update_installer_grub
+{
+        my ($self, $config)    = @_;
+        my $tapper_host        = $config->{mcp_host};
+        my $tapper_port        = $config->{mcp_port};
+
+        my $packed_ip          = gethostbyname($tapper_host);
         if (not defined $packed_ip) {
                 return "Can not get an IP address for tapper_host ($tapper_host): $!";
         }
-        my $tapper_ip=inet_ntoa($packed_ip);
+        my $tapper_ip          = inet_ntoa($packed_ip);
+
         my $tapper_environment = Tapper::Config::_getenv();
-        my $testrun = $config->{test_run};
+        my $testrun            = $config->{test_run};
+
+        if (not $config->{installer_grub} ) {
+
+                my $nfsroot     = $config->{paths}{nfsroot};
+                my $kernel      = $config->{files}{installer_kernel};
+                my $tftp_server = $config->{tftp_server_address};
+
+                $config->{installer_grub} = <<END;
+serial --unit=0 --speed=115200
+terminal serial
+
+default 0
+timeout 2
+
+title Test
+     tftpserver $tftp_server
+     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot \$TAPPER_OPTIONS
+END
+        }
+
+        my $installer_grub        =  $config->{installer_grub};
         $config->{installer_grub} =~
           s|\$TAPPER_OPTIONS|tapper_ip=$tapper_ip tapper_port=$tapper_port tapper_host=$tapper_host tapper_environment=$tapper_environment testrun=$testrun|g;
 
@@ -540,6 +579,9 @@ sub get_install_config
         unless ($self->mcp_info->is_simnow() or $config->{prcs}) {
                 $config->{prcs}->[0] = {testprogram_list => []};
         }
+
+        # generate installer config
+        $config = $self->update_installer_grub($config);
 
         while (my $prc_precondition = shift(@{$config->{prcs}})){
                 $prc_precondition->{precondition_type} = "prc";

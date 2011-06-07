@@ -219,12 +219,10 @@ sub reboot_system
 
 =head2 write_grub_file
 
-Write a grub file for the system given as parameter. An optional second
-parameter containing the text to be put into the grub file can be used. If
-this parameter is not defined or empty a default value is used.
+Write the given text to the grub file for the system given as parameter.
 
 @param string - name of the system
-@param string - text to put into grub file; optional
+@param string - text to put into grub file
 
 
 @return success - 0
@@ -235,37 +233,13 @@ this parameter is not defined or empty a default value is used.
 sub write_grub_file
 {
         my ($self, $system, $text) = @_;
-        my $tapper_host = Sys::Hostname::hostname();
-        my $tapper_ip   = gethostbyname($tapper_host);
-        return qq{Can not find IP address of "$tapper_host".} if not $tapper_ip;
-        $tapper_ip = inet_ntoa($tapper_ip);
+        return "No grub text given" unless $text;
 
         my $grub_file    = $self->cfg->{paths}{grubpath}."/$system.lst";
-
-	$self->log->debug("writing grub file ($tapper_host, $grub_file)");
+	$self->log->debug("writing grub file $grub_file");
 
 	# create the initial grub file for installation of the test system,
 	open (my $GRUBFILE, ">", $grub_file) or return "Can open ".$self->cfg->{paths}{grubpath}."/$system.lst for writing: $!";
-
-        my $tftp_server = $self->cfg->{tftp_server_address};
-        my $kernel = $self->cfg->{files}{installer_kernel};
-        my $nfsroot = $self->cfg->{paths}{nfsroot};
-        my $testrun_id = $self->cfg->{testrun_id} || 0;
-        $self->log->error("Testrun ID for host $system not given in write_grub_file") unless $testrun_id;
-
-	if (not $text) {
-                $text = <<END;
-serial --unit=0 --speed=115200
-terminal serial
-
-default 0
-timeout 2
-
-title Test
-     tftpserver $tftp_server
-     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot tapper_host=$tapper_host tapper_ip=$tapper_ip testrun=$testrun_id
-END
-        }
 	print $GRUBFILE $text;
 	close $GRUBFILE or return "Can't save grub file for $system:$!";
 	return(0);
