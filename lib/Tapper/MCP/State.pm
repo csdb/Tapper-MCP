@@ -263,12 +263,16 @@ sub update_prc_timeout
                         when ('test'){
                                 $result->{msg} .= 'while waiting for testprogram ';
                                 $result->{msg} .= $self->state_details->prc_current_test_number($prc_number);
-                                return $self->state_details->prc_next_timeout($prc_number);
+                        }
+                        when ('lasttest'){
+                                $result->{msg} .= 'while waiting for message "all tests finished"';
+                                $self->state_details->prc_state($prc_number, 'finished')
                         }
                         default { return }
                 }
                 $self->state_details->results($result);
                 $self->state_details->prc_results($prc_number, $result);
+                return $self->state_details->prc_next_timeout($prc_number);
         }
         return $self->state_details->prc_timeout_current_date($prc_number) - $now;
 }
