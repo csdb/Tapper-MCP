@@ -335,13 +335,23 @@ sub prc_next_timeout
                 }
                 when('test') {
                         my $testprogram_number = $prc->{number_current_test};
-                        $prc->{number_current_test} = ++$testprogram_number;
+                        ++$testprogram_number;
                         if (ref $prc->{timeout_testprograms_span} eq 'ARRAY' and
                             exists $prc->{timeout_testprograms_span}[$testprogram_number]){
+                                $prc->{number_current_test} = $testprogram_number;
                                 $next_timeout = $prc->{timeout_testprograms_span}[$testprogram_number];
                         } else {
+                                $prc->{state} = 'lasttest';
                                 $next_timeout = $default_timeout;
                         }
+                }
+                when('lasttest') {
+                        my $result = { error => 1,
+                                       msg   => "prc_next_timeout called in state testfin. This is a bug. Please report it!"};
+                        $self->prc_results($num, $result);
+                }
+                when('finished') {
+                        return;
                 }
         }
 
