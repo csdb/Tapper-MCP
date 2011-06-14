@@ -492,7 +492,7 @@ sub msg_error_guest
         my ($self, $msg) = @_;
         my $nr = $msg->{prc_number};
 
-        $self->state_details->prc_state($nr, 'fail');
+        $self->state_details->prc_state($nr, 'finished');
         $self->state_details->prc_results
           ( $nr, { error => 1,
                    msg   => "Starting guest failed: ".$msg->{error},
