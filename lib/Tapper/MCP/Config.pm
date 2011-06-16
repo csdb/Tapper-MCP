@@ -513,6 +513,59 @@ END
         return $config;
 }
 
+=head2 parse_precondition
+
+Parse a given precondition and update the config accordingly.
+
+@param hash ref - old config
+@param hash ref - precondition
+
+@return success - hash ref containing updated config
+@return error   - error string
+
+=cut
+
+sub parse_precondition
+{
+        my ($self, $config, $precondition) = @_;
+        given($precondition->{precondition_type}){
+                when('image' ) {
+                        $config = $self->parse_image_precondition($config, $precondition);
+                }
+                when( 'virt' ) {
+                        $config=$self->parse_virt_preconditions($config, $precondition);
+                }
+                when( 'grub') {
+                        $config = $self->parse_grub($config, $precondition);
+                }
+                when( 'installer_stop') {
+                        $config->{installer_stop} = 1;
+                }
+                when( 'reboot') {
+                        $config = $self->parse_reboot($config, $precondition);
+                }
+                when( 'autoinstall') {
+                        $config = $self->parse_autoinstall($config, $precondition);
+                }
+                when( 'testprogram') {
+                        $config = $self->parse_testprogram($config, $precondition);
+                }
+                when( 'testprogram_list') {
+                        $config = $self->parse_testprogram_list($config, $precondition);
+                }
+                when( 'simnow' ) {
+                        $config=$self->parse_simnow_preconditions($config, $precondition);
+                }
+                when( 'hint' ) {
+                        $config=$self->parse_hint_preconditions($config, $precondition);
+                }
+                default {
+                        push @{$config->{preconditions}}, $precondition;
+                }
+        }
+
+        return $config;
+}
 
 =head2 get_install_config
 
@@ -533,48 +586,16 @@ sub get_install_config
         my $retval = $self->mcp_info->add_prc(0, $self->cfg->{times}{boot_timeout});
         return $retval if $retval;
 
-        foreach my $precondition ($self->testrun->ordered_preconditions) {
-                # make sure installing the root partition is always the first precondition
-                if ($precondition->precondition_as_hash->{precondition_type} eq 'image' ) {
-                        $config = $self->parse_image_precondition($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'virt' ) {
-                        $config=$self->parse_virt_preconditions($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'grub') {
-                        $config = $self->parse_grub($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'installer_stop') {
-                        $config->{installer_stop} = 1;
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'reboot') {
-                        $config = $self->parse_reboot($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'autoinstall') {
-                        $config = $self->parse_autoinstall($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'testprogram') {
-                        $config = $self->parse_testprogram($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'testprogram_list') {
-                        $config = $self->parse_testprogram_list($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'simnow' ) {
-                        $config=$self->parse_simnow_preconditions($config, $precondition->precondition_as_hash);
-                }
-                elsif ($precondition->precondition_as_hash->{precondition_type} eq 'hint' ) {
-                        $config=$self->parse_hint_preconditions($config, $precondition->precondition_as_hash);
-                }
-                else {
-                        push @{$config->{preconditions}}, $precondition->precondition_as_hash;
-                }
-
+ PRECONDITION:
+        foreach my $precondition (map {$_->precondition_as_hash} $self->testrun->ordered_preconditions) {
+                $config = $self->parse_precondition($config, $precondition);
                 # was not able to parse precondition and thus
                 # return received error string
                 if (not ref($config) eq 'HASH' ) {
                         return $config;
                 }
         }
+
         # always have a PRC0 even without any test programs
         unless ($self->mcp_info->is_simnow() or $config->{prcs}) {
                 $config->{prcs}->[0] = {testprogram_list => []};
