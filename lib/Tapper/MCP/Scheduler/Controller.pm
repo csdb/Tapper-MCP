@@ -109,17 +109,6 @@ fits any of the free hosts.
                                 last QUEUE if not %$queues;
                         }
 
-                        my $error;
-                        eval{
-                                 $error=$job->produce_preconditions() if $job;
-                         };
-                        if ($error or $@) {
-                                $error //=$@;
-                                $self->testrun($job->testrun);
-                                $self->tap_report_send([{error => 1, msg => $error}], $self->mcp_headerlines());
-                                $self->mark_job_as_finished($job);
-                                return;
-                        }
                         if ($job and $job->testrun->scenario_element) {
                                 $self->mark_job_as_running($job);
                                 if ($job->testrun->scenario_element->peers_need_fitting > 0) {

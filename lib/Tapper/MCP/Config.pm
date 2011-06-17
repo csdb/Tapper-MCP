@@ -16,6 +16,7 @@ use YAML;
 use Tapper::Model 'model';
 use Tapper::Config;
 use Tapper::MCP::Info;
+use Tapper::Producer;
 
 extends 'Tapper::MCP::Control';
 
@@ -513,12 +514,75 @@ END
         return $config;
 }
 
+=head2 produce
+
+Calls the producer for the given precondition
+
+@param hash ref - config
+@param hash ref - precondition
+
+@return success - array ref containing preconditions
+@return error   - error string
+
+=cut
+
+sub produce
+{
+        my ($self, $config, $precondition) = @_;
+        my $producer = Tapper::Producer->new();
+        my $retval = $producer->produce($self->testrun, $precondition);
+        
+        return $retval if not ref($retval) eq 'HASH';
+
+        if ($retval->{topic}) {
+                $self->testrun->topic_name($retval->{topic});
+                $self->testrun->update;
+        }
+        my @precond_array = Load($retval->{precondition_yaml});
+        return \@precond_array;
+}
+
+
+=head2 parse_produce_precondition
+
+Parse a producer precondition, insert the produced ones and delete the
+old one. In case of success the updated config and a list of new
+precondition ids is returned.
+
+@param hash ref                   - old config
+@param precondition result object - precondition
+
+@return success - (hash ref, array)
+@return error   - (error string)
+
+=cut
+
+sub parse_produce_precondition
+{
+        my ($self, $config, $precondition) = @_;
+        my $produced_preconditions = $self->produce($config, $precondition->precondition_as_hash);
+        return $produced_preconditions 
+          unless ref($produced_preconditions) eq 'ARRAY';
+        my @precondition_ids;
+        
+        foreach my $produced_precondition (@$produced_preconditions) {
+                my ($new_id) = model->resultset('Precondition')->add( [$produced_precondition] );
+                push @precondition_ids, $new_id;
+                my ($new_precondition) = model->resultset('Precondition')->find( $new_id );
+                
+                $config = $self->parse_precondition($config, $new_precondition);
+                return $config unless ref($config) eq 'HASH';
+        }
+        return ($config, @precondition_ids);
+
+}
+
 =head2 parse_precondition
 
 Parse a given precondition and update the config accordingly.
 
-@param hash ref - old config
-@param hash ref - precondition
+@param hash ref                   - old config
+@param precondition result object - precondition
 
 @return success - hash ref containing updated config
 @return error   - error string
@@ -527,8 +591,15 @@ Parse a given precondition and update the config accordingly.
 
 sub parse_precondition
 {
-        my ($self, $config, $precondition) = @_;
+        my ($self, $config, $precondition_result) = @_;
+        my $precondition = $precondition_result->precondition_as_hash;
+
+        my @precondition_ids = ($precondition_result->id);
+
         given($precondition->{precondition_type}){
+                when('produce') {
+                        ($config, @precondition_ids) = $self->parse_produce_precondition($config, $precondition_result);
+                }
                 when('image' ) {
                         $config = $self->parse_image_precondition($config, $precondition);
                 }
@@ -563,6 +634,8 @@ sub parse_precondition
                         push @{$config->{preconditions}}, $precondition;
                 }
         }
+                        
+        push @{$config->{db_preconditions}}, @precondition_ids if $config;
 
         return $config;
 }
@@ -585,16 +658,22 @@ sub get_install_config
 
         my $retval = $self->mcp_info->add_prc(0, $self->cfg->{times}{boot_timeout});
         return $retval if $retval;
+        $config->{db_preconditions} = [];
 
  PRECONDITION:
-        foreach my $precondition (map {$_->precondition_as_hash} $self->testrun->ordered_preconditions) {
-                $config = $self->parse_precondition($config, $precondition);
+        foreach my $precondition_result ( $self->testrun->ordered_preconditions) {
+                $config = $self->parse_precondition($config, $precondition_result);
                 # was not able to parse precondition and thus
                 # return received error string
                 if (not ref($config) eq 'HASH' ) {
                         return $config;
                 }
         }
+
+
+        $self->testrun->disassign_preconditions();
+        $self->testrun->assign_preconditions(@{ $config->{db_preconditions} || [] });
+        delete $config->{db_preconditions};
 
         # always have a PRC0 even without any test programs
         unless ($self->mcp_info->is_simnow() or $config->{prcs}) {
