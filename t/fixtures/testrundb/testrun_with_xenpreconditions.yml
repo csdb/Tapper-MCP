@@ -95,6 +95,15 @@
     notes: kernel test without test program
     topic_name: kernel
 
+- schema: Testrun
+  name: test_with_single_producer
+  data:
+    id: 8
+    owner_user_id: 12
+    shortname: test_with_single_producer
+    notes: a test with one single producer precondition
+    topic_name: kernel
+
 
 
 
@@ -308,6 +317,14 @@
               timeout_testprogram: 36000
 
 
+- schema: Precondition
+  name: Dummy producer precondition
+  data:
+    id: 112
+    precondition: |
+      precondition_type: produce
+      producer: DummyProducer
+
 # -------------------- "KVM" <== "KVMtest"
 
 - schema: TestrunPrecondition
@@ -376,4 +393,13 @@
   data:
     testrun_id: 7
     precondition_id: 12
+    succession: 1
+
+# --------- precondititions for test_with_single_producer
+
+- schema: TestrunPrecondition
+  name: image for kernel_no_test
+  data:
+    testrun_id: 8
+    precondition_id: 112
     succession: 1

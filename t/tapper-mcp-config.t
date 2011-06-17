@@ -230,4 +230,21 @@ cmp_deeply($config->{preconditions},
                      ),
            'PRC installed even without test program(s)');
 
+$producer = Tapper::MCP::Config->new(8);
+
+$config = $producer->create_config(1337);   # expects a port number
+is(ref($config),'HASH', 'Config created');
+
+cmp_deeply($config->{preconditions},
+           supersetof(
+                      {
+                       'precondition_type' => 'no_option'
+                      },
+                      {
+                       'precondition_type' => 'second'
+                      },
+                     ),
+           'Single precondition producer');
+
+
 done_testing();
