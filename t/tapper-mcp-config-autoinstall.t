@@ -58,7 +58,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 my $producer = Tapper::MCP::Config->new(1);
 isa_ok($producer, "Tapper::MCP::Config", 'Producer object created');
 
-my $config = $producer->create_config(12);
+my $config = $producer->create_config();
 is(ref($config),'HASH', 'Config created');
 
 
