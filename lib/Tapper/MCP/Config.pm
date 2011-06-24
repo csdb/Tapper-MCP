@@ -533,7 +533,7 @@ sub produce
         my ($self, $config, $precondition) = @_;
         my $producer = Tapper::Producer->new();
         my $retval = $producer->produce($self->testrun, $precondition);
-        
+
         return $retval if not ref($retval) eq 'HASH';
 
         if ($retval->{topic}) {
@@ -563,15 +563,15 @@ sub parse_produce_precondition
 {
         my ($self, $config, $precondition) = @_;
         my $produced_preconditions = $self->produce($config, $precondition->precondition_as_hash);
-        return $produced_preconditions 
+        return $produced_preconditions
           unless ref($produced_preconditions) eq 'ARRAY';
         my @precondition_ids;
-        
+
         foreach my $produced_precondition (@$produced_preconditions) {
                 my ($new_id) = model->resultset('Precondition')->add( [$produced_precondition] );
                 push @precondition_ids, $new_id;
                 my ($new_precondition) = model->resultset('Precondition')->find( $new_id );
-                
+
                 $config = $self->parse_precondition($config, $new_precondition);
                 return $config unless ref($config) eq 'HASH';
         }
@@ -601,7 +601,7 @@ sub produce_preconds_in_arrayref
         my ($self, $config, $preconditions) = @_;
         my @new_preconds;
 
-        return "Did not receive an array ref for 'produce_preconds_in_arrayref'" 
+        return "Did not receive an array ref for 'produce_preconds_in_arrayref'"
           unless ref $preconditions eq 'ARRAY';
 
         foreach my $precondition ( @$preconditions ) {
@@ -644,7 +644,7 @@ sub produce_virt_precondition
                                 if (ref($producer->{$key}) eq 'ARRAY') {
                                         my $error = $self->produce_preconds_in_arrayref($config, $producer->{$key});
                                         return $error if $error;
-                                } elsif (ref($producer->{$key}) eq 'HASH' and 
+                                } elsif (ref($producer->{$key}) eq 'HASH' and
                                          $producer->{$key}->{precondition_type} eq 'producer') {
                                         my $produced_preconditions = $self->produce($config, $producer->{$key});
                                         $producer->{$key} = $produced_preconditions->[0];
@@ -652,7 +652,7 @@ sub produce_virt_precondition
                         }
                 }
         }
-        
+
         return $precondition;
 
 }
@@ -685,11 +685,11 @@ sub parse_precondition
                         $config = $self->parse_image_precondition($config, $precondition);
                 }
                 when( 'virt' ) {
-                        ($precondition, @precondition_ids) = 
+                        ($precondition, @precondition_ids) =
                           $self->produce_virt_precondition($config, $precondition);
                         return $precondition unless ref $precondition eq 'HASH';
 
-                        
+
                         $precondition_result->precondition(Dump($precondition));
                         $precondition_result->update;
 
@@ -723,7 +723,7 @@ sub parse_precondition
                         push @{$config->{preconditions}}, $precondition;
                 }
         }
-                        
+
         push @{$config->{db_preconditions}}, @precondition_ids if $config and ref $config eq 'HASH';
 
         return $config;
