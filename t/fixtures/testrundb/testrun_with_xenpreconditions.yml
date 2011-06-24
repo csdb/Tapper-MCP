@@ -104,6 +104,14 @@
     notes: a test with one single producer precondition
     topic_name: kernel
 
+- schema: Testrun
+  name: virt_testrun_with_producers
+  data:
+    id: 9
+    owner_user_id: 12
+    shortname: virt_testrun_with_producers
+    notes: A testrun with producers in a virt preconditions
+    topic_name: Xen
 
 
 
@@ -325,6 +333,38 @@
       precondition_type: produce
       producer: DummyProducer
 
+- schema: Precondition
+  name: Dummy producer precondition
+  data:
+    id: 113
+    precondition: |
+      name: automatically generated Xen test
+      precondition_type: virt
+      host:
+        root:
+          precondition_type: producer
+          producer: DummyProducer
+          option: ~
+        preconditions:
+        - precondition_type: producer
+          producer: DummyProducer
+          option: ~    
+        - precondition_type: nonproducer
+      guests:
+      - config:
+          precondition_type: producer
+          producer: DummyProducer
+          option: ~    
+        root:
+          precondition_type: producer
+          producer: DummyProducer
+          option: ~
+        testprogram:
+          precondition_type: producer
+          producer: DummyProducer
+
+
+
 # -------------------- "KVM" <== "KVMtest"
 
 - schema: TestrunPrecondition
@@ -402,4 +442,13 @@
   data:
     testrun_id: 8
     precondition_id: 112
+    succession: 1
+
+# --------- precondititions for virt_testrun_with_producers
+
+- schema: TestrunPrecondition
+  name: virt_precond_with_producers
+  data:
+    testrun_id: 9
+    precondition_id: 113
     succession: 1
