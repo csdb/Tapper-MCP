@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use 5.010;
+use Data::DPath 'dpath';
 use File::Basename;
 use Fcntl;
 use File::Path;
@@ -17,6 +18,7 @@ use Tapper::Model 'model';
 use Tapper::Config;
 use Tapper::MCP::Info;
 use Tapper::Producer;
+
 
 extends 'Tapper::MCP::Control';
 
@@ -104,7 +106,7 @@ sub add_tapper_package_for_guest
         my ($self, $config, $guest, $guest_number) = @_;
         my $tapper_package->{precondition_type} = '';
 
-        my $guest_arch                        = $guest->{root}{arch};
+        my $guest_arch                       = $guest->{root}{arch} or return "No architecture set for guest #$guest_number";
         $tapper_package->{filename}          = $self->cfg->{files}->{tapper_package}{$guest_arch};
 
         $tapper_package->{precondition_type} = 'package';
@@ -132,7 +134,7 @@ Create guest PRC config based on guest tests.
 sub handle_guest_tests
 {
         my ($self, $config, $guest, $guest_number) = @_;
-        $config = $self->add_tapper_package_for_guest($config, $guest);
+        $config = $self->add_tapper_package_for_guest($config, $guest, $guest_number);
         return $config unless ref $config eq 'HASH';
 
         $config->{prcs}->[$guest_number]->{mountfile} = $guest->{mountfile};
@@ -577,6 +579,85 @@ sub parse_produce_precondition
 
 }
 
+=head2 produce_preconds_in_arrayref
+
+Take an array ref, find the producers in it and produce them. Substitute
+the producer preconditions with the produced preconditions they generated.
+
+This function changes the received argument instead of returning an
+updated version. This makes sure you can change your precondition step
+by step instead of having to create a new one.
+
+@param hash ref  - config
+@param array ref - preconditions with producers
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub produce_preconds_in_arrayref
+{
+        my ($self, $config, $preconditions) = @_;
+        my @new_preconds;
+
+        return "Did not receive an array ref for 'produce_preconds_in_arrayref'" 
+          unless ref $preconditions eq 'ARRAY';
+
+        foreach my $precondition ( @$preconditions ) {
+                if ($precondition->{precondition_type} eq 'producer') {
+                        my $produced_preconditions = $self->produce($config, $precondition);
+                        push @new_preconds, @$produced_preconditions;
+                } else {
+                        push @new_preconds, $precondition;
+                }
+        }
+        @$preconditions = @new_preconds;
+        return 0;
+}
+
+=head2 produce_virt_precondition
+
+Find all producers in a virt precondition, call them and substitute the
+producer preconditions with the received produced preconditions. It
+returns the updated virt precondition.
+
+@param hash ref - config
+@param hash ref - precondition as hash
+
+@return success - hash ref containing updated precondition
+@return error   - error string
+
+=cut
+
+sub produce_virt_precondition
+{
+        my ($self, $config, $precondition) = @_;
+        local $Data::DPath::USE_SAFE; # path not from user, Safe.pm deactivated for debug and speed
+        my $producers = $precondition ~~ dpath '//*[key eq "precondition_type" and value eq "producer"]/../..';
+        foreach my $producer (@$producers) {
+                if (ref $producer eq 'ARRAY') {
+                        my $error = $self->produce_preconds_in_arrayref($config, $producer);
+                        return $error if $error;
+                } elsif (ref $producer eq 'HASH') {
+                        foreach my $key ( keys %$producer ) {
+                                if (ref($producer->{$key}) eq 'ARRAY') {
+                                        my $error = $self->produce_preconds_in_arrayref($config, $producer->{$key});
+                                        return $error if $error;
+                                } elsif (ref($producer->{$key}) eq 'HASH' and 
+                                         $producer->{$key}->{precondition_type} eq 'producer') {
+                                        my $produced_preconditions = $self->produce($config, $producer->{$key});
+                                        $producer->{$key} = $produced_preconditions->[0];
+                                }
+                        }
+                }
+        }
+        
+        return $precondition;
+
+}
+
+
 =head2 parse_precondition
 
 Parse a given precondition and update the config accordingly.
@@ -604,7 +685,15 @@ sub parse_precondition
                         $config = $self->parse_image_precondition($config, $precondition);
                 }
                 when( 'virt' ) {
-                        $config=$self->parse_virt_preconditions($config, $precondition);
+                        ($precondition, @precondition_ids) = 
+                          $self->produce_virt_precondition($config, $precondition);
+                        return $precondition unless ref $precondition eq 'HASH';
+
+                        
+                        $precondition_result->precondition(Dump($precondition));
+                        $precondition_result->update;
+
+                        $config       = $self->parse_virt_preconditions($config, $precondition);
                 }
                 when( 'grub') {
                         $config = $self->parse_grub($config, $precondition);
@@ -635,7 +724,7 @@ sub parse_precondition
                 }
         }
                         
-        push @{$config->{db_preconditions}}, @precondition_ids if $config;
+        push @{$config->{db_preconditions}}, @precondition_ids if $config and $config eq 'HASH';
 
         return $config;
 }
