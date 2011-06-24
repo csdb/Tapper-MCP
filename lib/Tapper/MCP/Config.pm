@@ -724,7 +724,7 @@ sub parse_precondition
                 }
         }
                         
-        push @{$config->{db_preconditions}}, @precondition_ids if $config and $config eq 'HASH';
+        push @{$config->{db_preconditions}}, @precondition_ids if $config and ref $config eq 'HASH';
 
         return $config;
 }
