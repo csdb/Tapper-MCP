@@ -26,6 +26,7 @@ requires 'Tapper::Config' => "3.000010";
 requires 'Tapper::Model' => "3.000010";
 requires 'Tapper::Schema' => "3.000010";
 requires 'Tapper::Cmd' => "3.000010";
+requires 'Data::DPath'                => 0;
 requires 'Perl6::Junction'            => 0;
 requires 'Carp'                       => 0;
 requires 'Data::Dumper'               => 0;
