@@ -276,7 +276,7 @@ sub get_state_config
         my $state = {
                      current_state => 'started',
                      results => [],
-                     install => { timeout_boot_span    => $self->cfg->{times}{boot_timeout},
+                     install => { timeout_boot_span    => $self->get_installer_timeout || $self->cfg->{times}{boot_timeout},
                                   timeout_install_span => $self->cfg->{times}{installer_timeout},
                                   timeout_current_date => undef,
                                 },
