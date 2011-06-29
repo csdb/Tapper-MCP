@@ -532,7 +532,7 @@ sub produce
 {
         my ($self, $config, $precondition) = @_;
         my $producer = Tapper::Producer->new();
-        my $retval = $producer->produce($self->testrun, $precondition);
+        my $retval = $producer->produce($self->testrun->testrun_scheduling, $precondition);
 
         return $retval if not ref($retval) eq 'HASH';
 
