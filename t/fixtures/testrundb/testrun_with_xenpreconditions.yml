@@ -352,6 +352,15 @@
       producer: DummyProducer
 
 - schema: Precondition
+  name: Additional precondition for producer test
+  data:
+    id: 188
+    precondition: |
+      precondition_type: grub
+      config: whatever
+
+
+- schema: Precondition
   name: Dummy producer precondition
   data:
     id: 113
@@ -456,10 +465,17 @@
 # --------- precondititions for test_with_single_producer
 
 - schema: TestrunPrecondition
-  name: image for kernel_no_test
+  name: Producer
   data:
     testrun_id: 8
     precondition_id: 112
+    succession: 1
+
+- schema: TestrunPrecondition
+  name: Additional
+  data:
+    testrun_id: 8
+    precondition_id: 188
     succession: 1
 
 # --------- precondititions for virt_testrun_with_producers

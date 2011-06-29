@@ -80,6 +80,8 @@ cmp_deeply($config->{preconditions},
                       },
                      ),
            'Single precondition producer');
+$testrun = model('TestrunDB')->resultset('Testrun')->find(8);
+is( int $testrun->ordered_preconditions, 3, 'Additional precondition still assigned');
 
 
 done_testing();
