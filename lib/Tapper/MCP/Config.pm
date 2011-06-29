@@ -762,7 +762,8 @@ sub get_install_config
 
 
         $self->testrun->disassign_preconditions();
-        $self->testrun->assign_preconditions(@{ $config->{db_preconditions} || [] });
+        my $error = $self->testrun->assign_preconditions(@{ $config->{db_preconditions} || [] });
+        return $error if $error;
         delete $config->{db_preconditions};
 
         # always have a PRC0 even without any test programs
