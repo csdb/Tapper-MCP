@@ -103,6 +103,16 @@
     shortname: test_with_single_producer
     notes: a test with one single producer precondition
     topic_name: kernel
+- schema: TestrunScheduling
+  name: virt_job_with_producer
+  data:
+    id: 108
+    testrun_id: 8
+    queue_id: 3
+    auto_rerun: 0
+    status: schedule
+
+
 
 - schema: Testrun
   name: virt_testrun_with_producers
@@ -112,6 +122,14 @@
     shortname: virt_testrun_with_producers
     notes: A testrun with producers in a virt preconditions
     topic_name: Xen
+- schema: TestrunScheduling
+  name: virt_job_with_producer
+  data:
+    id: 109
+    testrun_id: 9
+    queue_id: 3
+    auto_rerun: 0
+    status: schedule
 
 
 
