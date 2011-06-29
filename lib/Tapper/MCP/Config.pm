@@ -12,7 +12,7 @@ use LockFile::Simple;
 use Moose;
 use Socket 'inet_ntoa';
 use Sys::Hostname;
-use YAML;
+use YAML::Syck 'Load';
 
 use Tapper::Model 'model';
 use Tapper::Config;
