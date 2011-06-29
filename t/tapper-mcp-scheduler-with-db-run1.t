@@ -10,7 +10,7 @@ use MRO::Compat;
 use aliased 'Tapper::MCP::Scheduler::Controller';
 use aliased 'Tapper::MCP::Scheduler::Algorithm';
 use aliased 'Tapper::MCP::Scheduler::Algorithm::DummyAlgorithm';
-use aliased 'Tapper::MCP::Scheduler::PreconditionProducer::DummyProducer';
+use aliased 'Tapper::Producer::DummyProducer';
 
 use Tapper::Model 'model';
 

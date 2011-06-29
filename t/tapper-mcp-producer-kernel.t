@@ -13,7 +13,7 @@ use Tapper::Model 'model';
 
 use Test::Fixture::DBIC::Schema;
 use Tapper::Schema::TestTools;
-use Tapper::MCP::Scheduler::PreconditionProducer::Kernel;
+use Tapper::Producer::Kernel;
 use Tapper::Config;
 
 use Test::More;
@@ -29,7 +29,7 @@ qx(touch t/misc_files/kernel_producer/kernel/x86_64/kernel_file3.tar.gz);  # mak
 my $host = bless{name => 'bullock'};
 my $job  = bless{host => $host};
 
-my $producer     = Tapper::MCP::Scheduler::PreconditionProducer::Kernel->new();
+my $producer     = Tapper::Producer::Kernel->new();
 my $precondition = $producer->produce($job, {});
 
 is(ref $precondition, 'HASH', 'Producer / returned hash');

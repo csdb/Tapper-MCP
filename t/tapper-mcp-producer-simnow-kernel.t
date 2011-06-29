@@ -13,7 +13,7 @@ use Tapper::Model 'model';
 
 use Test::Fixture::DBIC::Schema;
 use Tapper::Schema::TestTools;
-use Tapper::MCP::Scheduler::PreconditionProducer::SimnowKernel;
+use Tapper::Producer::SimnowKernel;
 use Tapper::Config;
 
 use Test::More;
@@ -29,7 +29,7 @@ qx(touch t/misc_files/simnowkernel_producer/kernel/simnow/kernel_file3.tar.gz); 
 my $host = bless{name => 'bullock'};
 my $job  = bless{host => $host};
 
-my $producer     = Tapper::MCP::Scheduler::PreconditionProducer::SimnowKernel->new();
+my $producer     = Tapper::Producer::SimnowKernel->new();
 my $precondition = $producer->produce($job, {});
 
 is(ref $precondition, 'HASH', 'Producer / returned hash');

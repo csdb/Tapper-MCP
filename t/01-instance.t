@@ -25,7 +25,6 @@ my @modules = ('Tapper::MCP',
                'Tapper::MCP::Startup',
                'Tapper::MCP::Scheduler::Algorithm',
                'Tapper::MCP::Scheduler::Builder',
-               'Tapper::MCP::Scheduler::PreconditionProducer',
                'Tapper::MCP::Scheduler::Controller',
               );
 

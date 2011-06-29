@@ -22,7 +22,6 @@ my @modules = ('Tapper::MCP',
                'Tapper::MCP::Scheduler::Algorithm::WFQ',
                'Tapper::MCP::Scheduler::Algorithm::DummyAlgorithm',
                'Tapper::MCP::Scheduler::Builder',
-               'Tapper::MCP::Scheduler::PreconditionProducer',
                'Tapper::MCP::Scheduler::Controller',
                'Tapper::MCP::Scheduler::PrioQueue',
               );

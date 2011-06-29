@@ -16,7 +16,7 @@ use Tapper::Model 'model';
 use Data::Dumper;
 use Test::Fixture::DBIC::Schema;
 use Tapper::Schema::TestTools;
-use Tapper::MCP::Scheduler::PreconditionProducer::Temare;
+use Tapper::Producer::Temare;
 
 use Test::More;
 use Test::Deep;

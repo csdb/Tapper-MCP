@@ -13,7 +13,7 @@ use Tapper::Model 'model';
 
 use Test::Fixture::DBIC::Schema;
 use Tapper::Schema::TestTools;
-use Tapper::MCP::Scheduler::PreconditionProducer::NewestPackage;
+use Tapper::Producer::NewestPackage;
 use Tapper::Config;
 use File::Spec::Functions;
 
@@ -30,7 +30,7 @@ my $host = bless{name => 'bullock'};
 my $job  = bless{host => $host};
 
 Tapper::Config->subconfig->{paths}{prc_nfs_mountdir} = 't/misc_files/';
-my $producer     = Tapper::MCP::Scheduler::PreconditionProducer::NewestPackage->new();
+my $producer     = Tapper::Producer::NewestPackage->new();
 my $precondition = $producer->produce($job, {source_dir => 't/misc_files/kernel_producer//kernel/x86_64'});
 
 is(ref $precondition, 'HASH', 'Producer / returned hash');
