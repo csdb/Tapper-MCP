@@ -550,14 +550,13 @@ sub produce
 =head2 parse_produce_precondition
 
 Parse a producer precondition, insert the produced ones and delete the
-old one. In case of success the updated config and a list of new
-precondition ids is returned.
+old one. In case of success the updated config is returned.
 
 @param hash ref                   - old config
 @param precondition result object - precondition
 
-@return success - (hash ref, array)
-@return error   - (error string)
+@return success - hash ref
+@return error   - error string
 
 =cut
 
@@ -565,19 +564,22 @@ sub parse_produce_precondition
 {
         my ($self, $config, $precondition) = @_;
         my $produced_preconditions = $self->produce($config, $precondition->precondition_as_hash);
+
         return $produced_preconditions
           unless ref($produced_preconditions) eq 'ARRAY';
-        my @precondition_ids;
+        my $position = model->resultset('TestrunPrecondition')->search({testrun_id => $self->testrun->id,
+                                                                        precondition_id => $precondition->id})->first->succession;
+        $self->testrun->disassign_preconditions($precondition->id);
 
         foreach my $produced_precondition (@$produced_preconditions) {
                 my ($new_id) = model->resultset('Precondition')->add( [$produced_precondition] );
-                push @precondition_ids, $new_id;
-                my ($new_precondition) = model->resultset('Precondition')->find( $new_id );
+                $self->testrun->insert_preconditions($position++, $new_id);
 
+                my ($new_precondition) = model->resultset('Precondition')->find( $new_id );
                 $config = $self->parse_precondition($config, $new_precondition);
                 return $config unless ref($config) eq 'HASH';
         }
-        return ($config, @precondition_ids);
+        return $config;
 
 }
 
@@ -677,21 +679,17 @@ sub parse_precondition
         my ($self, $config, $precondition_result) = @_;
         my $precondition = $precondition_result->precondition_as_hash;
 
-        my @precondition_ids = ($precondition_result->id);
-
         given($precondition->{precondition_type}){
                 when('produce') {
-                        @precondition_ids = ();
                         ($config, undef) = $self->parse_produce_precondition($config, $precondition_result);
                 }
                 when('image' ) {
                         $config = $self->parse_image_precondition($config, $precondition);
                 }
                 when( 'virt' ) {
-                        ($precondition, @precondition_ids) =
-                          $self->produce_virt_precondition($config, $precondition);
+                        $precondition = $self->produce_virt_precondition($config, $precondition);
                         return $precondition unless ref $precondition eq 'HASH';
-
+                        
 
                         $precondition_result->precondition(Dump($precondition));
                         $precondition_result->update;
@@ -727,7 +725,6 @@ sub parse_precondition
                 }
         }
 
-        push @{$config->{db_preconditions}}, @precondition_ids if $config and ref $config eq 'HASH';
 
         return $config;
 }
@@ -763,10 +760,6 @@ sub get_install_config
         }
 
 
-        $self->testrun->disassign_preconditions();
-        my $error = $self->testrun->assign_preconditions(@{ $config->{db_preconditions} || [] });
-        return $error if $error;
-        delete $config->{db_preconditions};
 
         # always have a PRC0 even without any test programs
         unless ($self->mcp_info->is_simnow() or $config->{prcs}) {
