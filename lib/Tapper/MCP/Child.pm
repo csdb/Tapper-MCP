@@ -179,6 +179,25 @@ sub report_mcp_results
         $self->upload_files($report_id, $self->testrun->id );
 }
 
+=head2 handle_error
+
+Sends a tap report because an error occured.
+
+@param string - error string
+
+@return error string
+
+=cut
+
+sub handle_error
+{
+        my ($self, $error_msg, $error_comment) = @_;
+        my $headerlines = $self->mcp_headerlines();
+        my $results     = [{ error => 1, msg => $error_msg, comment => $error_comment}];
+        my ($error, $report_id) = $self->tap_report_send($results, $headerlines);
+        return $error;
+}
+
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -202,7 +221,7 @@ sub runtest_handling
         my $error;
 
         my $config = $self->generate_configs($hostname);
-        return $config if ref $config ne 'HASH';
+        return $self->handle_error("Generating configs", $config) if ref $config ne 'HASH';
         $self->log->debug("Reviving testrun ",$self->testrun->id) if $revive;
 
         $self->state(Tapper::MCP::State->new(testrun_id => $self->testrun->id, cfg => $config));
@@ -212,15 +231,15 @@ sub runtest_handling
                 if ($self->mcp_info->is_simnow) {
                         $self->log->debug("Starting Simnow on $hostname");
                         my $simnow_retval = $net->start_simnow($hostname);
-                        return $simnow_retval if $simnow_retval;
+                        return $self->handle_error("Starting simnow", $simnow_retval) if $simnow_retval;
                 } else {
                         $self->log->debug("Write grub file for $hostname");
                         my $grub_retval = $net->write_grub_file($hostname, $config->{installer_grub});
-                        return $grub_retval if $grub_retval;
+                        return $self->handle_error("Writing grub file", $grub_retval) if $grub_retval;
 
                         $self->log->debug("rebooting $hostname");
                         my $reboot_retval = $net->reboot_system($hostname);
-                        return $reboot_retval if $reboot_retval;
+                        return $self->handle_error("Booting machine", $reboot_retval) if $reboot_retval;
 
                         my $report;
                         ($error, $report) = $net->hw_report_create($self->testrun->id);
