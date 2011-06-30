@@ -215,8 +215,10 @@ sub parse_virt_preconditions
 
                 $guest->{mountfile} = $guest->{root}->{mountfile};
                 $guest->{mountpartition} = $guest->{root}->{mountpartition};
+                $guest->{mountdir} = $guest->{root}->{mountdir};
                 delete $guest->{root}->{mountpartition};
                 delete $guest->{root}->{mountfile} if $guest->{root}->{mountfile};
+                delete $guest->{root}->{mountdir};
 
 
                 $retval = $self->mcp_info->add_prc($guest_number, $self->cfg->{times}{boot_timeout});
