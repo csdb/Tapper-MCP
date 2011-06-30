@@ -290,7 +290,7 @@ sub get_state_config
                 my $prc_state = {
                                  timeout_boot_span => $prc->{timeouts}->{boot} || $self->cfg->{times}{boot_timeout},
                                  timeout_current_date => undef,
-                                 state => 'preload',
+                                 current_state => 'preload',
                                  results => [],
                                  timeout_testprograms_span => $prc->{timeouts}->{programs},
                                 };
