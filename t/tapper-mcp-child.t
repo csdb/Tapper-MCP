@@ -111,4 +111,20 @@ is($tap_reports[1], "1..1
 not ok 1 - timeout hit while waiting for installation
 ", 'Detect timeout during installer booting');
 
+@tap_reports = ();
+$child      = Tapper::MCP::Child->new(113);
+$retval =  $child->runtest_handling('bullock');
+is($tap_reports[0], 
+          '1..1
+# Tapper-reportgroup-testrun: 113
+# Tapper-suite-name: Topic-Software
+# Tapper-suite-version: 3.000010
+# Tapper-machine-name: No hostname set
+# Tapper-section: MCP overview
+# Tapper-reportgroup-primary: 1
+not ok 1 - Generating configs
+# No architecture set for guest #1
+', 'Reporting error in gen_config as TAP');
+
+
 done_testing();

@@ -83,6 +83,15 @@
     topic_name: Software
     wait_after_tests: ~
 
+- schema: Testrun
+  name: foobar
+  data:
+    id: 113
+    owner_user_id: 12
+    shortname: fail_config
+    notes: testrun with a broken precondition, fails to install
+    topic_name: Software
+
 
 
 # -------------------- preconditions
@@ -146,6 +155,29 @@
       program: /bin/uname_tap.sh
       timeout: 90
 
+- schema: Precondition
+  name: fail_precond
+  data:
+    id: 113
+    shortname: fail_precond
+    precondition: |
+      ---
+      name: automatically generated Xen test
+      precondition_type: virt
+      host:
+        root:
+          precondition_type: image
+          mount: /
+        preconditions:
+      guests:
+      - config:
+          name: bancroft:/data/bancroft/tapper/live/repository/configs/xen/001-bullock.svm
+          precondition_type: copyfile
+          protocol: nfs
+        root:
+          mountfile: /xen/images/001-bullock.img
+        testprogram:
+          program: none
 
 # -------------------- "perfmon" <== "perl", "tapper-tools"
 
@@ -192,6 +224,14 @@
     testrun_id: 24
     precondition_id: 10
     succession: 4
+
+- schema: TestrunPrecondition
+  name: 1st fail_precond
+  data:
+    testrun_id: 113
+    precondition_id: 113
+    succession: 1
+
 
 # -------------------- "perl" <== "gcc(9)", "glibc"
 
