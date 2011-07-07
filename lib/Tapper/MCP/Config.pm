@@ -360,7 +360,7 @@ sub parse_image_precondition
         if ($opt_pkg) {
                 push @{$config->{preconditions}}, $opt_pkg;
                 push @{$config->{preconditions}}, {precondition_type => 'exec',
-                                                   filename => '/opt/tapper/perl/perls/current/bin/tapper-testsuite-hwtrack',
+                                                   filename          => '/opt/tapper/perl/perls/current/bin/tapper-testsuite-hwtrack',
                                                    continue_on_error => 1 };
         }
         return $config;
