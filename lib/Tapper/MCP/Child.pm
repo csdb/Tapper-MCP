@@ -228,25 +228,29 @@ sub runtest_handling
         $self->state->state_init($self->mcp_info->get_state_config, $revive );
 
         if ($self->state->compare_given_state('reboot_install') == 1) {
-                if ($self->mcp_info->is_simnow) {
-                        $self->log->debug("Starting Simnow on $hostname");
-                        my $simnow_retval = $net->start_simnow($hostname);
-                        return $self->handle_error("Starting simnow", $simnow_retval) if $simnow_retval;
-                } else {
-                        $self->log->debug("Write grub file for $hostname");
-                        my $grub_retval = $net->write_grub_file($hostname, $config->{installer_grub});
-                        return $self->handle_error("Writing grub file", $grub_retval) if $grub_retval;
 
-                        $self->log->debug("rebooting $hostname");
-                        my $reboot_retval = $net->reboot_system($hostname);
-                        return $self->handle_error("Booting machine", $reboot_retval) if $reboot_retval;
+                given($self->mcp_info->test_type){
+                        when('simnow'){
+                                $self->log->debug("Starting Simnow on $hostname");
+                                my $simnow_retval = $net->start_simnow($hostname);
+                                return $self->handle_error("Starting simnow", $simnow_retval) if $simnow_retval;
+                        }
+                        default{
+                                $self->log->debug("Write grub file for $hostname");
+                                my $grub_retval = $net->write_grub_file($hostname, $config->{installer_grub});
+                                return $self->handle_error("Writing grub file", $grub_retval) if $grub_retval;
 
-                        my $report;
-                        ($error, $report) = $net->hw_report_create($self->testrun->id);
-                        if ($error) {
-                                $self->log->error($report);
-                        } else {
-                                $self->tap_report_away($report);
+                                $self->log->debug("rebooting $hostname");
+                                my $reboot_retval = $net->reboot_system($hostname);
+                                return $self->handle_error("Booting machine", $reboot_retval) if $reboot_retval;
+
+                                my $report;
+                                ($error, $report) = $net->hw_report_create($self->testrun->id);
+                                if ($error) {
+                                        $self->log->error($report);
+                                } else {
+                                        $self->tap_report_away($report);
+                                }
                         }
                 }
                 my $message = model('TestrunDB')->resultset('Message')->new
