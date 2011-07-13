@@ -58,7 +58,7 @@ Parse a simnow precondition.
 sub parse_simnow_preconditions
 {
         my ($self, $config, $precondition) = @_;
-        $self->mcp_info->is_simnow(1);
+        $self->mcp_info->test_type('simnow');
         return $config;
 }
 
@@ -77,11 +77,10 @@ sub parse_hint_preconditions
 {
         my ($self, $config, $precondition) = @_;
         if ($precondition->{simnow}) {
-                $self->mcp_info->is_simnow(1);
+                $self->mcp_info->test_type('simnow');
                 $config->{paths}{base_dir}='/';
                 $config->{files}{simnow_script} = $precondition->{script} if $precondition->{script};
         }
-        push @{$config->{preconditions}}, {precondition_type => 'simnow_backend'};
         return $config;
 }
 
@@ -762,7 +761,8 @@ sub get_install_config
 
 
         # always have a PRC0 even without any test programs
-        unless ($self->mcp_info->is_simnow() or $config->{prcs}) {
+        unless ($self->mcp_info->test_type() eq 'simnow'
+                or $config->{prcs}) {
                 $config->{prcs}->[0] = {testprogram_list => []};
         }
 

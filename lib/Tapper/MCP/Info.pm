@@ -251,17 +251,18 @@ sub get_report_array
 }
 
 
-=head2 is_simnow
+=head2 test_type
 
-Setter and getter for is_simnow
+Setter and getter for test_type. This element is used to signal different
+test_type variants like ssh or SimNow.
 
 =cut
 
-sub is_simnow
+sub test_type
 {
-        my ($self, $is_simnow) = @_;
-        $self->mcp_info->{simnow} = 1 if $is_simnow;
-        return $self->mcp_info->{simnow} // 0;
+        my ($self, $test_type) = @_;
+        $self->mcp_info->{test_type} = $test_type if $test_type;
+        return $self->mcp_info->{test_type} // '';
 }
 
 =head2 get_state_config
