@@ -2,12 +2,14 @@ package Tapper::MCP::Net;
 
 use strict;
 use warnings;
+use English '-no_match_vars';
 
 use 5.010;
 
 use Moose;
 use Socket;
 use Net::SSH;
+use Net::SCP;
 use Net::SSH::Expect;
 use IO::Socket::INET;
 use Sys::Hostname;
@@ -137,6 +139,75 @@ sub start_simnow
         return 0;
 
 }
+
+
+=head2 start_ssh
+
+Start a ssh testrun on given host. This starts both the Installer and PRC.
+
+@param string - hostname
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub start_ssh
+{
+        my ($self, $hostname) = @_;
+
+        my $tapper_script = $self->cfg->{files}{tapper_prc};
+        my $retval = Net::SSH::ssh_cmd({
+                                        host => $hostname,
+                                        command => $tapper_script,
+                                        args    => [ 'autoinstall' ], # let PRC call Installer before
+                                       });
+        return "Can not start PRC with ssh: $retval" if $retval;
+        return 0;
+}
+
+=head2 install_client_package
+
+Install client package of given architecture on given host at optional
+given possition.
+
+@param string   - hostname
+@param hash ref - contains arch and dest_path
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub install_client_package
+{
+        my ($self, $hostname, $package) = @_;
+
+        my $dest_path  = $package->{dest_path} || '/tmp';
+        $dest_path .= "/tapper-clientpkg.tgz";
+
+        my $arch = $package->{arch};
+        my $clientpkg = $self->cfg->{files}{tapper_package}{$arch};
+
+        $clientpkg = $self->cfg->{paths}{package_dir}.$clientpkg
+          if not $clientpkg =~ m,^/,;
+
+        my $scp = Net::SCP->new($hostname);
+        my $retval = $scp->put(
+                               $clientpkg,
+                               $dest_path,
+                              );
+        return "Can not copy client package to $hostname/$dest_path: ".$scp->{errstr} if $retval;
+
+        $retval = Net::SSH::ssh_cmd({
+                                     host => $hostname,
+                                     command => "tar",
+                                     args    => [ '-xz', "-f $dest_path", '-C /' ],
+                                    });
+        return "Can not unpack client package on $hostname: $retval" if $retval;
+        return 0;
+}
+
 
 
 =head2 reboot_system

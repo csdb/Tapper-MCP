@@ -80,6 +80,13 @@ sub parse_hint_preconditions
                 $self->mcp_info->test_type('simnow');
                 $config->{paths}{base_dir}='/';
                 $config->{files}{simnow_script} = $precondition->{script} if $precondition->{script};
+                push @{$config->{preconditions}}, {precondition_type => 'simnow_backend'};
+        } elsif ($precondition->{ssh}) {
+                $self->mcp_info->test_type('ssh');
+                $config->{client_package} = {
+                                             arch      => $precondition->{arch},
+                                             dest_path => $precondition->{dest_path},
+                                            };
         }
         return $config;
 }
