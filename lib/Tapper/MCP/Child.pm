@@ -198,6 +198,61 @@ sub handle_error
         return $error;
 }
 
+=head2 start_testrun
+
+Start Installer on testmachine based on the type of testrun.
+
+@param string   - host name
+@param hash ref - config
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub start_testrun
+{
+        my ($self, $hostname, $config) = @_;
+
+        my $net    = Tapper::MCP::Net->new();
+        $net->cfg->{testrun_id} = $self->testrun->id;
+
+        given($self->mcp_info->test_type){
+                when('simnow'){
+                        $self->log->debug("Starting Simnow on $hostname");
+                        my $simnow_retval = $net->start_simnow($hostname);
+                        return $self->handle_error("Starting simnow", $simnow_retval) if $simnow_retval;
+                }
+                when('ssh') {
+                        $self->log->debug("Starting SSH testrun on $hostname");
+                        my $ssh_retval;
+                        $ssh_retval = $net->install_client_package($hostname, $config->{client_package});
+                        $ssh_retval = $net->start_ssh($hostname);
+                        return $self->handle_error("Starting Tapper on testmachine with SSH", $ssh_retval)
+                          if $ssh_retval;
+                }
+                default{
+                        $self->log->debug("Write grub file for $hostname");
+                        my $grub_retval = $net->write_grub_file($hostname, $config->{installer_grub});
+                        return $self->handle_error("Writing grub file", $grub_retval) if $grub_retval;
+
+                        $self->log->debug("rebooting $hostname");
+                        my $reboot_retval = $net->reboot_system($hostname);
+                        return $self->handle_error("Booting machine", $reboot_retval) if $reboot_retval;
+
+                        my ($error, $report) = $net->hw_report_create($self->testrun->id);
+                        if ($error) {
+                                $self->log->error($report);
+                        } else {
+                                $self->tap_report_away($report);
+                        }
+                }
+        }
+        return 0;
+}
+
+
+
 =head2 runtest_handling
 
 Start testrun and wait for completion.
@@ -218,7 +273,6 @@ sub runtest_handling
 
         my $net    = Tapper::MCP::Net->new();
         $net->cfg->{testrun_id} = $self->testrun->id;
-        my $error;
 
         my $config = $self->generate_configs($hostname);
         return $self->handle_error("Generating configs", $config) if ref $config ne 'HASH';
@@ -228,35 +282,13 @@ sub runtest_handling
         $self->state->state_init($self->mcp_info->get_state_config, $revive );
 
         if ($self->state->compare_given_state('reboot_install') == 1) {
+                my $error = $self->start_testrun($hostname, $config);
+                return $error if $error;
 
-                given($self->mcp_info->test_type){
-                        when('simnow'){
-                                $self->log->debug("Starting Simnow on $hostname");
-                                my $simnow_retval = $net->start_simnow($hostname);
-                                return $self->handle_error("Starting simnow", $simnow_retval) if $simnow_retval;
-                        }
-                        default{
-                                $self->log->debug("Write grub file for $hostname");
-                                my $grub_retval = $net->write_grub_file($hostname, $config->{installer_grub});
-                                return $self->handle_error("Writing grub file", $grub_retval) if $grub_retval;
-
-                                $self->log->debug("rebooting $hostname");
-                                my $reboot_retval = $net->reboot_system($hostname);
-                                return $self->handle_error("Booting machine", $reboot_retval) if $reboot_retval;
-
-                                my $report;
-                                ($error, $report) = $net->hw_report_create($self->testrun->id);
-                                if ($error) {
-                                        $self->log->error($report);
-                                } else {
-                                        $self->tap_report_away($report);
-                                }
-                        }
-                }
                 my $message = model('TestrunDB')->resultset('Message')->new
                   ({
-                   message => {state => 'takeoff'},
-                   testrun_id => $self->testrun->id,
+                    message => {state => 'takeoff'},
+                    testrun_id => $self->testrun->id,
                    });
                 $message->insert;
                 $self->state->update_state($message);
