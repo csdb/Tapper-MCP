@@ -22,7 +22,7 @@ author_requires 'Module::Install::WriteAll';
 requires 'perl'                       => '5.010';
 #requires 'App::Daemon'                => 0;
 requires 'Tapper::Base' => "3.000010";
-requires 'Tapper::Config' => "3.000010";
+requires 'Tapper::Config' => "3.000012";
 requires 'Tapper::Model' => "3.000010";
 requires 'Tapper::Schema' => "3.000014";
 requires 'Tapper::Cmd' => "3.000010";
