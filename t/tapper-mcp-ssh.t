@@ -36,6 +36,18 @@ $mock_ssh->mock('ssh', sub { my (@params) = @_; push @commands, {ssh => \@params
 my $child = Tapper::MCP::Child->new(114);
 my $retval = $child->generate_configs('nosuchhost');
 is(ref $retval, 'HASH', 'Got config');
+is_deeply($retval->{preconditions}->[0],
+          {
+           'config' => {'testprogram_list' => [{
+                                                'runtime' => '30',
+                                                'timeout' => '90',
+                                                'program' => '/bin/uname_tap.sh'
+                                               }
+                                              ]},
+           'precondition_type' => 'prc',
+           'skip_startscript' => 1
+          }, 'Config for PRC');
+
 
 $child->start_testrun('nosuchhost', $retval);
 
