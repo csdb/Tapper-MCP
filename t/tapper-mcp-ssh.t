@@ -6,8 +6,10 @@ use Test::Fixture::DBIC::Schema;
 use Test::MockModule;
 use Tapper::MCP::Child;
 use Tapper::Schema::TestTools;
+use Tapper::Config;
 
 use Test::More;
+
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -22,6 +24,8 @@ log4perl.appender.root.stderr = 1
 log4perl.appender.root.layout = SimpleLayout";
 Log::Log4perl->init(\$string);
 
+my $default_config = Tapper::Config->subconfig;
+
 
 my @commands;
 my $mock_scp = Test::MockModule->new('Net::SCP');
@@ -35,8 +39,8 @@ is(ref $retval, 'HASH', 'Got config');
 
 $child->start_testrun('nosuchhost', $retval);
 
-# use Data::Dumper;
-# diag Dumper \@commands;
+my $mcp_host    = $default_config->{mcp_host};
+my $prc_program = $default_config->{files}{tapper_prc};
 
 is_deeply(shift @commands, 
           {
@@ -45,17 +49,11 @@ is_deeply(shift @commands,
           'Copy clientpackage');
 is_deeply(shift @commands,
           {
-           'ssh' => [{'args' => ['-xz', '-f /dev/shm/tmp/tapper-clientpkg.tgz', '-C /'],
-                      'command' => 'tar',
-                      'host' => 'nosuchhost'
-                     }]},
+           'ssh' => ['nosuchhost tar -xzf /dev/shm/tmp/tapper-clientpkg.tgz -C /']},
           'Unpack client package');
 is_deeply(shift @commands,
           {
-           'ssh' => [{'args' => [ 'autoinstall'],
-                      'command' => '/opt/tapper/bin/tapper-automatic-test.pl' ,
-                      'host' => 'nosuchhost'
-                     }]},
+           'ssh' => ["nosuchhost $prc_program --host $mcp_host"]},
           'Start PRC in autoinstall mode');
           
 done_testing();
