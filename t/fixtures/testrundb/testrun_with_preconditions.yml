@@ -205,6 +205,17 @@
         dest_path: /dev/shm/tmp
         arch: linux64
 
+- schema: Precondition
+  name: ssh_hint_precondition
+  data:
+    id: 1142
+    shortname: ssh-testprogram
+    precondition: |
+      precondition_type: testprogram
+      runtime: 30
+      program: /bin/uname_tap.sh
+      timeout: 90
+
 
 # -------------------- "perfmon" <== "perl", "tapper-tools"
 
@@ -265,6 +276,13 @@
     testrun_id: 114
     precondition_id: 1141
     succession: 1
+
+- schema: TestrunPrecondition
+  name: ssh_hint_precondition
+  data:
+    testrun_id: 114
+    precondition_id: 1142
+    succession: 2
 
 
 
