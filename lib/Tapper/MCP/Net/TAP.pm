@@ -200,6 +200,7 @@ sub upload_files
 
         my $path = $self->cfg->{paths}{output_dir};
         $path .= "/$testrunid/";
+        return 0 unless -d $path;
         my @files=`find $path -type f`;
         $self->log->debug(@files);
         foreach my $file(@files) {
