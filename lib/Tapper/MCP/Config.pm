@@ -753,7 +753,6 @@ sub get_install_config
 
         my $retval = $self->mcp_info->add_prc(0, $self->cfg->{times}{boot_timeout});
         return $retval if $retval;
-        $config->{db_preconditions} = [];
 
  PRECONDITION:
         foreach my $precondition_result ( $self->testrun->ordered_preconditions) {
