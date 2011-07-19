@@ -403,7 +403,7 @@ sub msg_start_install
         if ($self->cfg->{autoinstall}) {
                 my $net    = Tapper::MCP::Net->new();
                 $net->write_grub_file($self->cfg->{hostname},
-                                      "timeout 2\n\ntitle Boot from first hard disc\n\tchainloader (hd0,1)+1");
+                                      "timeout 2\n\ntitle Boot from first hard disc\n\tchainloader (hd0,1)+1\n");
 
         }
         return (0, $self->state_details->start_install);
