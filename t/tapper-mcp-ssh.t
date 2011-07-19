@@ -26,8 +26,8 @@ Log::Log4perl->init(\$string);
 my @commands;
 my $mock_scp = Test::MockModule->new('Net::SCP');
 my $mock_ssh = Test::MockModule->new('Net::SSH');
-$mock_scp->mock('put', sub { my (undef, @params) = @_; push @commands, {put => \@params}; 0; });
-$mock_ssh->mock('ssh_cmd', sub { my (@params) = @_; push @commands, {ssh => \@params}; 0;}); # Net::SSH doesn't offer OO interface
+$mock_scp->mock('put', sub { my (undef, @params) = @_; push @commands, {put => \@params}; 1; });
+$mock_ssh->mock('ssh', sub { my (@params) = @_; push @commands, {ssh => \@params}; 0;}); # Net::SSH doesn't offer OO interface
 
 my $child = Tapper::MCP::Child->new(114);
 my $retval = $child->generate_configs('nosuchhost');
