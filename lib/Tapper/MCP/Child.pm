@@ -156,7 +156,7 @@ Send TAP reports of MCP results in general and the results collected for each PR
 
 sub report_mcp_results
 {
-        my ($self, $net) = @_;
+        my ($self) = @_;
 
         my $headerlines = $self->mcp_headerlines();
         my $mcp_results = $self->state->state_details->results();
@@ -227,6 +227,9 @@ sub start_testrun
                         $self->log->debug("Starting SSH testrun on $hostname");
                         my $ssh_retval;
                         $ssh_retval = $net->install_client_package($hostname, $config->{client_package});
+                        return $self->handle_error("Starting Tapper on testmachine with SSH", $ssh_retval)
+                          if $ssh_retval;
+
                         $ssh_retval = $net->start_ssh($hostname);
                         return $self->handle_error("Starting Tapper on testmachine with SSH", $ssh_retval)
                           if $ssh_retval;
@@ -296,7 +299,7 @@ sub runtest_handling
 
         $self->log->debug('waiting for test to finish');
         $self->wait_for_testrun();
-        $self->report_mcp_results($net);
+        $self->report_mcp_results();
         return 0;
 
 }
