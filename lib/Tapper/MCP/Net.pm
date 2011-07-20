@@ -158,7 +158,7 @@ sub start_ssh
 
         my $tapper_script = $self->cfg->{files}{tapper_prc};
         my $tftp_host = $self->cfg->{mcp_host};
-        my $error = Net::SSH::ssh("$hostname $tapper_script --host $tftp_host");
+        my $error = Net::SSH::ssh("$hostname","$tapper_script --host $tftp_host");
         return "Can not start PRC with ssh: $error" if $error;
         return 0;
 }
@@ -196,7 +196,7 @@ sub install_client_package
                               );
         return "Can not copy client package to $hostname/$dest_path: ".$scp->{errstr} if not $success;
 
-        my $error = Net::SSH::ssh("$hostname tar -xzf $dest_path -C /");
+        my $error = Net::SSH::ssh("$hostname","tar -xzf $dest_path -C /");
         return "Can not unpack client package on $hostname: $error" if $error;
         return 0;
 }
