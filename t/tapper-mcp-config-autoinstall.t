@@ -121,7 +121,8 @@ my $retval = $child->runtest_handling('dickstone');
 is ($grubtext, 'timeout 2
 
 title Boot from first hard disc
-	chainloader (hd0,1)+1',
+	chainloader (hd0,1)+1
+',
     'Grubfile written');
 
 done_testing();
