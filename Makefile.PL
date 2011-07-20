@@ -44,6 +44,7 @@ requires 'MooseX::Declare'            => "0.27";
 requires 'MooseX::Traits'             => "0";
 #requires 'MooseX::Method::Signatures' => "0.16";
 requires 'Net::SSH'                   => 0;
+requires 'Net::SCP'                   => 0;
 requires 'Net::SSH::Expect'           => 0;
 requires 'Socket'                     => 0;
 requires 'Template'                   => 0;
