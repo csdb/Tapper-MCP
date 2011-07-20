@@ -61,11 +61,11 @@ is_deeply(shift @commands,
           'Copy clientpackage');
 is_deeply(shift @commands,
           {
-           'ssh' => ['nosuchhost tar -xzf /dev/shm/tmp/tapper-clientpkg.tgz -C /']},
+           'ssh' => ['nosuchhost','tar -xzf /dev/shm/tmp/tapper-clientpkg.tgz -C /']},
           'Unpack client package');
 is_deeply(shift @commands,
           {
-           'ssh' => ["nosuchhost $prc_program --host $mcp_host"]},
+           'ssh' => ["nosuchhost","$prc_program --host $mcp_host"]},
           'Start PRC in autoinstall mode');
           
 done_testing();
