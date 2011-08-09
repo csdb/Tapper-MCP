@@ -617,7 +617,7 @@ sub produce_preconds_in_arrayref
           unless ref $preconditions eq 'ARRAY';
 
         foreach my $precondition ( @$preconditions ) {
-                if ($precondition->{precondition_type} eq 'producer') {
+                if ($precondition->{precondition_type} eq 'produce') {
                         my $produced_preconditions = $self->produce($config, $precondition);
                         push @new_preconds, @$produced_preconditions;
                 } else {
@@ -646,7 +646,7 @@ sub produce_virt_precondition
 {
         my ($self, $config, $precondition) = @_;
         local $Data::DPath::USE_SAFE; # path not from user, Safe.pm deactivated for debug and speed
-        my $producers = $precondition ~~ dpath '//*[key eq "precondition_type" and value eq "producer"]/../..';
+        my $producers = $precondition ~~ dpath '//*[key eq "precondition_type" and value eq "produce"]/../..';
         foreach my $producer (@$producers) {
                 if (ref $producer eq 'ARRAY') {
                         my $error = $self->produce_preconds_in_arrayref($config, $producer);
@@ -657,7 +657,7 @@ sub produce_virt_precondition
                                         my $error = $self->produce_preconds_in_arrayref($config, $producer->{$key});
                                         return $error if $error;
                                 } elsif (ref($producer->{$key}) eq 'HASH' and
-                                         $producer->{$key}->{precondition_type} eq 'producer') {
+                                         $producer->{$key}->{precondition_type} eq 'produce') {
                                         my $produced_preconditions = $self->produce($config, $producer->{$key});
                                         $producer->{$key} = $produced_preconditions->[0];
                                 }
