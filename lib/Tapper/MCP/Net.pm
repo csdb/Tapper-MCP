@@ -197,7 +197,7 @@ sub install_client_package
         return "Can not copy client package to $hostname/$dest_path: ".$scp->{errstr} if not $success;
 
         my $error = Net::SSH::ssh("$hostname","tar -xzf $dest_path -C /");
-        return "Can not unpack client package on $hostname: $error" if $error;
+        return "Can not unpack client package on $hostname: $!" if $error;
         return 0;
 }
 
