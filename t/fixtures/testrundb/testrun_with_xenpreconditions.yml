@@ -369,25 +369,25 @@
       precondition_type: virt
       host:
         root:
-          precondition_type: producer
+          precondition_type: produce
           producer: DummyProducer
           option: ~
         preconditions:
-        - precondition_type: producer
+        - precondition_type: produce
           producer: DummyProducer
           option: ~    
         - precondition_type: nonproducer
       guests:
       - config:
-          precondition_type: producer
+          precondition_type: produce
           producer: DummyProducer
           option: ~    
         root:
-          precondition_type: producer
+          precondition_type: produce
           producer: DummyProducer
           option: ~
         testprogram:
-          precondition_type: producer
+          precondition_type: produce
           producer: DummyProducer
 
 
