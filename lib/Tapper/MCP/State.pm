@@ -493,10 +493,12 @@ sub msg_error_guest
         my $nr = $msg->{prc_number};
 
         $self->state_details->prc_state($nr, 'finished');
-        $self->state_details->prc_results
-          ( $nr, { error => 1,
-                   msg   => "Starting guest failed: ".$msg->{error},
-                 });
+        
+        my $result = { error => 1,
+                       msg   => "Starting guest $nr failed: ".$msg->{error},
+                     };
+        $self->state_details->results($result);
+        $self->state_details->prc_results( $nr, $result);
 
         if ($self->state_details->is_all_prcs_finished()) {
                 $self->state_details->current_state('finished');
