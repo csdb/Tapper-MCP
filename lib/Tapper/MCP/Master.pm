@@ -101,9 +101,15 @@ Set interrupt handlers for important signals. No parameters, no return values.
 
                 # give me a stack trace when ^C
                 $SIG{INT} = sub {
-                        $SIG{INT}='ignore'; # not reentrant, don't handle signal twice
-                        my $backtrace = Devel::Backtrace->new(-start=>2, -format => '%I. %s');
+                        $SIG{INT}  = 'ignore'; # not reentrant, don't handle signal twice
 
+                        # stop all children
+                        $SIG{CHLD} = 'ignore';
+                        foreach my $this_child (keys %{$self->child}) {
+                                kill 15, $self->child->{$this_child}->{pid};
+                        }
+
+                        my $backtrace = Devel::Backtrace->new(-start=>2, -format => '%I. %s');
                         print $backtrace;
 
                         exit -1;
