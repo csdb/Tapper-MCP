@@ -10,7 +10,7 @@ use Moose;
 use Socket;
 use Net::SSH;
 use Net::SCP;
-use Net::SSH::Expect;
+use Net::OpenSSH;
 use IO::Socket::INET;
 use Sys::Hostname;
 use File::Basename;
@@ -230,31 +230,23 @@ sub reboot_system
         ## waiting for services like NFS to shut down).
         if (not $hard) {
                 $self->log->info("Try reboot via Net::SSH::Expect"); # usually for the installed host/dom0 system
-                my $ssh = new Net::SSH::Expect( host     => $host,
-                                                password => 'xyzxyz',
-                                                user     => 'root',
-                                                raw_pty  => 1 );
-                my $output;
-                # Try login, with timeout
-                eval {
-                        local $SIG{ALRM} = sub{ die("timeout in login") };
-                        alarm(10);
-                        my $login_output = $ssh->login();
+                my $ssh = Net::OpenSSH->new(
+                                            host=>$host,
+                                            user=>'root',
+                                            password=>$self->cfg->{testmachine_password},
+                                            timeout=> '10',
+                                            kill_ssh_on_timeout => 1,
+                                            master_opts => [ -o => 'StrictHostKeyChecking=no',
+                                                             -o => 'UserKnownHostsFile=/dev/null' ]);
+                return "Couldn't establish SSH connection: ". $ssh->error if $ssh->error;
 
-                        if ($login_output)
-                        {
-                                $self->log->info("Logged in. Try exec reboot");
-                                $ssh->exec("stty raw -echo");
-                                $output = $ssh->exec("reboot");
-                        }
-                };
-                alarm(0);
-                if ($output and $output =~ 'The system is going down for reboot') {
-                        return 0;
-                } elsif ($@) {
-                        $self->log->error("Can not reboot $host with SSH: $@");
-                } else {
+                my $output;
+                $output = $ssh->capture("reboot");
+
+                if ($ssh->error) {
                         $self->log->error("Can not reboot $host with SSH: $output");
+                } else {
+                        return 0;
                 }
         }
 
