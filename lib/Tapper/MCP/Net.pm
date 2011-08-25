@@ -201,6 +201,45 @@ sub install_client_package
         return 0;
 }
 
+=head2 ssh_reboot
+
+Try to reboot the remote system using ssh. In case this is not possible
+an info message is written to the log.
+
+@param string - host name
+
+@return success - true
+@return error   - false
+
+=cut
+
+sub ssh_reboot
+{
+        my ($self, $host) = @_;
+        $self->log->info("Try reboot via ssh");
+        my $ssh = Net::OpenSSH->new(
+                                    host=>$host,
+                                    user=>'root',
+                                    password=>$self->cfg->{testmachine_password},
+                                    timeout=> '10',
+                                    kill_ssh_on_timeout => 1,
+                                    master_opts => [ -o => 'StrictHostKeyChecking=no',
+                                                     -o => 'UserKnownHostsFile=/dev/null' ]);
+        if ($ssh->error) {
+                $self->log->info("Couldn't establish SSH connection: ". $ssh->error);
+                return;
+        }
+
+        my $output;
+        $output = $ssh->capture("reboot");
+
+        if ($ssh->error) {
+                $self->log->info("Can not reboot $host with SSH: $output");
+                return
+        } else {
+                return 1;
+        }
+}
 
 
 =head2 reboot_system
@@ -229,25 +268,7 @@ sub reboot_system
         ## ssh and reboot (e.g. because they do not even shut down correctly
         ## waiting for services like NFS to shut down).
         if (not $hard) {
-                $self->log->info("Try reboot via Net::SSH::Expect"); # usually for the installed host/dom0 system
-                my $ssh = Net::OpenSSH->new(
-                                            host=>$host,
-                                            user=>'root',
-                                            password=>$self->cfg->{testmachine_password},
-                                            timeout=> '10',
-                                            kill_ssh_on_timeout => 1,
-                                            master_opts => [ -o => 'StrictHostKeyChecking=no',
-                                                             -o => 'UserKnownHostsFile=/dev/null' ]);
-                return "Couldn't establish SSH connection: ". $ssh->error if $ssh->error;
-
-                my $output;
-                $output = $ssh->capture("reboot");
-
-                if ($ssh->error) {
-                        $self->log->error("Can not reboot $host with SSH: $output");
-                } else {
-                        return 0;
-                }
+                return 0 if $self->ssh_reboot();
         }
 
         # else trigger reset switch
