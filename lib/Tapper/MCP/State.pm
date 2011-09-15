@@ -713,6 +713,8 @@ sub msg_quit
         $result->{comment} = $msg->{error} if $msg->{error};
         $self->state_details->results($result);
         $self->state_details->current_state('finished');
+        $self->state_details->set_all_prcs_current_state('finished');
+
         return (1, undef);
 }
 

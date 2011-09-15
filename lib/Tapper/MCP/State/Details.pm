@@ -141,6 +141,24 @@ sub current_state
         return $self->state_details->{current_state};
 }
 
+=head2 set_all_prcs_current_state
+
+Set current_state of all PRCs to given state.
+
+@param  string - state name
+
+=cut
+
+sub set_all_prcs_current_state
+{
+        my ($self, $state) = @_;
+        if (defined $state) {
+                for ( my $prc_num = 0; $prc_num < @{$self->state_details->{prcs}}; $prc_num++) {
+                        $self->state_details->{prcs}[$prc_num]{current_state} = $state;
+                }
+                $self->db_update;
+        }
+}
 
 =head2 installer_timeout_current_date
 
