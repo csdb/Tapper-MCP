@@ -708,7 +708,7 @@ sub msg_quit
         my ($self, $msg) = @_;
 
         my $result = {error => 1,
-                      msg => "Testrun cancelled during state '".$self->state_details->current_state()."'",
+                      msg => "Testrun cancelled during state '".$self->state_details->current_state()."': ".($msg->{error} // "no reason provided"),
                      };
         $result->{comment} = $msg->{error} if $msg->{error};
         $self->state_details->results($result);
