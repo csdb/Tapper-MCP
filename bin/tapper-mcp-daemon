@@ -8,7 +8,7 @@ use warnings;
 use Tapper::MCP::Startup;
 use App::Daemon 'daemonize';
 $App::Daemon::as_user = "root";
-$App::Daemon::logfile = "/tmp/tapper-mcp-daemon.log";
+$App::Daemon::logfile = "/var/log/tapper-mcp-daemon.log";
 $App::Daemon::pidfile = "/tmp/tapper-mcp-daemon.pid";
 daemonize();
 my $mcp = new Tapper::MCP::Master;
