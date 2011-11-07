@@ -507,8 +507,6 @@ sub update_installer_grub
                 my $tftp_server = $self->cfg->{tftp_server_address};
 
                 $config->{installer_grub} = <<END;
-serial --unit=0 --speed=115200
-terminal serial
 
 default 0
 timeout 2
