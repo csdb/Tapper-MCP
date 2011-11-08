@@ -268,7 +268,7 @@ sub reboot_system
         ## ssh and reboot (e.g. because they do not even shut down correctly
         ## waiting for services like NFS to shut down).
         if (not $hard) {
-                return 0 if $self->ssh_reboot();
+                return 0 if $self->ssh_reboot($host);
         }
 
         # else trigger reset switch
