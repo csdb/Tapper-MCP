@@ -55,9 +55,13 @@ sub conserver_connect
         print $sock "call $system\n";
         my $port=<$sock>;
         if ($port=~ /@(\w+)/) {
+                close $sock;
                 return $self->conserver_connect ($system,$1,$conserver_port,$conuser);
         } else {
-                return($port) unless $port=~/^\d+/;
+                if ($port !~ /^\d+/) {
+                        close $sock;
+                        return $port; # answer in $port is an error message
+                }
         }
 
 
