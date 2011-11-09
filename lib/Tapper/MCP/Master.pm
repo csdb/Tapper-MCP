@@ -160,7 +160,11 @@ failure.
 
 
                 $path .= "console";
-                open(my $fh,">>",$path) or return "Can't open console log file $path for test on host $system:$!";
+                open(my $fh,">>",$path) or do {
+                        $self->readset->remove($console);
+                        close $console;
+                        return "Can't open console log file $path for test on host $system:$!";
+                }
                 $self->consolefiles->[$console->fileno()] = $fh;
                 return $console;
         }
@@ -241,24 +245,27 @@ Read console log from a handle and write it to the appropriate file.
                 my ($buffer, $readsize);
                 my $timeout = 2;
                 my $maxread = 1024; # XXX configure
+                my $errormsg;
+
                 eval {
-                        local $SIG{ALRM}=sub{die 'Timeout'};
+                        local $SIG{ALRM} = sub { die "Timeout ($timeout) reached" };
                         alarm $timeout;
                         $readsize  = sysread($handle, $buffer, $maxread);
                 };
                 alarm 0;
-                if ($@) {
-                        return ("Timeout of $timeout seconds reached while trying to read from console")
-                          if $@=~/Timeout/;
-                        return ("Error while reading from console handle: $@");
-                }
 
-                return "Can't read from console:$!" if not defined $readsize;
+                $errormsg = "Error while reading console: $@" if $@;
+                $errormsg = "Can't read from console: $!"     if not defined $readsize;
 
                 my $file    = $self->consolefiles->[$handle->fileno()];
                 return "Can't get console file:$!" if not defined $file;
-                $readsize     = syswrite($file, $buffer, $readsize);
+
+                $buffer  .= "*** Tapper: $errormsg ***" if $errormsg;
+
+                $readsize = syswrite($file, $buffer);
                 return "Can't write console data to file :$!" if not defined $readsize;
+
+                return $errormsg if $errormsg;
                 return 0;
         }
 
