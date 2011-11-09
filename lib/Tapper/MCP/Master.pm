@@ -160,7 +160,8 @@ failure.
 
 
                 $path .= "console";
-                open(my $fh,">>",$path) or do {
+                my $fh;
+                open($fh,">>",$path) or do {
                         $self->readset->remove($console);
                         close $console;
                         return "Can't open console log file $path for test on host $system:$!";
