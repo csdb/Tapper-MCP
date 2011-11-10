@@ -14,6 +14,7 @@ t/tapper_schema_testrundb_test.sqlite
 t/tapper_schema_testsdb_testdb.sqlite
 t/tapper_schema_hardwaredb_test.sqlite
 t/tapper_schema_testrundb_test.sqlite-journal
+t/tapper_schema_reportsdb_test.sqlite-journal
 tapper_testrundb_development.sqlite
 tapper_reportsdb_development.sqlite
 MANIFEST
