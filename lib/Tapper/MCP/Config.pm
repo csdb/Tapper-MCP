@@ -491,6 +491,18 @@ sub update_installer_grub
         my $tapper_host        = $config->{mcp_host};
         my $tapper_port        = $config->{mcp_port};
 
+        my $default_installer_grub = <<END;
+serial --unit=0 --speed=115200
+terminal serial
+
+default 0
+timeout 2
+
+title Test
+     tftpserver \$TAPPER_TFTPSERVER
+     kernel \$TAPPER_KERNEL earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=\$TAPPER_NFSROOT \$TAPPER_OPTIONS
+END
+
         my $packed_ip          = gethostbyname($tapper_host);
         if (not defined $packed_ip) {
                 return "Can not get an IP address for tapper_host ($tapper_host): $!";
@@ -502,24 +514,18 @@ sub update_installer_grub
 
         if (not $config->{installer_grub} ) {
 
-                my $nfsroot     = $config->{paths}{nfsroot};
-                my $kernel      = $config->{files}{installer_kernel};
-                my $tftp_server = $self->cfg->{tftp_server_address};
-
-                $config->{installer_grub} = <<END;
-
-default 0
-timeout 2
-
-title Test
-     tftpserver $tftp_server
-     kernel $kernel earlyprintk=serial,ttyS0,115200 console=ttyS0,115200 root=/dev/nfs ro ip=dhcp nfsroot=$nfsroot \$TAPPER_OPTIONS
-END
+                $config->{installer_grub} = $self->cfg->{mcp}{installer}{default_grub} || $default_installer_grub;
         }
 
-        my $installer_grub        =  $config->{installer_grub};
-        $config->{installer_grub} =~
-          s|\$TAPPER_OPTIONS|tapper_ip=$tapper_ip tapper_port=$tapper_port tapper_host=$tapper_host tapper_environment=$tapper_environment testrun=$testrun|g;
+        my $nfsroot     = $config->{paths}{nfsroot};
+        my $kernel      = $config->{files}{installer_kernel};
+        my $tftp_server = $self->cfg->{tftp_server_address};
+
+        # replace $TAPPER_PLACEHOLDERS in grub config file
+        $config->{installer_grub} =~ s|\$TAPPER_OPTIONS\b|tapper_ip=$tapper_ip tapper_port=$tapper_port tapper_host=$tapper_host tapper_environment=$tapper_environment testrun=$testrun|g;
+        $config->{installer_grub} =~ s|\$TAPPER_NFSROOT\b|$nfsroot|g;
+        $config->{installer_grub} =~ s|\$TAPPER_TFTPSERVER\b|$tftp_server|g;
+        $config->{installer_grub} =~ s|\$TAPPER_KERNEL\b|$kernel|g;
 
         return $config;
 }
