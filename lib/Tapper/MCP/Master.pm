@@ -165,7 +165,7 @@ failure.
                         $self->readset->remove($console);
                         close $console;
                         return "Can't open console log file $path for test on host $system:$!";
-                }
+                };
                 $self->consolefiles->[$console->fileno()] = $fh;
                 return $console;
         }

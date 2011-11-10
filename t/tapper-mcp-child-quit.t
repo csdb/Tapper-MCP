@@ -108,7 +108,7 @@ is($tap_reports[1], "1..1
 # Tapper-machine-name: bullock
 # Tapper-section: MCP overview
 # Tapper-reportgroup-primary: 1
-not ok 1 - Testrun cancelled during state 'installing'
+not ok 1 - Testrun cancelled during state 'installing': killed by admin
 # killed by admin
 ", 'Report for quit during installation');
 
@@ -145,7 +145,7 @@ is($tap_reports[1], "1..2
 # Tapper-section: MCP overview
 # Tapper-reportgroup-primary: 1
 ok 1 - Installation finished
-not ok 2 - Testrun cancelled during state 'reboot_test'
+not ok 2 - Testrun cancelled during state 'reboot_test': killed by admin
 # killed by admin
 ", 'Report for quit during installation');
 
